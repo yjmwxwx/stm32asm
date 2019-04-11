@@ -1,0 +1,105 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	
+   2              	
+   3              	@@@ Directives
+   4              	        .thumb                  
+   5              	        .syntax unified
+   6              	
+   7              	@@@ Equates
+   8              	        .equ RAMBASE, 0x20000000 
+   9              	        .equ STACKINIT,   0x20005000
+  10              	       
+  11              	        .equ LEDDELAY,    800000
+  12              	        
+  13              	.section .text
+  14              	        .org 0
+  15              	
+  16              	@@@ Vectors
+  17              	vectors:        
+  18 0000 00500020 	        .word STACKINIT         @ stack pointer value when stack is empty
+  19 0004 1D000000 	        .word _start + 1        @ reset vector (manually adjust to odd for thumb)
+  20 0008 55000000 	        .word _nmi_handler + 1  @ 
+  21 000c 55000000 	        .word _hard_fault  + 1  @ 
+  22 0010 55000000 	        .word _memory_fault + 1 @ 
+  23 0014 55000000 	        .word _bus_fault + 1    @ 
+  24 0018 55000000 	        .word _usage_fault + 1  @ 
+  25              	
+  26              	_start:
+  27              	
+  28 001c 1048     	  	ldr r0, = 0x40021018 
+  29 001e 1149     		ldr r1, = 0x80C
+  30 0020 0160     		str r1, [r0]
+  31              	
+  32              	
+  33              	
+  34 0022 1148     		ldr r0, = 0x40010804
+  35 0024 1149     		ldr r1, = 0x44444333
+  36 0026 0160     		str r1, [r0]
+  37              	
+  38 0028 1148     		ldr r0, = 0x40010C04
+  39 002a 1249     		ldr r1, = 0x33344444
+  40 002c 0160     		str r1, [r0]
+  41              	
+  42 002e 4FF00002 	        mov r2, 0             
+  43 0032 4FF4E063 	        mov r3, 0x700
+  44 0036 4FF46044 		mov r4, 0xE000       
+  45 003a 0F4E     	        ldr r6, = 0x4001080C 
+  46 003c 0F4F     		ldr r7, = 0x40010C0C  
+  47              	        
+  48              	loop:
+  49 003e 3260     	        str r2, [r6] 
+  50 0040 3A60     		str r2, [r7]          
+  51 0042 0F49     	        ldr r1, = LEDDELAY
+  52              	delay1:
+  53 0044 0139     	        subs r1, 1
+  54 0046 FDD1     	        bne delay1
+  55              	        
+  56 0048 3360     	        str r3, [r6]
+  57 004a 3C60     		str r4, [r7]          
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 004c 0C49     	        ldr r1, = LEDDELAY
+  59              	delay2:
+  60 004e 0139     	        subs r1, 1
+  61 0050 FDD1     	        bne delay2
+  62              	
+  63 0052 F4E7     	        b loop                
+  64              	_dummy:                       
+  65              	_nmi_handler:
+  66              	_hard_fault:
+  67              	_memory_fault:
+  68              	_bus_fault:
+  69              	_usage_fault:
+  70 0054 00F10100 	        add r0, 1
+  71 0058 01F10101 	        add r1, 1
+  72 005c FAE70000 	        b _dummy    
+  72      18100240 
+  72      0C080000 
+  72      04080140 
+  72      33434444 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:8      *ABS*:20000000 RAMBASE
+         led-stm32.s:9      *ABS*:20005000 STACKINIT
+         led-stm32.s:11     *ABS*:000c3500 LEDDELAY
+         led-stm32.s:17     .text:00000000 vectors
+         led-stm32.s:26     .text:0000001c _start
+         led-stm32.s:65     .text:00000054 _nmi_handler
+         led-stm32.s:66     .text:00000054 _hard_fault
+         led-stm32.s:67     .text:00000054 _memory_fault
+         led-stm32.s:68     .text:00000054 _bus_fault
+         led-stm32.s:69     .text:00000054 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:28     .text:0000001c $t
+         led-stm32.s:48     .text:0000003e loop
+         led-stm32.s:52     .text:00000044 delay1
+         led-stm32.s:59     .text:0000004e delay2
+         led-stm32.s:64     .text:00000054 _dummy
+         led-stm32.s:72     .text:0000005e $d
+
+NO UNDEFINED SYMBOLS

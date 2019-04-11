@@ -1,0 +1,483 @@
+<html>
+<head>
+  <title>Программирование - Быстрое преобразование Фурье</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/styles2.css">
+</head>
+<body>
+ <div id=hdr>
+  <div id=psi></div>
+  <div id=l1></div><div id=l2></div><div id=l3></div><div id=l4></div>
+  <div id=capt2>Зеркальный эффект</div>
+ </div>
+<div id=body>
+  <div id=mi><a href="fft7.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft9.htm">[следующая глава]</a></div>
+<div id=text>
+
+<h2>Что такое зеркальный эффект.</h2><p>
+
+Предположим, что исходный сигнал состоял из суммы гармоник.
+<nobr>f<sub>s</sub>(t) = A<sub>s</sub> cos(2&pi;tm<sub>s</sub> / T + &phi;<sub>s</sub>)</nobr>. Пусть мы этот
+сигнал подвергли дискретизации, выполнили над ним прямое и обратное
+преобразование Фурье. Представили в виде суммы гармоник <nobr>G<sub>k</sub>(t) = A<sub>k</sub> cos(2&pi;tk / T + &phi;<sub>k</sub>)</nobr>, как
+это описано в предыдущей главе. Спрашивается, эти гармоники <nobr>G<sub>k</sub></nobr> -
+те же самые, что и исходные гармоники <nobr>f<sub>s</sub></nobr> или нет? Оказывается, нет, не те.
+Но кое-какую информацию об исходных гармониках все же можно попытаться восстановить.
+<p>
+Эта задача имеет практический интерес. Пусть нам дан некий сигнал, который физически
+получился как сумма гармонических колебаний (или близких к ним). Простейший пример: 
+кто-то сыграл аккорд, аккорд записан как звуковое колебание в виде mp3 или wav-файла; и надо 
+восстановить, из каких нот аккорд состоял. Или другой случай. Во время испытаний 
+самолета возик флаттер (разрушительные нарастающие колебания), самолет разбился, но самописцы
+в черном ящике записали изменение перегрузки (суммарное механическое колебание). Надо 
+посмотреть, из каких гармоник состояло это колебание. Каждой гармонике соответствует 
+некоторая часть конструкции. В результате можно понять, какие части самолета колебались сильнее
+всего и вызвали флаттер.
+<p>
+Вернемся к предыдущей ситуации.
+<p>Дана функция <nobr>f(t)</nobr> на отрезке <nobr>[0, T]</nobr>.
+<p>Выполнена ее дискретизация, для чего отрезок разбит на 
+<nobr>N</nobr> равных частей в точках <nobr>t<sub>n</sub> = Tn/N</nobr>
+и вычислены значения функции в этих точках: <nobr>{x} : x<sub>n</sub> = f(t<sub>n</sub>) = f(Tn/N)</nobr>.
+<p>
+Пусть выполнено прямое дискретное преобразование Фурье (далее - ДПФ) <nobr>{X} : X<sub>k</sub> = NA<sub>k</sub>e<sup> j&phi;<sub>k</sub></sup></nobr>, и 
+функция разложена на сумму из <nobr>N</nobr> гармоник:
+<p>
+<nobr>G<sub>k</sub>(t) = A<sub>k</sub> cos(2&pi;tk / T + &phi;<sub>k</sub>)</nobr>
+<p>
+Теперь предположим, что наша исходная функция сама представляла 
+собой такую гармонику:
+
+<p><nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr>. 
+
+<p>
+
+Получится ли в результате ее преобразования последовательность <nobr>{X}</nobr>,
+в которой все элементы равны нулю, кроме элемента <nobr>X<sub>m</sub> = NA<sub>m</sub>e<sup> j&phi;<sub>m</sub></sup></nobr>, 
+который дает как раз эту гармонику?
+
+<p><nobr>G<sub>m</sub>(t) = A<sub>m</sub> cos(2&pi;tm / T + &phi;<sub>m</sub>) = f(t),  A<sub>m</sub> = A, &phi;<sub>m</sub> = &phi;</nobr>
+
+<p>
+
+Как уже говорилось, нет, нас ждет разочарование. Вместо этой одной гармоники
+мы получим две:
+
+<p>
+
+<nobr>G<sub>m</sub>(t) = (A/2) cos(2&pi;tm / T + &phi;) = f(t) / 2 = f'(t)</nobr>
+<p>и<p>
+<nobr>G<sub>N-m</sub>(t) = (A/2) cos(2&pi;t(N - m) / T - &phi;) = f''(t)</nobr>
+<p>
+Как видите у них половинные амплитуды, противоположные фазы, а 
+частоты зеркально симметрично расположены на отрезке <nobr>[0, N]</nobr>.
+Это - тот самый зеркальный эффект. 
+
+<h2>Неоднозначность представления суммой гармоник.</h2><p>
+
+Преобразуем сумму этих гармоник по формуле суммы косинусов:
+
+<p><img src="image001.gif" align=center>
+
+<p>Итого:
+
+<p><nobr>f'(t) + f''(t) = A cos(&pi;tN / T) cos(2&pi;tm / T - &pi;tN / T + &phi;)</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(30)
+
+<p>А нам требовалось:
+
+<p><nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(31)
+
+<p>Однако, формулы (30) и (31) дают один и тот же результат в точках 
+<nobr>t<sub>n</sub> = Tn / N</nobr>. В самом деле, подставим
+<nobr>Tn / N</nobr> вместо <nobr>t</nobr> сначала в (30):
+
+<p><nobr>f'(t) + f''(t) =
+</nobr>
+<br>
+<nobr>
+= A cos(&pi;TnN / TN)
+cos(2&pi;Tnm / TN - &pi;TnN / TN + &phi;) =
+</nobr>
+<br>
+<nobr>
+= A cos(&pi;n) 
+cos(2&pi;nm / N - &pi;n + &phi;) = ...
+</nobr>
+
+<p>Второй множитель разложим по формуле косинуса разности, отделив 
+<nobr>&pi;n</nobr>:
+
+<p>
+<nobr>... = A cos(&pi;n) 
+[cos(2&pi;nm / N + &phi;)
+cos(&pi;n) +
+</nobr><br><nobr>
++ sin(2&pi;nm / N + &phi;)
+sin(&pi;n)] = ...
+</nobr>
+
+<p>
+
+Учитывая, что для целого <nobr>n</nobr> выполняется <nobr>sin(&pi;n) = 0</nobr>
+и <nobr>cos<sup>2</sup>(&pi;n) = 1</nobr>, получаем:
+
+<p>
+<nobr>... = A cos(&pi;n) 
+[cos(2&pi;nm / N + &phi;)
+cos(&pi;n)] = 
+</nobr>
+<br>
+<nobr>= A cos<sup>2</sup>(&pi;n) 
+cos(2&pi;nm / N + &phi;)
+ = A cos(2&pi;nm / N + &phi;)
+</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(32)
+
+<p>
+
+Теперь подставим <nobr>Tn / N</nobr> вместо <nobr>t</nobr> в (31):
+
+<p><nobr>f(t) = A cos(2&pi;tm / T + &phi;)
+= A cos(2&pi;Tnm / TN + &phi;) =
+</nobr><br><nobr>
+= A cos(2&pi;nm / N + &phi;)
+</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(33)
+
+<p>
+
+Формулы (32) и (33) совпадают, что и требовалось доказать.
+
+<p>
+
+Из этого примера следует важный вывод. Заданная дискретная 
+последовательность <nobr>{x}</nobr> может быть разложена 
+в общем случае на <b><i>разные</i></b> суммы гармоник 
+<nobr>G<sub>k</sub>(t)</nobr>. Даже в элементарном случае,
+когда исходная функция представляла собой одну гармонику,
+в результате можно получить две. То есть, разложение
+дискретной последовательности на гармоники <b><i>неоднозначно</i></b>.
+
+<p>
+
+Этим эффектом мы обязаны именно дискретизации. Дело в том, что
+если вместо ДПФ использовать его 
+непрерывный аналог - разложение в ряд Фурье непрерывной функции
+или непрерывное преобразование Фурье
+<nobr>f(t)</nobr>, то мы получим единственую
+правильную гармонику <nobr>G<sub>m</sub>(t) = A cos(2&pi;tm / T + &phi;) = f(t)</nobr>. Если же мы применяем ДПФ,
+то получим сумму гармоник, которая только в точках дискретизации
+совпадает с исходной функцией:
+
+<p><img src="image002.gif">
+
+<p>
+
+На этом графике для <nobr>N = 8</nobr> и <nobr>m = 2</nobr> <font color=#0000CC>синим цветом</font>
+показана исходная гармоника <nobr>f(t)</nobr> и две гармоники,
+которые получаются в результате преобразвания Фурье: <nobr>f'(t)</nobr>
+<font color=#00CC00>зеленым цветом</font> и <nobr>f''(t)</nobr> 
+<font color=#CC0000>красным</font>. В точках дискретизации, отмеченных 
+вертикальными штрихами, сумма гармоник <nobr>f'(t)</nobr> и <nobr>f''(t)</nobr>
+совпадает с гармоникой <nobr>f(t)</nobr>.
+
+<p>
+
+Заметим также, что тот же результат преобразования получился бы, если
+бы мы в качестве исходной функции <nobr>f(t)</nobr> взяли 
+<nobr>2f''(t)</nobr> или <nobr>f'(t) + f''(t)</nobr>. 
+Это следует из того, что в результате
+дискретизации была бы получена та же последовательность <nobr>{x}</nobr>
+и результаты ДПФ, естественно, дали бы то же 
+самое.
+
+<p>
+
+Итак, мы имеем правило:
+
+<p>
+
+Разложение на гармоники, когда исходные данные представлены дискретным
+набором точек <nobr>{x}</nobr> является принципиально неоднозначным.
+Функции 
+<br><nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr>,
+<br><nobr>2f''(t) = A cos(2&pi;t(N-m) / T - &phi;)</nobr> и
+<br><nobr>f'(t) + f''(t) = (A/2) cos(2&pi;tm / T + &phi;) + (A/2) cos(2&pi;t(N-m) / T - &phi;)</nobr>
+<br>дают после дискретизации одни и те же исходные данные и те же результаты ДПФ.
+
+<h2>Доказательство зеркального эффекта.</h2><p>
+
+В начале главы упоминалось о том, что в результате ДПФ гармонической
+функции на практике получаются две гармоники. Однако этот эмпирический 
+факт не доказывался. Докажем теперь строго, какие гармоники дает 
+произвольная гармоническая функция 
+<nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr> 
+при целочисленном
+<nobr>m <img src="../img/in.gif"> [0, N[</nobr>.
+
+<p>Напомним формулу прямого ДПФ:
+
+<p><img src="image006.gif">
+
+<p>В данном случае
+
+<p><nobr>x<sub>n</sub> = 
+f(t<sub>n</sub>) = f(Tn / N) =
+A cos(2&pi;Tnm / NT + &phi;) = 
+A cos(2&pi;nm / N + &phi;)</nobr>
+
+<p>Введем обозначения:
+
+<p><nobr>w<sub>n</sub> = 2&pi;n / N</nobr>
+<p><nobr>Z<sub>k,n</sub> = (f(t<sub>n</sub>) / A) e<sup>-j2&pi;kn / N</sup>
+= cos(w<sub>n</sub>m + &phi;) e<sup>-jw<sub>n</sub>k</sup>
+</nobr>
+
+<p>В результате формула прямого ДПФ упрощается до:
+
+<p><nobr>X<sub>k</sub> = A<img src="image004.gif" align=center>Z<sub>k,n</sub></nobr>
+
+<p>Теперь преобразуем <nobr>Z<sub>k,n</sub></nobr>:
+
+<p>
+<nobr>Z<sub>k,n</sub> = cos(w<sub>n</sub>m + &phi;) e<sup>-jw<sub>n</sub>k</sup> = </nobr>
+<br>применяем формулу Эйлера:</br>
+<nobr>= cos(w<sub>n</sub>m + &phi;) (cos(-w<sub>n</sub>k) + j sin(-w<sub>n</sub>k)) = </nobr>
+<br>
+<nobr>= cos(w<sub>n</sub>m + &phi;) (cos(w<sub>n</sub>k) - j sin(w<sub>n</sub>k)) = </nobr>
+<br>раскрываем скобки:</br>
+<nobr>= cos(w<sub>n</sub>m + &phi;) cos(w<sub>n</sub>k) - j cos(w<sub>n</sub>m + &phi;) sin(w<sub>n</sub>k) = </nobr>
+<br>применяем формулы произведения косинусов и синуса на косинус:</br>
+<nobr>= (1/2)[cos((w<sub>n</sub>m + &phi;) - w<sub>n</sub>k) + cos((w<sub>n</sub>m + &phi;) + w<sub>n</sub>k)] - </nobr>
+<br>
+<nobr>= - (j/2)[sin(w<sub>n</sub>k - (w<sub>n</sub>m + &phi;)) + sin(w<sub>n</sub>k + (w<sub>n</sub>m + &phi;))] = </nobr>
+<br>перегруппировываем слагаемые:</br>
+<nobr>= (1/2)[cos((w<sub>n</sub>m + &phi;) - w<sub>n</sub>k)
++ cos((w<sub>n</sub>m + &phi;) + w<sub>n</sub>k) - </nobr>
+<br>
+<nobr> - j sin(w<sub>n</sub>k - (w<sub>n</sub>m + &phi;))
+- j sin(w<sub>n</sub>k + (w<sub>n</sub>m + &phi;))] = </nobr>
+<br>
+<nobr>= (1/2)[cos((w<sub>n</sub>m + &phi;) - w<sub>n</sub>k)
++ cos((w<sub>n</sub>m + &phi;) + w<sub>n</sub>k) + </nobr>
+<br>
+<nobr> + j sin((w<sub>n</sub>m + &phi;) - w<sub>n</sub>k)
+- j sin((w<sub>n</sub>m + &phi;) + w<sub>n</sub>k)] = </nobr>
+<br>
+<nobr>= (1/2)[cos(w<sub>n</sub>m + &phi; - w<sub>n</sub>k)
++ j sin(w<sub>n</sub>m + &phi; - w<sub>n</sub>k) + </nobr>
+<br>
+<nobr> + cos(w<sub>n</sub>m + &phi; + w<sub>n</sub>k)
+- j sin(w<sub>n</sub>m + &phi; + w<sub>n</sub>k)] = </nobr>
+<br>применяем формулу Эйлера (только наоборот):</br>
+<nobr>= (1/2)[e<sup> j(w<sub>n</sub>m + &phi; - w<sub>n</sub>k)</sup>
++ e<sup> -j(w<sub>n</sub>m + &phi; + w<sub>n</sub>k</sup>)] =</nobr>
+<br>и выносим за скобки все, что можно:</br>
+<nobr>= (1/2)[e<sup> j&phi;</sup>e<sup> jw<sub>n</sub>(m - k)</sup>
++ e<sup> -j&phi;</sup>e<sup> -jw<sub>n</sub>(m + k)</sup>]</nobr>
+
+<p>Теперь подставляем полученные величины в сумму ДПФ и преобразуем:
+
+<p><nobr>X<sub>k</sub> = A<img src="image004.gif" align=center>Z<sub>k,n</sub> =</nobr>
+<br>
+<nobr>= A<img src="image004.gif" align=center>(1/2)[e<sup> j&phi;</sup>e<sup> jw<sub>n</sub>(m - k)</sup>
++ e<sup> -j&phi;</sup>e<sup> -jw<sub>n</sub>(m + k)</sup>] = </nobr>
+<br>
+<nobr>= (A/2)e<sup> j&phi;</sup><img src="image004.gif" align=center>e<sup> jw<sub>n</sub>(m - k)</sup>
++ (A/2)e<sup> -j&phi;</sup><img src="image004.gif" align=center>e<sup> -jw<sub>n</sub>(m + k)</sup> = </nobr>
+<br>подставляем <nobr>w<sub>n</sub>:<br>
+<nobr>= (A/2)e<sup> j&phi;</sup><img src="image004.gif" align=center>e<sup> j2&pi;n(m - k) / N</sup>
++ (A/2)e<sup> -j&phi;</sup><img src="image004.gif" align=center>e<sup> -j2&pi;n(m + k) / N</sup> = </nobr>
+<br>вводим обозначения для сумм:<br>
+<nobr>= (A/2)e<sup> j&phi;</sup>S<sub>1</sub>
++ (A/2)e<sup> -j&phi;</sup>S<sub>2</sub></nobr>
+
+<p>Легко видеть, что суммы <nobr>S<sub>1</sub></nobr> и
+<nobr>S<sub>2</sub></nobr> являются геометрическими прогрессиями,
+а формула суммы геометрической прогрессии нам известна:
+
+<p><nobr>S<sub>N</sub> = a<sub><sub>0</sub></sub>(q<sup>N</sup> - 1) / (q - 1), q &ne; 1</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(34)
+
+<p>Первый элемент прогрессии в обоих случаях равен <nobr>a<sub><sub>0</sub></sub> = 1</nobr>.
+
+<p>Знаменатели прогрессий равны 
+<p><nobr>q<sub><sub>1</sub></sub> = e<sup> j2&pi;(m - k) / N</sup></nobr> для <nobr>S<sub>1</sub></nobr>
+<p>и
+<p><nobr>q<sub><sub>2</sub></sub> = e<sup> -j2&pi;(m + k) / N</sup></nobr> для <nobr>S<sub>2</sub></nobr>.
+
+<p>Условие <nobr>q &ne; 1</nobr> вынуждает нас решить уравнения:
+
+<p><nobr>e<sup> j2&pi;(m - k) / N</sup> = 1</nobr>,
+<p>и
+<p><nobr>e<sup> -j2&pi;(m + k) / N</sup> = 1</nobr>,
+
+<p>Учитывая Теорему 0, получим, что условие <nobr>q &ne; 1</nobr> 
+не выполняется при <nobr>k = m</nobr> для <nobr>S<sub>1</sub></nobr> и
+при <nobr>k = (N - m)</nobr> для <nobr>S<sub>2</sub></nobr>. 
+
+<p>В случае, когда выполняются оба условия:
+<nobr>k = m</nobr> и <nobr>k = (N - m)</nobr>, то есть <nobr>k = m = N /2</nobr> обе суммы нельзя считать по формуле
+геометрической прогресии.
+
+<p>В случае <nobr>k = m</nobr> для <nobr>S<sub>1</sub></nobr> придется 
+выполнить небольшие дополнительные преобразования:
+
+<p><nobr>S<sub>1</sub> = <img src="image004.gif" align=center>e<sup> j2&pi;n(m - m) / N</sup>
+= <img src="image004.gif" align=center>1 = N</nobr>
+
+<p>Аналогично в случае <nobr>k = N - m</nobr> для <nobr>S<sub>2</sub></nobr>:
+
+<p><nobr>S<sub>2</sub> = <img src="image004.gif" align=center>e<sup> -j2&pi;n(m + N - m) / N</sup> =
+<img src="image004.gif" align=center>e<sup> -j2&pi;n</sup> =
+<img src="image004.gif" align=center>1 = N
+</nobr>
+
+<p>В случае <nobr>k = m = N / 2</nobr> имеем:
+
+<p><nobr>X<sub>k</sub> = (A/2)Ne<sup> j&phi;</sup> + (A/2)Ne<sup> -j&phi;</sup> =</nobr>
+<br><nobr>= (A/2)N(e<sup> j&phi;</sup> + e<sup> -j&phi;</sup>) =</nobr>
+<br><nobr>= (A/2)N(cos &phi; + j sin &phi; + cos &phi; - j sin &phi;) =</nobr>
+<br><nobr>= (A/2)N(2 cos &phi;) =</nobr>
+<br><nobr>= ANcos &phi;</nobr>
+
+<p>В случае <nobr>k = m = 0</nobr> имеем:
+
+<p><nobr>X<sub>k</sub> = (A/2)e<sup> j&phi;</sup>N + (A/2)e<sup> -j&phi;</sup>N
+= (A/2)N(e<sup> j&phi;</sup> + e<sup> -j&phi;</sup>) =</nobr>
+<p><nobr>= (A/2)N(cos &phi; + jsin &phi; + cos &phi; - jsin &phi;) = ANcos &phi;</nobr>
+
+<p>Наконец, получаем формулу для <nobr>X<sub>k</sub></nobr>:
+
+<p>
+Для <nobr>k = m = N / 2</nobr> или <nobr>k = m = 0</nobr>:<br>
+<nobr>X<sub>k</sub> = ANcos &phi;</nobr>
+<br>Для <nobr>k = m &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)Ne<sup> j&phi;</sup> + (A/2)e<sup> -j&phi;</sup>(e<sup> -j4&pi;m</sup> - 1) / (e<sup> -j4&pi;m / N</sup> - 1)</nobr>
+<br>Для <nobr>k = (N - m) &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)e<sup> j&phi;</sup>(e<sup> j4&pi;m</sup> - 1) / (e<sup> j4&pi;m / N</sup> - 1) + (A/2)Ne<sup> -j&phi;</sup></nobr>
+<br>Для остальных k:<br>
+<nobr>X<sub>k</sub> = (A/2)e<sup> j&phi;</sup>(e<sup> j2&pi;(m - k)</sup> - 1) / (e<sup> j2&pi;(m - k) / N</sup> - 1) +</nobr>
+<br>
+<nobr>+ (A/2)e<sup> -j&phi;</sup>(e<sup> -j2&pi;(m + k)</sup> - 1) / (e<sup> -j2&pi;(m + k) / N</sup> - 1)</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(35)
+
+<p>Заметим, что эта формула получена без использования 
+факта целочисленности <nobr>m</nobr> и <nobr>k</nobr>.
+
+<p>Теперь учтем целочисленность. Для этого применим Теорему 0 и
+заменим в формуле (35) экспоненты на 1 везде, где выполняется это 
+условие:
+
+<p>Для <nobr>k = m = N / 2</nobr> или <nobr>k = m = 0</nobr>:<br>
+<nobr>X<sub>k</sub> = ANcos &phi;</nobr>
+<br>Для <nobr>k = m &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)Ne<sup> j&phi;</sup> + (A/2)e<sup> -j&phi;</sup>(1 - 1) / (e<sup> -j4&pi;m / N</sup> - 1)</nobr>
+<br>Для <nobr>k = (N - m) &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)e<sup> j&phi;</sup>(1 - 1) / (e<sup> j4&pi;m / N</sup> - 1) + (A/2)Ne<sup> -j&phi;</sup></nobr>
+<br>Для остальных k:<br>
+<nobr>X<sub>k</sub> = (A/2)e<sup> j&phi;</sup>(1 - 1) / (e<sup> j2&pi;(m - k) / N</sup> - 1) +</nobr>
+<br>
+<nobr>+ (A/2)e<sup> -j&phi;</sup>(1 - 1) / (e<sup> -j2&pi;(m + k) / N</sup> - 1)</nobr>
+
+<p>Сокращаем везде, где получаются нули, и приходим к формулам:
+<br>
+<br>Для <nobr>k = m = N / 2</nobr> или <nobr>k = m = 0</nobr>:<br>
+<nobr>X<sub>k</sub> = ANcos &phi;</nobr>
+<br>Для <nobr>k = m &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)Ne<sup> j&phi;</sup></nobr>
+<br>Для <nobr>k = (N - m) &ne; N / 2</nobr>:<br>
+<nobr>X<sub>k</sub> = (A/2)Ne<sup> -j&phi;</sup></nobr>
+<br>Для остальных k:<br>
+<nobr>X<sub>k</sub> = 0</nobr>&nbsp;&nbsp;&nbsp;&nbsp;(36)
+
+<p>
+<b>Вывод:
+<p>
+
+Зеркальный эффект всегда проявляется так, что гармонические
+колебания:
+
+<p><nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr>,
+<p><nobr>2f''(t) = A cos(2&pi;t(N-m) / T - &phi;)</nobr> и
+<p><nobr>f'(t) + f''(t) = (A/2) cos(2&pi;tm / T + &phi;) + (A/2) cos(2&pi;t(N-m) / T - &phi;)</nobr>
+
+<p>
+
+в процессе дискретного преобразования Фурье представляются
+как сумма колебаний 
+
+<p>
+
+<nobr>f'(t) + f''(t)</nobr>.
+
+<p>
+
+При этом все коэффициенты ДПФ равны нулю за исключением
+
+<p>
+
+<nobr>X<sub>m</sub> = (A/2)Ne<sup> j&phi;</sup></nobr>
+<p>и<p>
+<nobr>X<sub>N - m</sub> = (A/2)Ne<sup> -j&phi;</sup></nobr>
+
+<p>
+
+кроме частных случаев <nobr>m = N / 2</nobr> и <nobr>m = 0</nobr>, в которых
+единственный ненулевой коэффициент:
+
+<p>
+
+<nobr>X<sub>m</sub> = ANcos &phi;</nobr>
+
+</b>
+
+<p>
+
+В этом последнем частном случае зеркальный эффект 
+выглядит несколько иначе: у исходного гармонического
+колебания теряется фаза и искажается амплитуда. Лишь
+частота сохраняется прежней.
+
+<h2>Исправление зеркального эффекта.</h2><p>
+
+Таким образом зеркальный эффект в подавляющем большинстве случаев
+искажает исходную картину, поскольку в действительности очень 
+редко на вход подается сумма двух гармонических сигналов 
+<nobr>f'(t) + f''(t)</nobr> именно с таким соотношением 
+частот: <nobr>m/T</nobr> и <nobr>(N - m)/T</nobr>.
+В результате исходный спектр искажается, словно отражаясь в 
+зеркале:
+
+<p><img src="image005.gif">
+
+<p>На этом рисунке сверху показан ожидаемый спектр сигнала, 
+полученный с помощью непрерывного преобразования Фурье, а снизу - 
+полученный на компьютере с помощью дискретного преобразования Фурье.
+Нижний спектр искажен зеркальным эффектом.
+
+<p>
+
+Пусть мы обннаружили ненулевой коэффициент <nobr>X<sub>m</sub></nobr>.
+Выдвинем гипотезу, что этот коэффициент соответствует
+исходному гармоническому колебанию. Восстановим его 
+амплитуду, фазу и частоту.
+
+<p>
+
+<nobr>X<sub>m</sub> = (A/2)Ne<sup> j&phi;</sup></nobr>
+<br><nobr>f(t) = A cos(2&pi;tm / T + &phi;)</nobr>. 
+<p>
+
+Частота восстанавливается проще всего: <nobr>&nu; = m/T</nobr>,
+где <nobr>m</nobr> - индекс найденного ненулевого элемента <nobr>X<sub>m</sub></nobr>.
+Амплитуда и фаза восстанавливаются по формуле (29):
+
+<p><img src="image009.gif">
+
+<p>
+
+  <div id=mi>
+   <hr size=1 noshade color=black>
+   <a href="fft7.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft9.htm">[следующая глава]</a>
+   <hr size=1 noshade color=black>
+  </div>
+ </div>
+</body>
+</html>

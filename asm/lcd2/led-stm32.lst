@@ -1,0 +1,328 @@
+ARM GAS  111.s 			page 1
+
+
+   1              	  	.thumb                 
+   2              	        .syntax unified
+   3              	
+   4              	.section .data
+   5              	lcdcsh:
+   6 0000 00000100 		.short 0x0000,0x0001,0x0015,0x0030,0x009a,0x0010,0x0011,0x0020,0x0010,0x3428,0x0012,0x0002,0x0013,
+   6      15003000 
+   6      9A001000 
+   6      11002000 
+   6      10002834 
+   7              		
+   8 0094 53544D33 	aSTM32ASM:	 .ascii "STM32ASM"
+   8      3241534D 
+   9 009c 00000018 	lcdmabiao:	.byte 0x00,0x00,0x00,0x18,0x24,0x42,0x42,0x42,0x42,0x42,0x42,0x42,0x24,0x18,0x00,0x00,0x
+   9      24424242 
+   9      42424242 
+   9      24180000 
+   9      00000008 
+  10              		
+  11              	
+  12              	        .equ STACKINIT, 	0x20005000
+  13              		.equ lcdyanshia, 	40000
+  14              	
+  15              		
+  16              	.section .text
+  17 0000 00500020 	vectors:.word STACKINIT         
+  18 0004 41000000 	        .word _start + 1        
+  19 0008 17020000 	        .word _nmi_handler + 1  
+  20 000c 19020000 	        .word _hard_fault  + 1  
+  21 0010 1B020000 	        .word _memory_fault + 1 
+  22 0014 1D020000 	        .word _bus_fault + 1    
+  23 0018 1F020000 	        .word _usage_fault + 1 
+  24 001c 00000000 		.word 0
+  25 0020 00000000 		.word 0
+  26 0024 00000000 		.word 0
+  27 0028 00000000 		.word 0
+  28 002c 00000000 		.word 0
+  29 0030 00000000 		.word 0
+  30 0034 00000000 		.word 0 
+  31 0038 00000000 		.word 0
+  32 003c 21020000 		.word _dingshiqi + 1
+  33              	
+  34              	_start:
+  35              	@@AFIO-MAPR 开SWD模式
+  36 0040 7848     		ldr r0, = 0x40010004
+  37 0042 7949     		ldr r1, = 0x02000000
+  38 0044 0160     		str r1, [r0]
+  39              	shizhong:
+  40 0046 7948     		ldr r0, = 0x40021000
+  41 0048 7949     		ldr r1, = 0x14D83
+  42 004a 0160     		str r1, [r0]
+  43              	gsszbz: 
+  44 004c 0268     		ldr r2, [r0]
+  45 004e 7949     		ldr r1, = 0x20000
+  46 0050 1142     		tst r1, r2           @高速时钟标志位           
+  47 0052 00D1     		bne rccchushihua
+  48 0054 FAE7     		b gsszbz
+ARM GAS  111.s 			page 2
+
+
+  49              	rccchushihua: 
+  50 0056 7848     		ldr r0, = 0x40022000
+  51 0058 4FF03201 		mov r1, # 0x00000032
+  52 005c 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  53 005e 7748     		ldr r0, = 0x40021004
+  54 0060 7749     		ldr r1, = 0x1D8400
+  55 0062 0160     		str r1, [r0]
+  56 0064 7148     		ldr r0, = 0x40021000
+  57 0066 7749     		ldr r1, = 0x1033D03
+  58 0068 0160     		str r1, [r0]
+  59              	chaxun:
+  60 006a 0268     		ldr r2, [r0]
+  61 006c 6E49     		ldr r1, = 0x2000000
+  62 006e 1142     		tst r1, r2
+  63 0070 00D1     		bne rccgg
+  64 0072 FAE7     		b chaxun
+  65              	rccgg:
+  66 0074 7148     		ldr r0, = 0x40021004
+  67 0076 7449     		ldr r1, = 0x1D8402
+  68 0078 0160     		str r1, [r0]
+  69              	
+  70              	
+  71              	ioshezhi:
+  72              	
+  73 007a 744E     	       ldr r6, = 0x40021018
+  74 007c 4FF03900 	        mov r0, 0x39
+  75 0080 3060     	        str r0, [r6]
+  76              		@@AFIO-MAPR 开SWD
+  77 0082 6848     		ldr r0, = 0x40010004
+  78 0084 6849     		ldr r1, = 0x02000000
+  79 0086 0160     		str r1, [r0]
+  80 0088 7148     		ldr r0, = 0x40011000
+  81 008a 7249     		ldr r1, = 0x33444444 
+  82 008c 0160     		str r1, [r0]
+  83 008e 7249     		ldr r1, = 0x44444333
+  84 0090 4160     		str r1, [r0, # 4]
+  85 0092 7249     		ldr r1, = 0x7c0
+  86 0094 C160     		str r1, [r0, # 0xc]
+  87 0096 7248     		ldr r0, = 0x40010C00
+  88 0098 7249     		ldr r1, = 0x33333333
+  89 009a 0160     		str r1, [r0]
+  90 009c 7149     		ldr r1, = 0x33333333
+  91 009e 4160     		str r1, [r0, # 4]
+  92 00a0 7149     		ldr r1, = 0xffff
+  93 00a2 C160     		str r1, [r0, # 0xc]
+  94 00a4 714D     		ldr r5, = lcdyanshia
+  95 00a6 4FF00006 		mov r6, # 0
+  96 00aa 4FF00002 		mov r2, # 0
+  97              	lcdchushihua:
+  98 00ae 06F10106 		add r6, # 1
+  99 00b2 6F48     		ldr r0, = lcdcsh
+ 100 00b4 845A     		ldrh r4, [r0, r2]
+ 101 00b6 02F10202 		add r2, # 2
+ 102 00ba 875A     		ldrh r7, [r0, r2]
+ 103 00bc 02F10202 		add r2, # 2
+ 104 00c0 012E     		cmp r6, # 1
+ 105 00c2 0AD0     		beq yanshi1
+ARM GAS  111.s 			page 3
+
+
+ 106 00c4 072E     		cmp r6, # 7
+ 107 00c6 08D0     		beq yanshi1
+ 108 00c8 082E     		cmp r6, # 8
+ 109 00ca 06D0     		beq yanshi1
+ 110 00cc 0A2E     		cmp r6, # 10
+ 111 00ce 04D0     		beq yanshi1
+ 112 00d0 00F086F8 		bl lcdchushihua2
+ 113              		
+ 114              	lcd1:
+ 115 00d4 942A     		cmp r2, # 0x94
+ 116 00d6 05D8     		bhi tiaochu
+ 117 00d8 E9E7     		b lcdchushihua
+ 118              		
+ 119              	yanshi1:
+ 120 00da 00F081F8 		bl lcdchushihua2
+ 121 00de 00F096F8 		bl yanshi
+ 122 00e2 F7E7     		b lcd1
+ 123              		
+ 124              	tiaochu:
+ 125 00e4 4FF00002 		mov r2, # 0
+ 126 00e8 4FF00008 		mov r8, # 0
+ 127 00ec 40F20009 		movw r9, # 0
+ 128 00f0 DFF880A1 		ldr r10, = 0xf800
+ 129 00f4 00F054F8 		bl xxxxxx
+ 130 00f8 FFE7     		b tiaochu1
+ 131              	tiaochu1:
+ 132 00fa 5F4C     		ldr r4, = 0x20000200
+ 133 00fc 4FF00001 		mov r1, # 0
+ 134 0100 1960     		str r1, [r3]
+ 135              	tiaochu22:
+ 136 0102 5D4C     		ldr r4, = 0x20000200
+ 137 0104 1B68     		ldr r3, [r3]
+ 138 0106 4FF00008 		mov r8, # 0
+ 139 010a 4FF00009 		mov r9, # 0
+ 140 010e DFF86CB1 		ldr r11, = lcdmabiao
+ 141 0112 5B4A     		ldr r2, = aSTM32ASM
+ 142 0114 D25C     		ldrb r2, [r2, r3]
+ 143 0116 03F10103 		add r3, # 1
+ 144 011a 574C     		ldr r4, = 0x20000200
+ 145 011c 2360     		str r3, [r4]
+ 146 011e 082B     		cmp r3, # 8
+ 147 0120 04D1     		bne quma
+ 148 0122 554C     		ldr r4, = 0x20000200
+ 149 0124 4FF00003 		mov r3, # 0
+ 150 0128 2360     		str r3, [r4]
+ 151 012a EAE7     		b tiaochu22
+ 152              		
+ 153              	quma:
+ 154 012c A2F13002 		sub  r2, # 48
+ 155 0130 9344     		add r11, r2
+ 156 0132 4FF0000A 		mov r10, # 0
+ 157 0136 FFE7     		b xiezi
+ 158              		
+ 159              	xiezi:
+ 160 0138 1BF80860 		ldrb r6, [r11, r8]
+ 161 013c 4FF02104 		mov r4, # 0x21
+ 162 0140 4746     		mov r7, r8
+ARM GAS  111.s 			page 4
+
+
+ 163 0142 00F04DF8 		bl lcdchushihua2
+ 164 0146 08F10108 		add r8, # 1
+ 165 014a B8F1100F 		cmp r8, # 16
+ 166 014e 04D1     		bne  xiezi1
+ 167 0150 0AF1080A 		add r10, # 8
+ 168 0154 4FF00008 		mov r8, # 0
+ 169 0158 D3E7     		b tiaochu22
+ 170              		
+ 171              	xiezi1:
+ 172 015a 4FF02004 		mov r4, # 0x20
+ 173 015e 09EB0A07 		add r7, r9, r10
+ 174 0162 00F03DF8 		bl lcdchushihua2
+ 175 0166 09F10109 		add r9, # 1
+ 176 016a B9F1080F 		cmp r9, # 8
+ 177 016e 02D1     		bne lcdyu
+ 178 0170 4FF00009 		mov r9, # 0
+ 179 0174 E0E7     		b xiezi
+ 180              	lcdyu:
+ 181 0176 16F0010F 		tst r6, # 0x01
+ 182 017a 08D1     		bne lcdxiezi
+ 183              	lcdxiezi1:
+ 184 017c 4FF02204 		mov r4, # 0x22
+ 185 0180 4FF60007 		movw r7, # 0xf800
+ 186 0184 00F02CF8 		bl lcdchushihua2
+ 187 0188 4FEA7606 		ror r6, # 1
+ 188 018c E5E7     		b xiezi1
+ 189              	lcdxiezi:
+ 190 018e 4FF02204 		mov r4, # 0x22
+ 191 0192 4FF01F07 		mov r7, # 0x1f
+ 192 0196 00F023F8 		bl lcdchushihua2
+ 193 019a 4FEA7606 		ror r6, # 1
+ 194 019e DCE7     		b xiezi1
+ 195              	xxxxxx:
+ 196 01a0 4FF02004 		mov r4, # 0x20
+ 197 01a4 4746     		mov r7, r8
+ 198 01a6 00F01BF8 		bl lcdchushihua2
+ 199 01aa 08F10108 		add r8, # 1
+ 200 01ae B8F1F00F 		cmp r8, # 240
+ 201 01b2 02D1     		bne yyyyyy
+ 202 01b4 4FF00008 		mov r8, # 0
+ 203 01b8 9FE7     		b tiaochu1
+ 204              	yyyyyy:
+ 205 01ba 4FF02104 		mov r4, # 0x21
+ 206 01be 4F46     		mov r7, r9
+ 207 01c0 00F00EF8 		bl lcdchushihua2
+ 208 01c4 09F10109 		add r9, # 1
+ 209 01c8 B9F5A07F 		cmp.w r9, # 320
+ 210 01cc 02D1     		bne xielcd
+ 211 01ce 4FF00009 		mov r9, # 0 
+ 212 01d2 E5E7     		b xxxxxx
+ 213              	xielcd:
+ 214 01d4 4FF02204 		mov r4, # 0x22
+ 215 01d8 5746     		mov r7, r10
+ 216 01da 00F001F8 		bl lcdchushihua2
+ 217 01de ECE7     		b yyyyyy
+ 218              		
+ 219              	lcdchushihua2:
+ARM GAS  111.s 			page 5
+
+
+ 220 01e0 2848     		ldr r0, = 0x4001100c
+ 221 01e2 4FF49861 		mov r1, # 0x4c0
+ 222 01e6 0160     		str r1, [r0]
+ 223 01e8 274B     		ldr r3, = 0x40010c0c
+ 224 01ea 1C60     		str r4, [r3]
+ 225 01ec 4FF48861 		mov r1, # 0x440
+ 226 01f0 0160     		str r1, [r0]
+ 227 01f2 4FF4F861 		mov r1, # 0x7c0
+ 228 01f6 0160     		str r1, [r0]
+ 229 01f8 4FF4B861 		mov r1, # 0x5c0
+ 230 01fc 0160     		str r1, [r0]
+ 231 01fe 1F60     		str r7, [r3]
+ 232 0200 4FF4A861 		mov r1, # 0x540
+ 233 0204 0160     		str r1, [r0]
+ 234 0206 4FF4F861 		mov r1, # 0x7c0
+ 235 020a 0160     		str r1, [r0]
+ 236 020c 7047     		bx lr
+ 237              	yanshi:	
+ 238 020e 013D     		subs r5, # 1
+ 239 0210 FDD1     		bne yanshi
+ 240 0212 164D     		ldr r5, = lcdyanshia
+ 241 0214 7047     		bx lr 
+ 242              	_nmi_handler:
+ 243 0216 7047     		bx lr
+ 244              	_hard_fault:
+ 245 0218 7047     		bx lr
+ 246              	_memory_fault:
+ 247 021a 7047     		bx lr
+ 248              	_bus_fault:
+ 249 021c 7047     		bx lr
+ 250              	_usage_fault:
+ 251 021e 7047     		bx lr
+ 252              	_dingshiqi:	
+ 253 0220 7047     		bx lr
+ 254              	         
+ 255 0222 00000400 	
+ 255      01400000 
+ 255      00020010 
+ 255      0240834D 
+ 255      01000000 
+ARM GAS  111.s 			page 6
+
+
+DEFINED SYMBOLS
+               111.s:5      .data:00000000 lcdcsh
+               111.s:8      .data:00000094 aSTM32ASM
+               111.s:9      .data:0000009c lcdmabiao
+               111.s:12     *ABS*:20005000 STACKINIT
+               111.s:13     *ABS*:00009c40 lcdyanshia
+               111.s:17     .text:00000000 vectors
+               111.s:34     .text:00000040 _start
+               111.s:242    .text:00000216 _nmi_handler
+               111.s:244    .text:00000218 _hard_fault
+               111.s:246    .text:0000021a _memory_fault
+               111.s:248    .text:0000021c _bus_fault
+               111.s:250    .text:0000021e _usage_fault
+               111.s:252    .text:00000220 _dingshiqi
+                            .text:00000000 $d
+               111.s:36     .text:00000040 $t
+               111.s:39     .text:00000046 shizhong
+               111.s:43     .text:0000004c gsszbz
+               111.s:49     .text:00000056 rccchushihua
+               111.s:59     .text:0000006a chaxun
+               111.s:65     .text:00000074 rccgg
+               111.s:71     .text:0000007a ioshezhi
+               111.s:97     .text:000000ae lcdchushihua
+               111.s:119    .text:000000da yanshi1
+               111.s:219    .text:000001e0 lcdchushihua2
+               111.s:114    .text:000000d4 lcd1
+               111.s:124    .text:000000e4 tiaochu
+               111.s:237    .text:0000020e yanshi
+               111.s:195    .text:000001a0 xxxxxx
+               111.s:131    .text:000000fa tiaochu1
+               111.s:135    .text:00000102 tiaochu22
+               111.s:153    .text:0000012c quma
+               111.s:159    .text:00000138 xiezi
+               111.s:171    .text:0000015a xiezi1
+               111.s:180    .text:00000176 lcdyu
+               111.s:189    .text:0000018e lcdxiezi
+               111.s:183    .text:0000017c lcdxiezi1
+               111.s:204    .text:000001ba yyyyyy
+               111.s:213    .text:000001d4 xielcd
+               111.s:255    .text:00000222 $d
+
+NO UNDEFINED SYMBOLS

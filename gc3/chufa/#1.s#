@@ -1,0 +1,42 @@
+s@ stm32f030f4p6 asm 
+	 .thumb                 
+         .syntax unified
+.section .data	
+        	.equ STACKINIT,          0x20000300
+
+.section .text
+vectors:        
+        .word STACKINIT         
+        .word _start + 1        
+        .word _nmi_handler + 1  
+        .word _hard_fault  + 1  
+        .word _memory_fault + 1 
+        .word _bus_fault + 1    
+        .word _usage_fault + 1
+_start:
+tingzhu:
+	b tingzhu
+	
+jianceweishu:
+	push {r0-r7,lr}
+	movs r0, # 0
+	movs r2, # 32
+jianceweishu1:
+	adds r0, r0, # 1
+	lsls r1, r1, # 1
+	bpl jianceweishu1
+	subs r2, r2, r0
+	mov r12, r2
+	pop {r0-r7,pc}
+	
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_memory_fault:
+	bx lr
+_bus_fault:
+	bx lr
+_usage_fault:
+ 	bx lr
+	

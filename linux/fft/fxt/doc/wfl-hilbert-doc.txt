@@ -1,0 +1,571 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+        Notes on Multidimensional Hilbert Walk Algorithm
+        ________________________________________________
+
+        Draft version 2   Fred Lunnon, Maynooth 01/05/13
+
+Hilbert walks
+_____________
+
+An  "l-cell" is defined as graph whose nodes are integer lattice points in
+d-space, and whose edges join nearest neighbours; the Cartesian coordinate
+components  [x_i]  of its nodes are bounded by
+    2^l y_i  <=  x_i  <  2^l(y_i + 1) ,
+where node  [2^l y_i]  is the "base" of the cell, and  l  is its "level".
+When  l > 0  the cell may be partitioned in a natural fashion into 1-cells:
+scaled by  1/2 , the bases of these 1-cells constitute an  (l-1)-cell.
+Suppose a Hamiltonian path on the  l-cell is a Gray path (see "Gray paths")
+when restricted to each  1-cell: then it induces naturally a "deflated" path
+on the  (l-1)-cell, connecting base nodes of consecutive  1-cells along the
+original path.
+
+We define a lattice path within an  l-cell to be a "Hilbert walk" when ---
+    Either the level  l = 0 , when the cell comprises just a single node; or
+    (i) The path is Hamiltonian, proceeding along edges joining nearest
+        neighbours, and visiting each node just once;
+    (ii) Restricted to any  1-cell, the path is a Gray path (see "Gray paths");
+    (iii) The deflated path is also a Hilbert walk.
+It can be shown that in consequence
+    (iv) The walk may be deflated repeatedly until  l = 0 ;
+    (v) The walk is the deflation of some Hilbert walk on the  (l+1)-cell
+        (non-uniquely, for  d > 2 );
+    (vi) The walk enters and exits at vertices of the hypercube enclosing the
+        l-cell, both meeting some common edge of the hypercube.
+
+Given a walk, the "step" (number)  n  of a node equals the number of nodes
+preceding it along the walk. It will be assumed that the dimension  d
+satisfies  d > 0 .  Note that for  d = 1 , step  n  corresponds to coordinate
+vector  [n] ; when  d = 2  the walk is a scaled-up convergent to the classical
+space-filling Hilbert curve, and unique up to isometry.
+
+Gray paths
+__________
+
+Given some dimension  d , binary words of length  d  correspond in a natural
+way to the vertices of the unit hypercube in  d-space.  Let them be enumerated
+in increasing numerical order qua integers  j  in radix-2 notation; and consider
+the canonical Gray code mapping  j -> G(j) , where
+    G(0)  =  0,
+    G(2^{q+1}-1 - j)  =  G(j) + 2^q  when  2^q <= j < 2^{q+1} .
+The index  j  will called the "pace" of a node along the path.
+
+An alternative algorithm for the forward Gray code mapping is
+    G(j) = j (+) j/2,  for  0 <= j < 2^d ;
+where  "(+)"  denotes "nim-sum" or bitwise parallel logical XOR operation
+applied to corresponding digits of the operands, and  "/2"  denotes logical
+shift right by one place.  For the inverse mapping, simply iterate  2^s - 1
+times  x <- G(x) ; alternatively and more efficiently, iterate
+    x <- x (+) x/2^(2^i)  for  i = 0,...,s-1 , where  2^s >= d .
+[See fxtbook sect 1.16, inverse_gray_code;
+Cell.gray(), Cell.yarg() in hilbert.java .]
+
+The first property of Gray paths is that  G(j+1)  differs from  G(j)  at just
+one binary digit position:  given  j ,  G(j+1) - G(j) = (+/-)2^k  for some  k .
+Hence the sequence  [G(j)]  maps onto a Hamiltonian circuit along unit hypercube
+edges, the canonical "Gray path", entering at node  G(0) = 0  encoding origin
+[0,...,0,0]  and exiting at neighbouring node  G(2^d - 1) = 2^{d-1}  encoding
+[0,...,0,1]  --- our digit order is reverse of usual positional notation.
+This "edge-pair" of nodes is identified with a single directed hypercube
+edge, which (inverted) would complete a circuit path.                    (*)
+
+There are  d!*2^d  isometries of the unit hypercube, each transforming the
+canonical path into another distinct "Gray path" along the same set of nodes.
+Distinct directed edges number  d*2^d ; distinct Gray paths terminating
+in some given edge-pair number  (d-1)! .  An isometry corresponds to XOR
+with some fixed word (reversing axes), composed with permutation of digits
+(exchanging axes), applied to every word/node along the path. Coordinate
+vectors of unit hypercube vertices are encoded as binary integers, via mapping
+    [x_0, x_1, ..., x_{d-1}]  ->  x_0 + 2 x_1 + ... + 2^{d-1} x_{d-1} .
+
+Example: when  d = 3  the canonical Gray path is  (0,1,3,2,6,7,5,4) ;
+transposing first with last binary digit yields  (0,4,6,2,3,7,5,1) ,
+cycling digit positions one place right yields instead  (0,2,6,4,5,7,3,1) .
+The latter are the only two at edge-pair  (0,1)  encoding entry and exit
+nodes [0,0,0], [1,0,0] , among altogether  48  isometric Gray paths.
+[Notice there exist further Hamiltonian circuits besides these, comprising
+(0,4,5,7,6,2,3,1) and its isometries, yielding altogether four paths at
+each edge-pair, and  96  paths in total.]
+
+A second property of Gray paths: for even  j > 0  there is some  i  such that
+    G(j+1) - G(j-2)  =  G(j) - G(j-1)  =  (+/-)2^i .                     (**)
+Proof: the property is invariant under permutation and complementation at
+individual digit positions; hence we need consider only the canonical path.
+There  G(j), G(j-1)  differ only at digit  i , where  2^i  is the
+largest dividing  j , and  i > 0  since  j  is even.  Again  G(j+1), G(j)
+and  G(j-2), G(j-1)  differ only at digit  0 , and both differences have
+the same sign since digit  0  is equal in  G(j), G(j-1) .
+The property follows.
+
+An immediate geometric consequence is that consecutive nodes along a Gray
+path (at paces  j,...,j+3  with  j  even) are corners of a planar square, a
+segment requiring only edge  [G(j+3), G(j)]  to complete a square circuit.
+Example: assuming  d > 3 , along the canonical path from  j = 10  on we find
+(15 14 10 11) , with  G(13) - G(10)  =  G(12) - G(11)  =  -4 , dividing
+j+2 = 12  with  i = 2 .  The square lies in plane  [?, 1, ?, 1, 0, ..., 0] .
+
+["Pace"  j  equals step number along the associated spatial path; the
+distinction is convenient when discussing Gray path and associated Hilbert
+walk simultaneously.]
+
+Recursive construction outline
+______________________________
+
+A Hilbert walk through an  l-cell in  d-space can be decomposed into  2^d
+separate walks through  (l-1)-cells, consecutive along a Gray path  B(j) ,
+and arranged with exit node of each subcell adjacent to entry node of next
+subcell.  B(j)  is the 1-cell path resulting from deflation  l-1  times;
+alternatively, the path traversed by bases --- scaled by  1/2^(l-1)  ---
+of  (l-1)-cells within the  l-cell.
+
+Entry and exit nodes of each subcell walk constitute a scaled-up edge-pair,
+which is completely determined by  B(j) : its entry is fixed by adjacency to
+exit from subcell  j-1 ; its exit lies at the other end of a lattice edge
+from the entry node, perpendicular to the common hyperplane between subcells
+j  and  j+1 .
+
+Denote by  ( E(j), F(j) )  the  j-th such edge-pair --- relative to its base,
+and rescaled by  1/(2^(l-1) - 1) to the unit hypercube.  The connection
+constraint may be rendered
+    2^(l-1) ( B(j+1) - B(j) ) + (2^(l-1) - 1) ( E(j+1) - F(j) )
+    =  ( B(j+1) - B(j) ) .
+It is more difficult to establish that in addition
+  F(j) - E(j) = B(j+1) - B(j)  if  j odd (base path turned corner);
+    = B(j) - B(j-1)  if  j > 0  even (base path continued along edge).
+From these equations the edge-pairs may be computed given the base path;
+however, under "Subcell connection" we establish independently explicit
+expressions for edge-pairs of Gray paths.
+
+It becomes natural to regard the triplet of functions  B,E,F  as an enhanced
+path through the unit hypercube 1-cell, each node a  0-cell decorated by a
+virtual edge-pair which becomes manifest only when the cell levels increase.
+Once the edge-pair is known, any  (l-1)-cell Hilbert path may be constructed
+via recursion and isometrically transformed to the subcell location.  This
+procedure may in practice be reduced to translation, combined with applying
+the composition operator on edge-pairs defined under "Algorithmic Details".
+
+Finally, iteration over all  2^d  subcells completes the construction.
+
+Subcell connection
+__________________
+
+Given a Hilbert walk through some  l-cell in  d-space, denote the base path
+by  B(j) .  Given  j , consider the edge-pair --- relative to its base, and
+scaled by  1/(2^(l-1) - 1)  ---  of the 1-cell path traversed by  (l-2)-cell
+bases within the  j-th  (l-1)-cell.  We claim this edge-pair is given by
+    ( B(j), B(j+1) )    if  j  =  0 ,
+    ( B(j-1), B(j) )    if  j  =  2^d - 1 ,
+    ( B(j-2), B(j+1) )  if  j  even  &  j > 0 ,
+    ( B(j-1), B(j+2) )  if  j  odd  &  j < 2^d - 1 .                     (***)
+[Internal edge-pairs occur in equal pairs, for each odd and next even  j .]
+
+Proof: let  j > 0  be even.  Nodes at entry to subcell  j , and at exit
+from subcell  j-1, have coordinates encoded
+    2^(l-1) B(j) + (2^(l-1) - 1) B(j-2) , 2^(l-1) B(j-1) + (2^(l-1) - 1) B(j+1)
+respectively; their difference equals
+    2^(l-1) ( B(j) + B(j-2) - B(j-1) - B(j+1) ) + ( B(j+1) - B(j-2) )
+    =  (+/-)2^i
+via property (**); therefore they are adjacent nodes on the lattice.
+Again, exit from subcell  j  and entry to the subcell  j+1  are encoded
+    2^(l-1) B(j) + (2^(l-1) - 1) B(j+1) , 2^(l-1) B(j+1) + (2^(l-1) - 1) B(j)
+with difference
+    2^(l-1) ( B(j+1) + B(j) - B(j) - B(j+1) ) + ( B(j+1) - B(j) )
+    =  (+/-)2^k
+for some  k  via property (*); the nodes are again adjacent.
+
+Special cases at  j = 0, 2^d - 1 , where the path enters and exits the  l-cell,
+are resolved by inspection. [See Cell.decor() in hilbert.java .]
+
+Example: the cell with  d = 3  and  l = 2  listed subsequently traverses
+64  nodes, which partition into  8  sub-cells with  d = 3  and  l = 1 ,
+each traversing  8 nodes.  The 1-cell bases --- scaled by  1/2  ---
+together with their corresponding edge-pairs --- relative to the base and
+scaled by  1/(2-1) = 1  --- are tabulated in binary below:
+        j       step n  B(j)    E(j)    F(j)    F - E
+        0       0       000     000     001     +001
+        1       8       001     000     100     +100
+        2       16      101     000     100     +100
+        3       24      100     101     111     +010
+        4       32      110     101     111     +010
+        5       40      111     110     010     -100
+        6       48      011     110     010     -100
+        7       56      010     011     010     -001
+For instance, the  1-cell comprising steps  32--39  has base  2(110)  or
+[2, 2, 0] , on step  34 ; its entry adds  1(101)  giving  [3, 2, 1] ; its exit
+adds  1(111)  giving  [3, 3, 1] . Entry to the subsequent  1-cell on step  40
+is similarly at  [3, 3, 2] , forming an edge-pair with the previous exit.
+
+Since all 1-cell paths involved may be selected arbitrarily, a counting
+argument easily establishes that Hilbert walks through an  l-cell in  d-space,
+having specified edge-pair, number
+    (d-1)! ^ (2^(d*l) - 1)/(2^d - 1)) .
+
+D0LEC systems
+_____________
+
+A "D0L system" comprises an alphabet of symbols, a morphism (function mapping
+symbols to "words" --- strings of symbols --- from the same alphabet), and a
+distinguished starting symbol.  Commencing with the starting symbol, repeated
+application of the morphism generates a deterministic sequence of words.
+A "D0LE system" is extended via a separate final morphism, applied once to
+the generated sequence (and generally mapping to a distinct alphabet).
+
+If for each morphism the right-hand-sides of its production rules have constant
+length, the system is "D0LEC".  The existence of a D0LEC system for a Hilbert
+walk has an important consequence: both the function mapping step  n  to the
+coordinate vector of the  n-th node along the walk, and the inverse mapping
+from coordinate to step, are implementable in time and space logarithmic in
+the difference between the old and new values of  n . Furthermore, it is
+straightforward to approximate the generating function of the node and step
+coordinate sequences in terms of the D0LEC.
+
+An obvious simplification of the Hilbert walk construction above associates
+just one Hamitonian path with each edge-pair occurring across all levels  l .
+Furthermore, inspection reveals that Gray path entry and exit nodes have
+respectively even and odd bit-sums; therefore only edge-pairs starting at
+nodes of even parity are required, where "parity" of a node is defined
+to be the nim-sum of its binary digits.
+Given  d  we can implement this construction via a D0LEC on  (d 2^d)/2  symbols,
+representing selected Gray paths with edge-pairs along directed edges entering
+at even-parity vertices of the unit hypercube.
+
+Example: full Hilbert D0LEC for  d = 2 .
+Alphabet:
+    {A, B, C, D} ;
+Generator morphism productions:
+    A -> CAAD , B -> DBBC , C -> ACCB , D -> BDDA ;
+Extension morphism mapping symbols to Gray paths relative to the unit square:
+    A -> 0231 , B -> 3102 , C -> 0132 , D -> 3201 ,
+    where binary coordinate vector of node  [x,y]  is encoded as  x+2y .
+In order to generate a stable infinite sequence, the starting symbol must be
+chosen depending on the proposed iteration level  l  thus:
+    A  if  l  is even,  B  if  l  is odd.
+
+A "stable" D0LEC such that each word generated is a left factor of the next,
+may more easily be regarded as generating a single infinite sequence from a
+given starting symbol.  Transformation of the above example into a stable
+system is straightforward, but in the long run best avoided.
+In the first place, the original system expresses a geometric reality:
+inflation of a walk is unavoidably unstable (period  2  for  d = 2 ),
+and retaining this behaviour in the D0LEC simplifies inverse navigation
+from coordinate vector to step counter. In the second place, for  d > 2
+transitive symmetry of the generator symbols would be destroyed.
+
+Navigation via D0LEC
+____________________
+
+In order to traverse the walk step-by-step, complete Gray paths may be reduced
+to edge-pairs, which we now decode into (binary) coordinate vectors prefixed by
+alternating signs, thus for  d = 2 :
+    A -> -[0,0] +[1,0] ,  B -> -[1,1] +[0,1] ,
+    C -> -[0,0] +[0,1] ,  D -> -[1,1] +[1,0] .
+Notice that D0L symbols correspond to lattice edges, rather than to nodes!
+To compute the coordinate vector of the node at step  n  along the walk,
+generate the first  n+1  symbols and map to vectors; trim off the first and last
+vectors, and sum the remainder. For instance let  n = 6 : applying the generator
+at level 2,
+    A -> CAAD -> ACCBCAADCAADBDDA -> ...
+the first  7  symbols of which extend after trimming both ends to
+    +[1,0]-[0,0]+[0,1]-[0,0]+[0,1]-[1,1]+[0,1]-[0,0]+[0,1]-[0,0]+[1,0]-[0,0]
+    = [1,3].
+Combining successive  +-  pairs in this way, summing step-by-step, and
+abbreviating  [x,y]  to  xy , yields the 2-space Hilbert walk
+    (00, 10, 11, 01, 02, 03, 13, 12, 22, 23, 33, 32, 31, 21, 20, 30, ...)
+which turns out to be unique up to isometry.
+
+While of theoretical interest, the above method is of little practical utility.
+General forward navigation involves mapping an arbitrary step number  n  to its
+corresponding coordinate vector; moreover the algorithm should incur costs
+of the order of  log(\Delta n) , and remain small when new and old steps are
+nearby.
+
+The more efficient "backtracking" or "tree-searching" algorithm for forward
+navigation from step number to coordinate vector starts by converting the given
+step  n  to an  l-digit radix-2^d  "number": for example consider step
+  n  =  6  =  1*4^1 + 2*4^0 .
+Initialise the symbol  k = A , and the level  l = 1 . The most-significant digit
+of  n  is  j = 1 ; at pace  1  of the Gray path associated with symbol  A  is
+node  2  decoding to  [0,1] ; set the vector to this.  At pace  1  of the
+generator morphism for  A  is found  A  again; retain the symbol  A , and
+continue down to level  0 .
+The next digit of  n  is  2 ; at pace  j = 2  of Gray path  A  is node  3
+decoding to  [1,1] ; double the vector and add the node, yielding
+2[0,1] + [1,1] = [1,3] .
+There are no more digits, so finally the coordinate vector equals  [1,3] .
+
+Inverse navigation reverses this process to recover step  n  from coordinate
+vector,  [1,3]  say.
+Initialise the step to zero, and compute the level  l = 2  via the (smallest)
+power  2^l = 4  exceeding every component. Subtract the deflated cell base
+[0,2]  and rescale it to unit square node  [0,1] , encoded as binary integer
+2 : this occurs at pace  j = 1  of the Gray path  A  [note that the permutation
+induced by the path on the pace  j  must be inverted].
+Increment the step by  1*4^{2-1} = 4 ; and repeat the procedure for the
+remainder vector  [1,1]  at level  l = 1 , using symbol  A  at pace  1  of
+rule  A -> CAAD . The unit node  [1,1]  encoded as  3  occurs at pace  2  of
+Gray path  A ; so increment the step by  2*4^{1-1} = 2 . The remainder vector
+is now zero, and the final step  n = 4+2 = 6  as expected.
+
+Both backward and forward algorithms can utilise data from a previous node
+to accelerate navigation to a subsequent node nearby. For example to reach
+step  n = 7  from  n = 6 , since  7  and  6  have the same radix-4 digits
+from  l = 1  upwards, only level  l = 0  requires recomputation: now  j = 3 ,
+the node  1  or  [1,0] , and new coordinate equals  2[0,1] + [1,0] = [1,2] .
+In the backward case, old and new coordinates would be reduced by powers of
+2  rather than  4 , so long as they were unequal --- again only at  l = 0 .
+Note that if new and old n are nearby, the level to which it is necessary to
+backtrack will usually be small: for consecutive steps  \Delta n = 1 , this
+level is on average
+    l  =  0 + 1/4 + 2/4^2 + 3/4^3 + ...  =  1/3 (1 + 1/4 + ...)  =  4/9 ,
+so we achieve constant amortised time (CAT).
+
+[See Walk.jump (int new_step), Walk.jump (int[] new_coord) in hilbert.java.]
+
+Algorithmic Details
+___________________
+
+Among the (d-1)! Gray paths at a given edge-pair e = (el, er), we arbitrarily
+select a transform of the canonical path by the following isometry.
+Let el (+) er  =  2^q --- that is to say, edge e lies parallel to the
+coordinate axis x_q.
+Circularly shift (each node of) the canonical path by q+1 places upwards,
+corresponding to cycling all the axes x_i -> x_{i+q+1};
+then nim-sum the the result by el, corresponding to complementing those axes
+x_i -> 1-x_i along which el is displaced.
+
+In this way explicit computation with isometries is avoided. Applied to another
+edge-pair f = (fl, fr) rather than to (nodes along) a path, it defines a
+noncommutative composition "(x)" on edge-pairs, equivalent to composition of
+isometries, but involving only logical operations on edge-pairs:
+    e (x) f  =  (el, er) (x) (fl, fr)  =  (el (+) fl(^)q, el (+) fr(^)q),
+where el (+) er  =  1(^)q has just one nonzero bit, and "(^)" denotes circular
+shift upwards within a byte of d digits [method <Cell.compo()> in hilbert.java].
+The inverse computed from
+    e'  =  (el, er)'  =  (el(^)(d-1-q), el(^)(d-1-q) (+) 1(^)(d-2-q)),
+where el (+) er  =  1(^)q as before, satisfies
+    e' (x) e  =  (el, er)' (x) (el, er)  =  (0, 1(^)(d-1)).
+(That the identity is not (0, 1) is an irritant, resulting from the canonical
+path's edge-pair having to act as the identity isometry; however, attempting
+to suppress the anomaly at this point seems merely to cause it to re-emerge
+elsewhere!) [See Cell.inver() in hilbert.java].
+
+With the aid of these operations, edge-pair and unit-node at pace j of
+level l are recovered from those at the level above via
+    edge_pair = compo(branch[l+1].edge, decor(j));
+    node = compo(branch[l+1].edge, gray(j));
+inversely, the pace is recovered from the node via
+    j = yarg(compo(inver(branch[l+1].edge), node) & p2d1);
+(the mask is required since compo() delivers an edge-pair, instead of a single
+node) [see Walk.jump(step), Walk.jump(coord) in hilbert.java].
+
+Edge-pairs are mapped bijectively to consecutive indices (symbols) k within
+0 <= k < d*2^{d-1} via
+    k = (PG(el) + q*2^d)/2,
+    el = G(2*k mod 2^d),  er = el (+) 2^(2*k / 2^d)
+[Walk.EtoS[e][f], Walk.StoE[k] in hilbert.java];
+where powers, products and divisions may be replaced by shifts and masks,
+and q = log_2(el (+) er) evaluated via shifting until zero [see Cell.log2()].
+This algorithm relies on the observation that the Gray code of an even integer
+has even bit-sum and vice-versa.
+
+The above mapping is required to pre-compute and tabulate in arrays the D0L
+generator rules, Gray paths and inverses for some fixed dimension d
+[see Walk.RHS[k][j], Walk.GCP[k][j], Walk.PCG[k][j] in hilbert.java].
+Since all computations involved may be performed efficiently inline,
+there is no over-riding necessity for tabulation: it merely improves speed,
+by a factor between 1.85 -- 1.25 for d = 2 -- 8.
+For dimension d > 6 the tables become unwieldy, consuming roughly
+(1 + d 3/2) 4^d words of sizes between d and 2d bits.
+
+As presented, the D0L implicitly underlying the conversion between coordinate
+vector and step counter is unstable, with period d. Although superficially
+inconvenient, this feature actually simplifies the inverse computation of
+step from coordinate vector [illustrated in the example above]; in return,
+it requires merely the starting symbol to be selected according to the level
+(l mod d) as opposed to being fixed, the cost of which is unimportant.
+
+Implementation
+______________
+
+Operations required for database applications --- goto given step, goto
+subsequent or previous step, retrieve step from coordinate vector, etc.
+--- may all be expressed in terms of a more flexible set comprising just
+three basic navigation methods:
+    initialise walk at arigin;
+    jump to given step count along walk;
+    jump to given coordinate vector along walk.
+The latter pair (which are inverses of one another) cost time and space of
+amortised order log(dn): in particular, advancing to the next or last step
+is CAT.
+
+The Java program is laid out in three classes ---
+    <Cell> holds data for a single recursive level of cell, notably
+its origin vector <coord>, partial <step>, <edge>-pair encoding
+entry and exit nodes, and <vertex> locating it within its supercell;
+together with elementary logical methods for Gray paths and edge-pairs.
+    <Walk> holds an array of cells representing the branch of the tree of
+cells whose leaf is the current node; together with user navigation methods
+jump(step), jump(coord), and next(), last() in terms of those.
+    <hilbert> holds test programs, optional table builder, driver
+(all dispensible).
+
+Index variable conventions:
+  d equals the dimension; l indexes the level of a cell;
+  j indexes a <pace> number along a Gray path or production,  0 <= j < 2^d ;
+  i indexes a component of a coordinate vector, etc,  0 <= i < d ;
+  k indexes D0L symbol (corresponding to a hypercube edge),  0 < k < d*2^(d-1) .
+
+The user instantiates a walk via constructor Walk(d, l) .  Maximum level
+l  is not critical, provided sufficiently large in practice: say  l = 20 .
+The dimension  d  may be vary between different walks, unless precomputed
+tables are in use, chosen by setting Walk.TABLOO = true.
+
+Both jump() methods currently do more than is necessary at level 0 --- e.g.
+computing the <edge> field --- which slows short jumps such as <next()> and
+<last()> in low dimension.
+
+Tests require integer word length  > dim*(lev+1) .  The program assumes that
+all integer quantities are representable within Java type "int"; which
+might constitute a limitation for large databases.
+
+Cell.edge encodes a pair of nodes into single integer in order to avoid
+heap-management penalties involved in creating explicit pairs: somewhat messy!
+Could avoid by in-lining calls for compo() and compo(inver()), applying (same)
+edge isom. to each vertex in turn; but need to work around using k instead of
+edge-pair during table-lookup!
+
+The D0LEC start symbol corresponds to edge-pair  ( 0, 2^(-l mod d) ) ,
+alternating with the (maximum) level, in order to stabilise the output
+irrespective of  l .
+
+Timings are repeatable only to 10%; setting optimisation flag -O seems good
+for approximately 5% faster.
+
+Example: 3D
+___________
+
+D0LEC (bistable) dim = 3: symbols A,...L correspond to k = 0,...,11.
+
+  Gray paths: nodes encoded 4x + 2y + z.
+    A  ->  0 2 6 4 5 7 3 1
+    B  ->  3 1 5 7 6 4 0 2
+    C  ->  6 4 0 2 3 1 5 7
+    D  ->  5 7 3 1 0 2 6 4
+    E  ->  0 4 5 1 3 7 6 2
+    F  ->  3 7 6 2 0 4 5 1
+    G  ->  6 2 3 7 5 1 0 4
+    H  ->  5 1 0 4 6 2 3 7
+    I  ->  0 1 3 2 6 7 5 4
+    J  ->  3 2 0 1 5 4 6 7
+    K  ->  6 7 5 4 0 1 3 2
+    L  ->  5 4 6 7 3 2 0 1
+
+  Generation morphism: start symbol A,I,E at level = 0,1,2 mod 3 stabilises
+    coordinates.
+    A  ->  E I I C C L L F
+    B  ->  F J J D D K K E
+    C  ->  G K K A A J J H
+    D  ->  H L L B B I I G
+    E  ->  I A A H H B B K
+    F  ->  J B B G G A A L
+    G  ->  K C C F F D D I
+    H  ->  L D D E E C C J
+    I  ->  A E E J J G G D
+    J  ->  B F F I I H H C
+    K  ->  C G G L L E E B
+    L  ->  D H H K K F F A
+
+[[To stabilise the D0L, apply a final isometry of RHS after iteration of each
+generation level, cycling both nodes of edge-pair thus (AEI)(CHJ)(BGL)(DFK);
+Now only A,E,I,D,H,L stable, so symmetry degraded! RHS only should alter: but
+since this perm is a symmetry of the morphism, instead one could inverse-cycle
+the LHS.]]
+
+Subgroup of d 2^d/2 edge group is the symmetry group of the morphism!
+Image of A fixes unique complete perm, so 12 symmetries and transitive.
+All (quotients of) symmetries of the hypercube.
+If A -> A then identity with 1 conjugate;
+If A -> E then (AEI) (CHJ) (BGL)(DFK) and inverse with 2x4 conjugates;
+If A -> F then conjugate of ditto
+If A -> C then (AC)(BD) (EG)(FH)(IK)(JL) with 3 conjugates;
+If A -> B,C then conjugate of ditto
+If A -> G,H,J,K then conjugates of 3-cycle.
+Is there a subgroup hypercube symmetries of index 4 fixing the set of 12 paths?
+If not, is there another set of 12 paths which _is_ fixed by some such group?
+
+[[Guess just transitive for any d: quotient(?) by (not normal) subgroup of
+hypercube symmetries fixing directed edge?
+Is (d 2^d)/2 the minimal possible D0L order for a Hilbert walk?
+For d = 3, search possible assignments of 1/2 Gray paths to 6 edge-pairs
+associated with canonical path: find from first 3 symbols only get same set
+of 12 edges, irrespective of choices of 1/2, confirming minimum total 12 !]]
+
+d = 3, l = 2 walk ---
+0, 0, [0, 0, 0]
+1, 1, [1, 0, 0]
+2, 5, [1, 1, 0]
+3, 4, [0, 1, 0]
+4, 20, [0, 1, 1]
+5, 21, [1, 1, 1]
+6, 17, [1, 0, 1]
+7, 16, [0, 0, 1]
+8, 32, [0, 0, 2]
+9, 36, [0, 1, 2]
+10, 52, [0, 1, 3]
+11, 48, [0, 0, 3]
+12, 49, [1, 0, 3]
+13, 53, [1, 1, 3]
+14, 37, [1, 1, 2]
+15, 33, [1, 0, 2]
+16, 34, [2, 0, 2]
+17, 38, [2, 1, 2]
+18, 54, [2, 1, 3]
+19, 50, [2, 0, 3]
+20, 51, [3, 0, 3]
+21, 55, [3, 1, 3]
+22, 39, [3, 1, 2]
+23, 35, [3, 0, 2]
+24, 19, [3, 0, 1]
+25, 3, [3, 0, 0]
+26, 2, [2, 0, 0]
+27, 18, [2, 0, 1]
+28, 22, [2, 1, 1]
+29, 6, [2, 1, 0]
+30, 7, [3, 1, 0]
+31, 23, [3, 1, 1]
+32, 27, [3, 2, 1]
+33, 11, [3, 2, 0]
+34, 10, [2, 2, 0]
+35, 26, [2, 2, 1]
+36, 30, [2, 3, 1]
+37, 14, [2, 3, 0]
+38, 15, [3, 3, 0]
+39, 31, [3, 3, 1]
+40, 47, [3, 3, 2]
+41, 43, [3, 2, 2]
+42, 59, [3, 2, 3]
+43, 63, [3, 3, 3]
+44, 62, [2, 3, 3]
+45, 58, [2, 2, 3]
+46, 42, [2, 2, 2]
+47, 46, [2, 3, 2]
+48, 45, [1, 3, 2]
+49, 41, [1, 2, 2]
+50, 57, [1, 2, 3]
+51, 61, [1, 3, 3]
+52, 60, [0, 3, 3]
+53, 56, [0, 2, 3]
+54, 40, [0, 2, 2]
+55, 44, [0, 3, 2]
+56, 28, [0, 3, 1]
+57, 29, [1, 3, 1]
+58, 25, [1, 2, 1]
+59, 24, [0, 2, 1]
+60, 8, [0, 2, 0]
+61, 9, [1, 2, 0]
+62, 13, [1, 3, 0]
+63, 12, [0, 3, 0]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

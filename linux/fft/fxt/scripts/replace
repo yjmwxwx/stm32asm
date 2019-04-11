@@ -1,0 +1,366 @@
+#!/bin/bash -norc
+
+# regexp replace a string by another in a files (inplace!)
+# ... online at http://www.jjj.de/
+# author: Joerg Arndt ( arndt (AT) jjj.de )
+# needs perl
+# version given in function usage()
+
+set -
+
+########################################
+
+THIS='replace'; # `basename $0`;
+
+## DO NOT copy and paste the examples from this file,
+## instead copy from the output on your terminal !
+## or do a 'replace --help > replace.txt' and copy from there
+function usage
+{
+cat <<EOF
+------------- $THIS version: 2012-October-14 -------------
+Usage:
+  $THIS [OPTION(s)] OLDEXPR NEWEXPR FILE1 [ FILE2 FILE3 ... ]
+  OLDEXPR and NEWEXPR should usually be in single quotes.
+  Use perl regexp syntax, see man perlre. (yes, we need perl)
+  (unescaped chars like  "()^$*[]" have special meanings, cf. option -e).
+  OPTION(s) must precede any other arguments.
+  default is interactive mode,
+  i.e. file is changed only after confirmation with 'y'.
+  entering 'PROCEED' switches to non interactive mode (!)
+   "-f" 'force': sets non-interactive mode (beware!).
+   "-q" 'quiet': supress output of diffs (option is unset if "-n" is also given).
+   "-Q" 'really quiet': output only if interaction is required
+   "-n" sets dry run mode (diffs are shown, nothing is changed).
+   "-c" print diffs with some lines of context
+   "-d <diffname>" produces a diff-file <diffname>
+   "-D <diffname>" _only_ produces a diff-file <diffname>
+   "-e '<charset>'" auto-Escape chars from <charset> in OLDEXPR
+        (slashes are always escaped; backslashes cannot be escaped)
+   "-o <outfile>" do not work inplace: use output file <outfile>
+        this option can only be used with exactly one file
+   "-i" ignore case in OLDEXPR
+   "-m" allow multiline match
+   "-N" don't error if no files given (useful for scripts)
+
+Examples:
+  $THIS old_func_name new_func_name *.cc  ## you figure this out
+  $THIS '([^ ]+) +$' '$1' *.txt  ## remove trailing spaces
+  $THIS -n -c oldstr newstr foo.txt   ## check only, with context
+  $THIS  '\r' '\n'  mac.txt  ## apple line ends (^M)  --> unix line ends (\n)
+  $THIS '^        ' '\t' Makefile          ## tabify Makefile
+  $THIS '\t' '        ' \$(find mytexts/ -name \*.txt)   ## untabify files
+
+  ## word boundaries: "n" --> "N", but not "and" --> "aNd":
+  $THIS '\bn\b' 'N' *.cc
+
+  ## ignore case: "Sand, sand, SAND" --> "sane":
+  $THIS -i '\bsand\b' 'sane' *.txt
+
+  $THIS '//(.*)$' '/\*\$1\*/' *.cc  ## C++ comments --> C comments
+
+  $THIS '/\*(.*)\*/$' '//\$1' *.c   ## C comments --> C++ comments
+
+  ## "sincos(arg1,arg2,arg3)" --> "sincos(arg3, arg2, arg1)":
+  $THIS 'sincos\(([^,]+), *([^,]+), *([^\)]+)\)' \\
+        'sincos(\$3, \$2, \$1)' \$(find . -name \*.cc)
+
+  ##  "name_foo" --> "new_foo", "name_bar" --> "new_bar" etc.:
+  $THIS 'name_([a-z]+)' 'new_\$1' *.cc
+
+  ## replace "jjnote" by "myremark" in all *.cc files under fxt/:
+  ## and produce patchfile fxt.dif:
+  $THIS -d fxt.dif jjnote myremark \$(find fxt/ -name \*.cc)
+  ## ... undo changes by:
+  patch -R -p0 < fxt.dif
+
+  ## produce patchfile fxt.dif but do NOT change files inside fxt/:
+  $THIS -f -D  fxt.dif jjnote myremark \$(find fxt/ -name \*.cc)
+  ## ... apply these paches with:
+  patch -p0 < fxt.dif
+
+  ## replace "foo" --> "bar" in *.cc in the directory fxt/
+  ## but only in those files that contain "unixmagic":
+  $THIS foo bar \$(grep -l unixmagic \$(find fxt/ -name \*.cc))
+
+  ## tricky: replace comments in postscript files:
+  ## i.e. remove all '% blah' but not '%% blah' & don't touch magic
+  ## (see man perlre 'zero-width negative lookbehind assertion')
+  $THIS -fq '(?<!%)%[^%!].*$' '' toobig.ps
+
+  ## join lines that end in '\' (six backslashes used), output to depend-nn.mk:
+  $THIS -f -q -o depend-nn.mk '\\\\\\\\\\\\n' '' depend.mk
+
+  ## replace '[***]', avoiding interpretation as metacharacters, output to stdout:
+  replace '[***]' -e '*[]' -o -  foo.txt
+
+  ## remove XML comments even over multiple lines:
+  replace -f -d d1.diff -m '<!--.*?-->' '' \$(find xml -name \*.xml)
+  ## remove XML tag pairs <remark></remark> with everything in between,
+  ## even over multiple lines:
+  replace -f -d d2.diff -m '<remark>.*?<\/remark>' '' \$(find xml -name \*.xml)
+
+$THIS is online: at http://www.jjj.de/
+---------------- author: Joerg Arndt ( arndt (AT) jjj.de ) ----------------
+EOF
+}
+## DO NOT copy and paste the examples from this file,
+## instead copy from the output on your terminal !
+## or do a 'replace --help > replace.txt' and copy from there
+
+
+if [ "$1" = "--help" ]; then  usage; exit 0;   fi
+if [ "$1" = "-help" ];  then  usage; exit 0;   fi
+
+type perl &>/dev/null  ||  { echo "$THIS needs perl !  (exiting)"; exit 1; }
+
+########################################
+
+DUMMY=0;
+INTERACTIVE=1;
+QUIET=0;
+FQUIET=0;
+DIFFFILENAME="";
+DELIM='/';
+IGNCASE='';
+MULTILINE='';
+ESCSET='';
+ERRIFNOFILES=1;
+unset DIFFONLY;
+unset DIFFOPT;
+unset OUTFILE;
+
+while getopts :h\?fimqQnNcd:D:e:o: OPT; do
+    case $OPT in
+        h|+h|\?|+\?)
+            usage
+            exit 0;
+            ;;
+        f|+f) INTERACTIVE=0;
+            ;;
+        i|+i) IGNCASE='i';
+            ;;
+        m|+m) MULTILINE='ms';
+            ;;
+        q|+q) QUIET=1;
+            ;;
+        Q|+Q) FQUIET=1;  QUIET=1;
+            ;;
+        n|+n) DUMMY=1;
+            ;;
+        c|+c) DIFFOPT='-C 2'
+            ;;
+        d|+d) DIFFFILENAME=$OPTARG;
+#            echo "diff file = $DIFFFILENAME";
+            ;;
+        D|+D) DIFFFILENAME=$OPTARG;
+            DIFFONLY=1;
+#            echo "diff file = $DIFFFILENAME, no changes will be applied";
+            ;;
+        e|+e) ESCSET=$OPTARG;
+#            echo "ESCSET=[$ESCSET]"
+            ;;
+        o|+o) OUTFILE=$OPTARG;
+            ;;
+        N|+N) ERRIFNOFILES=0;
+            ;;
+        *)
+            usage;
+            exit 2
+    esac
+done
+
+if [ -n "$DIFFFILENAME" ]; then # want diff
+
+    if [ -e  "$DIFFFILENAME" ]; then # file exists
+        echo "file $DIFFFILENAME exists, diff will be appended !"
+
+        if [ -w "$DIFFFILENAME" ]; then # is writable
+            true; # ok
+        else
+            echo "cannot open file $DIFFFILENAME";
+            exit 1;
+        fi
+    fi
+
+    echo "# $0 $@" >> "$DIFFFILENAME";
+fi
+
+shift $[ $OPTIND - 1 ]
+
+if [ "$INTERACTIVE" = "1" ]; then  QUIET=0;  fi
+
+if [ "$DUMMY" = "1" ]; then  INTERACTIVE=0; fi
+
+#echo "1=[$1]  2=[$2] 3=[$3]" # debug
+
+if [ $# -lt 3 ];  then
+    if [ "$ERRIFNOFILES" = "1" ]; then
+        usage;  exit -1;
+    else
+        if [ $# -lt 2 ]; then
+            usage;  exit -1;
+        fi
+    fi
+fi
+
+if [ -n "$OUTFILE" ]; then
+    if [ "$OUTFILE" != '-' ]; then
+        if [ $# -gt 3 ]; then
+            echo "can't use '-o' with multiple filenames.  (exiting)";
+            exit -1;
+        fi
+    fi
+fi
+
+#OLDEXPR=$1;
+#NEWEXPR=$2;
+OLDEXPR=${1//\//\\\/};  ## escape slashes
+NEWEXPR=${2//\//\\\/};  ## escape slashes
+shift;
+shift;
+
+while [ -n "$ESCSET" ]; do
+    ESCCHAR=${ESCSET:0:1};
+    ESCSET=${ESCSET:1};
+    OLDEXPR=${OLDEXPR//\\${ESCCHAR}/\\${ESCCHAR}};
+#    echo "OLDEXPR=[$OLDEXPR]"
+done
+
+if [ -z "$OLDEXPR" ]; then
+    echo 'empty OLDEXPR !';
+    echo ' (exiting) ';
+    exit -1;
+fi
+
+
+REPTMP=/tmp/replace-$$.tmp
+REPDIFF=/tmp/replace-$$.diff;
+#REPBAK=/tmp/replace-$$.bak
+trap "rm -f $REPTMP $REPDIFF 2>/dev/null" 0
+
+
+#LINE1="\$cmd='s/$OLDEXPR/$NEWEXPR/${IGNCASE}g'; ";
+LINE1="\$cmd='s$DELIM$OLDEXPR$DELIM$NEWEXPR${DELIM}${IGNCASE}${MULTILINE}g'; ";
+LINE2="while(<STDIN>) {eval(\$cmd); print;}";
+#echo "LINE1=[[$LINE1]]"; #   exit 0;
+
+PERLCMD="$LINE1 $LINE2";
+#echo "PERLCMD=[[$PERLCMD]]";  ## debug
+
+ASK='accept these changes  ("y" for ok';
+if [ $# -gt 1 ];  then
+    ASK=$ASK', "PROCEED" to rush ahead) ?';
+else
+    ASK=$ASK') ?';
+fi
+#echo "ASK=[[$ASK]]";
+
+########################################
+for FILE in  $*; do
+#    echo "[$FQUIET]"
+    if [ "$FQUIET" = "0" ]; then  echo " FILE $FILE : ";  fi
+
+    ## file exists and a regular file ?:
+    if [ ! -f $FILE ]; then
+        echo "skipping $FILE (does not exist or is no regular file)" 1>&2 ;
+        continue;
+    fi
+
+    ## skip symbolic links:
+    if [ -L $FILE ]; then
+        echo "skipping $FILE (symbolic link)" 1>&2 ;
+        continue;
+    fi
+
+    ## skip directories:
+    if [ -d $FILE ]; then
+        echo "skipping $FILE (directory)" 1>&2 ;
+        continue;
+    fi
+
+    ## must be readable:
+    if [ ! -r $FILE ]; then
+        echo "skipping $FILE (not readable)" 1>&2 ;
+        continue;
+    fi
+
+    ## must be writable:
+    if [ ! -w $FILE ]; then
+        echo "skipping $FILE (not writeable)" 1>&2 ;
+        continue;
+    fi
+
+    ## skip zero byte files:
+    if [ ! -s $FILE ]; then
+        echo "skipping $FILE (zero length)" 1>&2 ;
+        continue;
+    fi
+
+#    cp $FILE $REPBAK  ## create backup
+
+    cp $FILE $REPTMP;  ## to have identical permissions for new file
+
+    ############################
+    ## work is done here:
+
+    if [ '' = "${MULTILINE}" ]; then
+        perl -we "$PERLCMD" < $FILE  > $REPTMP;
+    else
+        perl -0777 -we "$PERLCMD" < $FILE  > $REPTMP;
+    fi
+    ############################
+
+    ## created zero byte file ?
+    ## most likely an error in the regular expressions
+    if [ ! -s $REPTMP ]; then
+        echo ' ! *** ZERO OUTPUT FILESIZE *** ! ' 1>&2 ;
+        echo ' ? an error in your regexp ?' 1>&2 ;
+        echo ' Switching to interactive mode. You might want to interrupt.' 1>&2 ;
+        INTERACTIVE=1;
+    fi
+
+    if ! diff $DIFFOPT $FILE $REPTMP > $REPDIFF;  then  ## if there is a difference ...
+
+        if [ "$QUIET" = "0" ]; then  cat $REPDIFF;  fi
+
+        if [ "$INTERACTIVE" = "1" ]; then
+            read -p "[$FILE] $ASK " ANSWER;
+            if [ "$ANSWER" = "PROCEED" ]; then  INTERACTIVE=0;  fi
+        else
+            ANSWER=y;
+        fi
+
+        if [ "$DUMMY" = "0" ]; then  ## ... and we are not in dummy mode ...
+            if [ "$ANSWER" = "y" -o "$ANSWER" = "PROCEED" ]; then  ## ... and got confirmation
+
+                echo "changes accepted."
+                test -n "$DIFFFILENAME"  && diff -u $FILE $REPTMP >> $DIFFFILENAME;
+
+                ## ... and DIFFONLY is not empty ...
+                test -n "$OUTFILE"  &&  FILE=$OUTFILE
+                if [ -z "$DIFFONLY" ]; then  ## DIFFONLY not set
+                    if [ "$OUTFILE" = '-' ]; then
+                        cat $REPTMP;   ## ... cat the changes
+                        rm $REPTMP;
+                    else
+                        mv $REPTMP $FILE;  ## ... do the changes
+                    fi
+                fi
+                test -n "$OUTFILE"  &&  echo " --> $OUTFILE";
+            else
+                echo "changes REJECTED."
+            fi
+        fi
+    fi # ! diff
+
+done
+
+
+rm -f $REPTMP
+rm -f $REPDIFF
+#rm -f $REPBAK
+
+exit 0;
+
+########################################

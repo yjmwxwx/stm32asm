@@ -1,0 +1,71 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4              		.equ STACKINIT,         0x20005000
+   5              	.section .text
+   6              	_xiangliangbiao:
+   7 0000 00500020 		.word STACKINIT
+   8 0004 1D000000 		.word _start + 1
+   9 0008 43000000 		.word _nmi_handler + 1
+  10 000c 45000000 		.word _hard_fault  + 1
+  11 0010 47000000 		.word _memory_fault + 1
+  12 0014 49000000 		.word _bus_fault + 1
+  13 0018 4B000000 		.word _usage_fault + 1
+  14              	_start:
+  15              		
+  16              	_bijiaodaxiao:
+  17 001c 70B5     		push {r4-r6,lr}
+  18 001e 0B4E     		ldr r6, = 0x20000030  @ x
+  19 0020 3578     		ldrb r5, [r6]
+  20 0022 692D     		cmp r5, # 105
+  21 0024 03D3     		bcc _bijiao
+  22 0026 4FF00304 		mov r4, # 3
+  23 002a 7470     		strb r4, [r6, # 0x01]
+  24 002c 08E0     		b _bijiaowanle
+  25              	_bijiao:	
+  26 002e 5F2D     		cmp r5, # 95
+  27 0030 03D8     		bhi _dayu
+  28 0032 4FF00104 		mov r4, # 1
+  29 0036 7470     		strb r4, [r6, # 0x01]
+  30 0038 02E0     		b _bijiaowanle
+  31              	_dayu:
+  32 003a 4FF00204 		mov r4, # 2
+  33 003e 7470     		strb r4, [r6, # 0x01]
+  34              	_bijiaowanle:
+  35 0040 70BD     		pop {r4-r6,pc}
+  36              		
+  37              	_nmi_handler:
+  38 0042 7047     		bx lr
+  39              	_hard_fault:
+  40 0044 7047     		bx lr
+  41              	_memory_fault:
+  42 0046 7047     		bx lr
+  43              	_bus_fault:
+  44 0048 7047     		bx lr
+  45              	_usage_fault:
+  46 004a 70473000 	 	bx lr
+  46      0020
+ARM GAS  1.s 			page 2
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:20005000 STACKINIT
+                 1.s:6      .text:00000000 _xiangliangbiao
+                 1.s:14     .text:0000001c _start
+                 1.s:37     .text:00000042 _nmi_handler
+                 1.s:39     .text:00000044 _hard_fault
+                 1.s:41     .text:00000046 _memory_fault
+                 1.s:43     .text:00000048 _bus_fault
+                 1.s:45     .text:0000004a _usage_fault
+                 1.s:16     .text:0000001c _bijiaodaxiao
+                            .text:00000000 $d
+                 1.s:17     .text:0000001c $t
+                 1.s:25     .text:0000002e _bijiao
+                 1.s:34     .text:00000040 _bijiaowanle
+                 1.s:31     .text:0000003a _dayu
+                 1.s:46     .text:0000004c $d
+
+NO UNDEFINED SYMBOLS

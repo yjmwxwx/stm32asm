@@ -1,0 +1,212 @@
+ARM GAS  1.s 			page 1
+
+
+   1              			@ stm32f030f4p6 asm
+   2              		 .thumb
+   3              		         .syntax unified
+   4              		.section .data
+   5              	
+   6              		.equ STACKINIT,        	        0x20001000
+   7              	
+   8              	.section .text
+   9              	vectors:
+  10 0000 00100020 		.word STACKINIT
+  11 0004 B1000000 		.word _start + 1
+  12 0008 4D010000 		.word _nmi_handler + 1
+  13 000c 4F010000 		.word _hard_fault  + 1
+  14 0010 00000000 		.word 0
+  15 0014 00000000 		.word 0
+  16 0018 00000000 		.word 0
+  17 001c 00000000 		.word 0
+  18 0020 00000000 		.word 0
+  19 0024 00000000 		.word 0
+  20 0028 00000000 		.word 0
+  21 002c 51010000 		.word _svc_handler +1
+  22 0030 00000000 		.word 0
+  23 0034 00000000 		.word 0
+  24 0038 53010000 		.word _pendsv_handler +1
+  25 003c 55010000 		.word aaa +1	@ _systickzhongduan +1               @ 15
+  26 0040 55010000 		.word aaa +1     @ _wwdg +1          @ 0
+  27 0044 55010000 		.word aaa +1     @_pvd +1            @ 1
+  28 0048 55010000 		.word aaa +1     @_rtc +1            @ 2
+  29 004c 55010000 		.word aaa +1     @_flash +1          @ 3
+  30 0050 55010000 		.word aaa +1	@ _rcc + 1          @ 4
+  31 0054 55010000 		.word aaa +1	@_exti0_1  +1      @ 5
+  32 0058 55010000 		.word aaa +1      @ _exti2_3 +1      @ 6
+  33 005c 55010000 		.word aaa +1       @_exti4_15 +1     @ 7
+  34 0060 55010000 		.word aaa +1                         @ 8
+  35 0064 55010000 		.word aaa +1 	@_dma1_1  +1    @ 9
+  36 0068 55010000 		.word aaa +1    @_dma1_2_3 +1        @ 10
+  37 006c 55010000 		.word aaa +1       @_dma1_4_5 +1     @ 11
+  38 0070 55010000 		.word aaa +1	 @_adc1 +1          @ 12
+  39 0074 55010000 		.word aaa +1	@_tim1_brk_up +1  @ 13
+  40 0078 55010000 		.word aaa +1 @_tim1_buhuo +1    @ 14
+  41 007c 55010000 		.word aaa +1         @_tim2 +1       @ 15
+  42 0080 55010000 		.word aaa +1          @_tim3 +1      @ 16
+  43 0084 55010000 		.word aaa +1                         @ 17
+  44 0088 55010000 		.word aaa +1		                @ 18
+  45 008c 55010000 		.word aaa +1		@_tim14 +1    @ 19
+  46 0090 55010000 		.word aaa +1                         @ 20
+  47 0094 55010000 		.word aaa +1 	@_tim16 +1      @ 21
+  48 0098 55010000 		.word aaa +1         @_tim17 +1      @ 22
+  49 009c 55010000 		.word aaa +1          @_i2c   +1     @ 23
+  50 00a0 55010000 		.word aaa +1                         @ 24
+  51 00a4 55010000 		.word aaa +1           @_spi   +1    @ 25
+  52 00a8 55010000 		.word aaa +1                         @ 26
+  53 00ac 55010000 		.word aaa +1         @_usart1 +1     @ 27
+  54              	_start:
+  55              	neicunqingling:
+  56 00b0 1948     		ldr r0, = 0x20000000
+  57 00b2 0021     		movs r1, # 0
+ARM GAS  1.s 			page 2
+
+
+  58 00b4 194B     		ldr r3, = 0x1000
+  59              	neicunqinglingxunhuan:
+  60 00b6 043B     		subs r3, # 4
+  61 00b8 C150     		str r1, [r0, r3]
+  62 00ba FCD1     		bne neicunqinglingxunhuan
+  63              	
+  64              	_waisheshizhong:			 @ 外设时钟
+  65              		@+0x14=RCC_AHBENR
+  66              		@0=DMA @2=SRAM @4=FLITF@6=CRC @17=PA @18=PB @19=PC @20=PD @22=PF
+  67 00bc 1848     		ldr r0, = 0x40021000
+  68 00be 1949     		ldr r1, = 0x460005
+  69 00c0 4161     		str r1, [r0, # 0x14]
+  70              	
+  71              	
+  72              		@+0x18外设时钟使能寄存器 (RCC_APB2ENR)
+  73              		@0=SYSCFG @5=USART6EN @9=ADC @11=TIM1 @12=SPI1 @14=USART1 @16=TIM15 @17=TIM16 @18=TIM17 @22=DBGMCU
+  74 00c2 1949     		ldr r1, = 0x20801
+  75 00c4 8161     		str r1, [r0, # 0x18]
+  76              		@+0X1C=RCC_APB1ENR
+  77              		@1=TIM3 @4=TIM6 @5=TIM7 @8=TIM14 @11=WWDG @14=SPI @17=USRT2 @18=USART3 @20=USART5 @21=I2C1
+  78              		@22=I2C2 @23=USB @28=PWR
+  79 00c6 1949     		ldr r1, = 0x102
+  80 00c8 C161     		str r1, [r0, # 0x1c]
+  81              	
+  82              	_tim14chushiha:				@8M
+  83 00ca 1948     		ldr r0, = 0x40002000 @ tim14_cr1
+  84 00cc 1949     		ldr r1, = 40000
+  85 00ce 8162     		str r1, [r0, # 0x28] @ psc
+  86 00d0 1949     		ldr r1, = 50000
+  87 00d2 C162     		str r1, [r0, # 0x2c] @ ARR
+  88 00d4 1949     		ldr r1, = 0x68
+  89 00d6 8161     		str r1, [r0, # 0x18] @ ccmr
+  90 00d8 0121     		movs r1, # 0x01
+  91 00da 0162     		str r1, [r0, # 0x20] @ ccer
+  92 00dc 1549     		ldr r1, = 40000
+  93 00de 4163     		str r1, [r0, # 0x34]
+  94 00e0 8121     		movs r1, # 0x81
+  95 00e2 0160     		str r1, [r0]
+  96              	
+  97              	
+  98              	io_she_zhi:
+  99              		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 100              		@a(0x48000000)b(0x48000400)c(0x48000800)d(0x48000c00)f(0x48001400)
+ 101              		@ 输入（00），通用输出（01），复用功能（10），模拟（11）
+ 102              		@偏移0x4 = 端口输出类型 @ （0 推挽），（ 1 开漏）
+ 103              		@偏移0x8 = 输出速度  00低速， 01中速， 11高速
+ 104              		@偏移0xC = 上拉下拉 (00无上下拉，  01 上拉， 10下拉)
+ 105              		@偏移0x10 = 输入数据寄存器
+ 106              		@偏移0x14 = 输出数据寄存器
+ 107              		@偏移0x18 = 端口开  0-15置位
+ 108              		@偏移0x28 = 端口关
+ 109              		@0X20 = 复用低
+ 110              		@GPIO口0（0-3位）每个IO口占用4位
+ 111              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+ 112              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+ 113              		@0x24 = 复用高
+ 114              		@GPIO口8 （0-3位）每个IO口占用4位
+ARM GAS  1.s 			page 3
+
+
+ 115              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+ 116              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+ 117              		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 118              	
+ 119 00e4 1648     		ldr r0, = 0x48000000
+ 120 00e6 1749     		ldr r1, = 0x28000200
+ 121 00e8 0160     		str r1, [r0]
+ 122              		
+ 123 00ea 1749     		ldr r1, = 0x40000
+ 124 00ec 0162     		str r1, [r0, # 0x20]
+ 125              	
+ 126              		
+ 127              	tingting:
+ 128              	
+ 129 00ee FEE7     		b tingting
+ 130              	_chufa:				@软件除法
+ 131              		@ r0 除以 r1 等于 商(r0)余数R1
+ 132 00f0 1EB5     		push {r1-r4,lr}
+ 133 00f2 0028     		cmp r0, # 0
+ 134 00f4 0ED0     		beq _chufafanhui
+ 135 00f6 0029     		cmp r1, # 0
+ 136 00f8 0CD0     		beq _chufafanhui
+ 137 00fa 0246     		mov r2, r0
+ 138 00fc 0123     		movs r3, # 1
+ 139 00fe DB07     		lsls r3, r3, # 31
+ 140 0100 0020     		movs r0, # 0
+ 141 0102 0446     		mov r4, r0
+ 142              	_chufaxunhuan:
+ 143 0104 5200     		lsls r2, r2, # 1
+ 144 0106 6441     		adcs r4, r4, r4
+ 145 0108 8C42     		cmp r4, r1
+ 146 010a 01D3     		bcc _chufaweishubudao0
+ 147 010c C018     		adds r0, r0, r3
+ 148 010e 641A     		subs r4, r4, r1
+ 149              	_chufaweishubudao0:
+ 150 0110 5B08     		lsrs r3, r3, # 1
+ 151 0112 F7D1     		bne _chufaxunhuan
+ 152              	_chufafanhui:
+ 153 0114 1EBD     		pop {r1-r4,pc}
+ 154 0116 00000000 		.ltorg
+ 154      00200010 
+ 154      00000010 
+ 154      02400500 
+ 154      46000108 
+ 155              	
+ 156              	_nmi_handler:
+ 157 014c 7047     		bx lr
+ 158              	_hard_fault:
+ 159 014e 7047     		bx lr
+ 160              	_svc_handler:
+ 161 0150 7047     		bx lr
+ 162              	_pendsv_handler:
+ 163 0152 7047     		bx lr
+ 164              	aaa:
+ 165 0154 7047     		bx lr
+ 166              	
+ 167 0156 C046     	
+ARM GAS  1.s 			page 4
+
+
+ARM GAS  1.s 			page 5
+
+
+DEFINED SYMBOLS
+                 1.s:6      *ABS*:0000000020001000 STACKINIT
+                 1.s:9      .text:0000000000000000 vectors
+                 1.s:54     .text:00000000000000b0 _start
+                 1.s:156    .text:000000000000014c _nmi_handler
+                 1.s:158    .text:000000000000014e _hard_fault
+                 1.s:160    .text:0000000000000150 _svc_handler
+                 1.s:162    .text:0000000000000152 _pendsv_handler
+                 1.s:164    .text:0000000000000154 aaa
+                 1.s:55     .text:00000000000000b0 neicunqingling
+                            .text:0000000000000000 $d
+                 1.s:56     .text:00000000000000b0 $t
+                 1.s:59     .text:00000000000000b6 neicunqinglingxunhuan
+                 1.s:64     .text:00000000000000bc _waisheshizhong
+                 1.s:82     .text:00000000000000ca _tim14chushiha
+                 1.s:98     .text:00000000000000e4 io_she_zhi
+                 1.s:127    .text:00000000000000ee tingting
+                 1.s:130    .text:00000000000000f0 _chufa
+                 1.s:152    .text:0000000000000114 _chufafanhui
+                 1.s:142    .text:0000000000000104 _chufaxunhuan
+                 1.s:149    .text:0000000000000110 _chufaweishubudao0
+                 1.s:154    .text:0000000000000116 $d
+                 1.s:154    .text:0000000000000118 $d
+                 1.s:157    .text:000000000000014c $t
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,304 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4              	         .equ STACKINIT, 0x20005000
+   5              		 .equ led1,	0x422101a0
+   6              		 .equ ledyanshi, 80000
+   7              		
+   8              	.section .text
+   9              	vectors:        
+  10 0000 00500020 	        .word STACKINIT         
+  11 0004 B1000000 	        .word _start + 1        
+  12 0008 CB010000 	        .word _nmi_handler + 1  
+  13 000c CD010000 	        .word _hard_fault  + 1  
+  14 0010 CF010000 	        .word _memory_fault + 1 
+  15 0014 D1010000 	        .word _bus_fault + 1    
+  16 0018 D3010000 	        .word _usage_fault + 1 
+  17 001c 00000000 		.word 0
+  18 0020 00000000 		.word 0
+  19 0024 00000000 		.word 0
+  20 0028 00000000 		.word 0
+  21 002c 00000000 		.word 0
+  22 0030 00000000 		.word 0
+  23 0034 00000000 		.word 0 
+  24 0038 00000000 		.word 0
+  25 003c D5010000 		.word _dingshiqi + 1
+  26 0040 00000000 		.word 0
+  27 0044 00000000 		.word 0
+  28 0048 00000000 		.word 0
+  29 004c 00000000 		.word 0
+  30 0050 00000000 		.word 0
+  31 0054 00000000 		.word 0 
+  32 0058 00000000 		.word 0
+  33 005c D7010000 		.word _extizhongduan + 1
+  34 0060 00000000 		.word 0
+  35 0064 00000000 		.word 0
+  36 0068 00000000 		.word 0
+  37 006c 00000000 		.word 0
+  38 0070 00000000 		.word 0
+  39 0074 00000000 		.word 0
+  40 0078 00000000 		.word 0
+  41 007c 00000000 		.word 0
+  42 0080 00000000 		.word 0
+  43 0084 00000000 		.word 0
+  44 0088 00000000 		.word 0
+  45 008c 00000000 		.word 0
+  46 0090 00000000 		.word 0
+  47 0094 00000000 		.word 0
+  48 0098 00000000 		.word 0
+  49 009c 00000000 		.word 0
+  50 00a0 00000000 		.word 0
+  51 00a4 00000000 		.word 0
+  52 00a8 00000000 		.word 0
+  53 00ac 0B020000 		.word _tim1dingshiqi +1
+  54              	_start:
+  55 00b0 5B48     		ldr r0, = 0x20000200
+  56 00b2 4FF00001 		mov r1, # 0
+  57 00b6 0160     		str r1, [r0]
+ARM GAS  1.s 			page 2
+
+
+  58 00b8 4FF00000 		mov r0, # 0
+  59 00bc 4FF00001 		mov r1, # 0
+  60 00c0 4FF00002 		mov r2, # 0
+  61 00c4 4FF00003 		mov r3, # 0
+  62 00c8 4FF00004 		mov r4, # 0
+  63 00cc 4FF00005 		mov r5, # 0
+  64 00d0 4FF00006 		mov r6, # 0 
+  65 00d4 4FF00007 		mov r7, # 0
+  66 00d8 4FF00008 		mov r8, # 0
+  67 00dc 4FF00009 		mov r9, # 0
+  68              	shizhong:
+  69 00e0 5048     		ldr r0, = 0x40021000
+  70 00e2 5149     		ldr r1, = 0x14D83
+  71 00e4 0160     		str r1, [r0]
+  72              	gsszbz: 
+  73 00e6 0268     		ldr r2, [r0]
+  74 00e8 5049     		ldr r1, = 0x20000
+  75 00ea 1142     		tst r1, r2           @高速时钟标志位           
+  76 00ec 00D1     		bne rccchushihua
+  77 00ee FAE7     		b gsszbz
+  78              	rccchushihua: 
+  79 00f0 4F48     		ldr r0, = 0x40022000
+  80 00f2 4FF03201 		mov r1, # 0x00000032
+  81 00f6 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  82 00f8 4E48     		ldr r0, = 0x40021004
+  83 00fa 4F49     		ldr r1, = 0x1D8400
+  84 00fc 0160     		str r1, [r0]
+  85 00fe 4948     		ldr r0, = 0x40021000
+  86 0100 4E49     		ldr r1, = 0x1033D03
+  87 0102 0160     		str r1, [r0]
+  88              	chaxun:
+  89 0104 0268     		ldr r2, [r0]
+  90 0106 4E49     		ldr r1, = 0x2000000
+  91 0108 1142     		tst r1, r2
+  92 010a 00D1     		bne rccgg
+  93 010c FAE7     		b chaxun
+  94              	rccgg:
+  95 010e 4948     		ldr r0, = 0x40021004
+  96 0110 4C49     		ldr r1, = 0x1D8402
+  97 0112 0160     		str r1, [r0]
+  98              	rccapb2enr:
+  99 0114 4C48     	        ldr r0, = 0x40021018
+ 100 0116 4D49     	        ldr r1, = 0x805
+ 101 0118 0160     	        str r1, [r0]
+ 102 011a 4FF00101 		mov r1, # 1
+ 103 011e 4160     		str r1, [r0, # 0x04] @ apb1enr
+ 104              	systick:
+ 105 0120 4B48     		ldr r0, = 0xe000e010
+ 106 0122 4FF00001 		mov r1, # 0
+ 107 0126 0160     		str r1, [r0]
+ 108 0128 4A49     		ldr r1, = 0xffffff
+ 109 012a 4160     		str r1, [r0, # 4]
+ 110 012c 8160     		str r1, [r0, # 8]
+ 111 012e 4FF00001 		mov r1, # 0
+ 112 0132 0160     		str r1, [r0]
+ 113 0134 4848     		ldr r0, = 0xe000ed23  @systick优先级
+ 114 0136 4FF0F001 		mov r1, # 240
+ARM GAS  1.s 			page 3
+
+
+ 115 013a 0160     		str r1, [r0]
+ 116              	ioshezhi:
+ 117 013c 4748     		ldr r0, = 0x40010800 @ gpioa
+ 118 013e 4849     		ldr r1, = 0x44444484 
+ 119 0140 0160     		str r1, [r0]
+ 120 0142 4849     		ldr r1, = 0x4444444b
+ 121 0144 4160     		str r1, [r0, # 4]
+ 122              		
+ 123 0146 4848     		ldr r0, = 0x4001080C
+ 124 0148 4FF00201 		mov r1, # 0x02
+ 125 014c 0160     		str r1, [r0]
+ 126              	
+ 127              		@@AFIO-MAPR 开SWD模式
+ 128 014e 4748     		ldr r0, = 0x40010004
+ 129 0150 3B49     		ldr r1, = 0x02000000
+ 130 0152 0160     		str r1, [r0]
+ 131              		
+ 132              	extiexti:
+ 133 0154 4648     		ldr r0, = 0x40010008 @AFIO_EXTICR1
+ 134 0156 4FF00001 		mov r1, # 0
+ 135 015a 0160     		str r1, [r0] @PA1外部中断
+ 136 015c 4FF00201 		mov r1, # 0x02
+ 137 0160 4448     		ldr r0, = 0x40010400 @EXTI_IMR中断屏蔽寄存器
+ 138 0162 0160     		str r1, [r0]
+ 139 0164 4448     		ldr r0, = 0x40010404 @EXTI_EMR事件屏蔽
+ 140 0166 0160     		str r1, [r0]
+ 141 0168 4448     		ldr r0, = 0x4001040c @EXTI_FTSR下降沿触发
+ 142 016a 0160     		str r1, [r0]
+ 143 016c 4448     		ldr r0, = 0xE000E100 @NVIC_ISER0 SETENA0
+ 144 016e 4549     		ldr r1, =  0x8000080 @ exti1开中断 tim1
+ 145 0170 0160     		str r1, [r0]
+ 146              	
+ 147              	tim1dingshiqi:
+ 148 0172 4548     		ldr r0, = 0x40012c00
+ 149 0174 4549     		ldr r1, = 1000
+ 150 0176 C162     		str r1, [r0, # 0x2c] @ tim1-arr
+ 151 0178 4549     		ldr r1, = 7200
+ 152 017a 8162     		str r1, [r0, # 0x28] @ tim1-psc
+ 153 017c 4549     		ldr r1, = 0x70
+ 154 017e 8161     		str r1, [r0, # 0x18] @ tim1-ccmr1
+ 155 0180 4549     		ldr r1, = 0x1
+ 156 0182 0162     		str r1, [r0, # 0x20] @ tim1-ccer
+ 157 0184 4549     		ldr r1, = 900
+ 158 0186 4163     		str r1, [r0, # 0x34] @ tim1-ccr1
+ 159 0188 4549     		ldr r1, = 0x8000
+ 160 018a 4164     		str r1, [r0, # 0x44] @ tim1-BDTR
+ 161 018c 4549     		ldr r1, = 0x2
+ 162 018e C160     		str r1, [r0, # 0x0c]
+ 163 0190 4549     		ldr r1, = 0x03
+ 164 0192 4161     		str r1, [r0, # 0x14]
+ 165 0194 4549     		ldr r1, = 0x9
+ 166 0196 0160     		str r1, [r0]
+ 167              	
+ 168              	tim3dingshiqi:
+ 169 0198 4548     		ldr r0, = 0x40000000
+ 170 019a 4649     		ldr r1, = 10000
+ 171 019c C162     		str r1, [r0, # 0x2c] @ ARR
+ARM GAS  1.s 			page 4
+
+
+ 172 019e 3C49     		ldr r1, = 7200
+ 173 01a0 8162     		str r1, [r0, # 0x28] @ PSC
+ 174 01a2 4549     		ldr r1, = 0x8b
+ 175 01a4 0160     		str r1, [r0]
+ 176              		
+ 177              	
+ 178              	kammengou:
+ 179 01a6 4548     		ldr r0, = 0x40003000
+ 180 01a8 4549     		ldr r1, = 0x5555
+ 181 01aa 0160     		str r1, [r0]
+ 182 01ac 4FF00401 		mov r1, # 4
+ 183 01b0 4160     		str r1, [r0, # 4]
+ 184 01b2 4449     		ldr r1, = 0x28c
+ 185 01b4 8160     		str r1, [r0, # 8]
+ 186 01b6 4449     		ldr r1, = 0xaaaa
+ 187 01b8 0160     		str r1, [r0]
+ 188 01ba 4449     		ldr r1, = 0xcccc
+ 189 01bc 0160     		str r1, [r0]
+ 190              	
+ 191 01be 184D     		ldr r5, = 0x20000200
+ 192 01c0 434E     		ldr r6, = 0x20000500
+ 193              		
+ 194              	zhuchengxu:
+ 195 01c2 3E48     		ldr r0, = 0x40003000
+ 196 01c4 4049     		ldr r1, = 0xaaaa
+ 197 01c6 0160     		str r1, [r0]
+ 198              	
+ 199              	
+ 200 01c8 FBE7     		b zhuchengxu
+ 201              		
+ 202              	_nmi_handler:
+ 203 01ca 7047     		bx lr
+ 204              	_hard_fault:
+ 205 01cc 7047     		bx lr
+ 206              	_memory_fault:
+ 207 01ce 7047     		bx lr
+ 208              	_bus_fault:
+ 209 01d0 7047     		bx lr
+ 210              	_usage_fault:
+ 211 01d2 7047     		bx lr
+ 212              	_dingshiqi:
+ 213 01d4 7047     		bx lr
+ 214              	_extizhongduan:
+ 215 01d6 03B5     		push {r0,r1,lr}
+ 216 01d8 1D48     		ldr r0, = 0xe000e010
+ 217 01da 4FF00001 		mov r1, # 0
+ 218 01de 0160     		str r1, [r0]
+ 219 01e0 8168     		ldr r1, [r0, # 8]
+ 220 01e2 8160     		str r1, [r0, # 8]
+ 221 01e4 1B4B     		ldr r3, = 0xffffff
+ 222 01e6 A3EB0101 		sub r1, r3, r1
+ 223 01ea 45F8041B 		str r1, [r5], # 4
+ 224 01ee 4FF00501 		mov r1, # 0x05
+ 225 01f2 0160     		str r1, [r0]
+ 226              	extifanhui:
+ 227 01f4 2448     		ldr r0, = 0x40012c00
+ 228 01f6 4FF00901 		mov r1, # 0x9
+ARM GAS  1.s 			page 5
+
+
+ 229 01fa 0160     		str r1, [r0]
+ 230 01fc 2849     		ldr r1, = 0x8000
+ 231 01fe 4164     		str r1, [r0, # 0x44]
+ 232              		
+ 233 0200 3448     		ldr r0, = 0x40010414 @ exti_pr 
+ 234 0202 4FF00201 		mov r1, # 0x02
+ 235 0206 0160     		str r1, [r0]
+ 236 0208 03BD     		pop {r0,r1,pc}
+ 237              		
+ 238              	_tim1dingshiqi:
+ 239 020a 1F48     		ldr r0, = 0x40012c00
+ 240 020c 4FF00001 		mov r1, # 0
+ 241 0210 0160     		str r1, [r0]
+ 242 0212 0161     		str r1, [r0, # 0x10]
+ 243 0214 4164     		str r1, [r0, # 0x44]
+ 244 0216 08F10108 		add r8, # 1
+ 245 021a 09F10109 		add r9, # 1
+ 246 021e 7047     		bx lr
+ 247              		
+ 248              		
+ 249 0220 00020020 		
+ 249      00100240 
+ 249      834D0100 
+ 249      00000200 
+ 249      00200240 
+ARM GAS  1.s 			page 6
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:20005000 STACKINIT
+                 1.s:5      *ABS*:422101a0 led1
+                 1.s:6      *ABS*:00013880 ledyanshi
+                 1.s:9      .text:00000000 vectors
+                 1.s:54     .text:000000b0 _start
+                 1.s:202    .text:000001ca _nmi_handler
+                 1.s:204    .text:000001cc _hard_fault
+                 1.s:206    .text:000001ce _memory_fault
+                 1.s:208    .text:000001d0 _bus_fault
+                 1.s:210    .text:000001d2 _usage_fault
+                 1.s:212    .text:000001d4 _dingshiqi
+                 1.s:214    .text:000001d6 _extizhongduan
+                 1.s:238    .text:0000020a _tim1dingshiqi
+                            .text:00000000 $d
+                 1.s:55     .text:000000b0 $t
+                 1.s:68     .text:000000e0 shizhong
+                 1.s:72     .text:000000e6 gsszbz
+                 1.s:78     .text:000000f0 rccchushihua
+                 1.s:88     .text:00000104 chaxun
+                 1.s:94     .text:0000010e rccgg
+                 1.s:98     .text:00000114 rccapb2enr
+                 1.s:104    .text:00000120 systick
+                 1.s:116    .text:0000013c ioshezhi
+                 1.s:132    .text:00000154 extiexti
+                 1.s:147    .text:00000172 tim1dingshiqi
+                 1.s:168    .text:00000198 tim3dingshiqi
+                 1.s:178    .text:000001a6 kammengou
+                 1.s:194    .text:000001c2 zhuchengxu
+                 1.s:226    .text:000001f4 extifanhui
+                 1.s:249    .text:00000220 $d
+
+NO UNDEFINED SYMBOLS

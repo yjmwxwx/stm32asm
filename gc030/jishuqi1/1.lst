@@ -1,0 +1,202 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm
+   2              		 .thumb
+   3              		.syntax unified
+   4              		.section .data
+   5              		.equ STACKINIT,                 0x20001000
+   6              		.equ cishu,			0x20000000
+   7              		.equ flashdizhi,		0x20000004
+   8              		.equ flashdizhi1,		0x20000008
+   9              	.section .text
+  10              	xiangliangbiao:        
+  11 0000 00100020 	        .word STACKINIT         
+  12 0004 41000000 	        .word _start + 1        
+  13 0008 ED000000 	        .word _nmi_handler + 1  
+  14 000c EF000000 	        .word _hard_fault  + 1  
+  15 0010 00000000 	        .word 0 
+  16 0014 00000000 	        .word 0    
+  17 0018 00000000 	        .word 0
+  18 001c 00000000 		.word 0
+  19 0020 00000000 		.word 0
+  20 0024 00000000 		.word 0
+  21 0028 00000000 		.word 0
+  22 002c F1000000 		.word _svc_handler +1
+  23 0030 00000000 		.word 0 
+  24 0034 00000000 		.word 0
+  25 0038 F3000000 		.word _pendsv_handler +1
+  26 003c F5000000 		.word _systickzhongduan + 1
+  27              	_start:
+  28              	_jianceflash:
+  29 0040 3348     		ldr r0, = 0x8000800
+  30 0042 344A     		ldr r2, = 0xffffffff
+  31 0044 0168     		ldr r1, [r0]
+  32 0046 9142     		cmp r1, r2
+  33 0048 05D1     		bne _zhaozuidade
+  34 004a 334B     		ldr r3, = cishu
+  35 004c 0024     		movs r4, # 0
+  36 004e 1C60     		str r4, [r3]
+  37 0050 5C60     		str r4, [r3, # 0x04]
+  38 0052 00F028F8 		bl _xieflash
+  39              	
+  40              	_zhaozuidade:
+  41 0056 01BE     		bkpt 1
+  42 0058 2D48     		ldr r0, = 0x8000800
+  43 005a 3049     		ldr r1, = 0x400
+  44 005c 304A     		ldr r2, = 0xc00
+  45 005e 0025     		movs r5, # 0
+  46 0060 2E46     		mov r6, r5
+  47              	_zhaozuidadexunhuan:
+  48 0062 4359     		ldr r3, [r0, r5]
+  49 0064 B342     		cmp r3, r6
+  50 0066 01D9     		bls _xiaoyu
+  51 0068 1E46     		mov r6, r3
+  52 006a 2C46     		mov r4, r5               
+  53              	_xiaoyu:	
+  54 006c 6D18     		adds r5, r5, r1
+  55 006e 9542     		cmp r5, r2
+  56 0070 F7D1     		bne _zhaozuidadexunhuan
+  57 0072 0346     		mov r3, r0
+ARM GAS  1.s 			page 2
+
+
+  58 0074 0546     		mov r5, r0
+  59 0076 1344     		add r3, r3, r2
+  60 0078 2044     		add r0, r0, r4
+  61 007a 9842     		cmp r0, r3
+  62 007c 00D1     		bne _meichaochufanwei
+  63 007e 2448     		ldr r0, = 0x8000800
+  64              	_meichaochufanwei:
+  65 0080 284C     		ldr r4, = flashdizhi
+  66 0082 2060     		str r0, [r4]
+  67 0084 6D1A     		subs r5, r5, r1
+  68 0086 401A     		subs r0, r0, r1
+  69 0088 A842     		cmp r0, r5
+  70 008a 00D1     		bne _meichaochufanwei1
+  71 008c 2648     		ldr r0, = 0x8001000
+  72              	_meichaochufanwei1:
+  73 008e 274C     		ldr r4, = flashdizhi1
+  74 0090 2149     		ldr r1, = cishu
+  75 0092 2060     		str r0, [r4]
+  76 0094 0268     		ldr r2, [r0]
+  77 0096 0A60     		str r2, [r1]
+  78              	_systick:	                                  @ systick定时器初始化
+  79 0098 2548     		ldr r0, = 0xe000e010
+  80 009a 2649     		ldr r1, = 10000000
+  81 009c 4160     		str r1, [r0, # 4]
+  82 009e 8160     		str r1, [r0, # 8]
+  83 00a0 0721     		movs r1, # 0x07
+  84 00a2 0160     		str r1, [r0]
+  85              	tingxiale:
+  86 00a4 FEE7     		b tingxiale
+  87              	_xieflash:				@ flsh解锁
+  88 00a6 0646     		mov r6, r0
+  89 00a8 2348     		ldr r0, = 0x40022000
+  90 00aa 2449     		ldr r1, = 0x45670123
+  91 00ac 4160     		str r1, [r0, # 0x04]
+  92 00ae 2449     		ldr r1, = 0xcdef89ab
+  93 00b0 4160     		str r1, [r0, # 0x04]
+  94              		
+  95 00b2 3446     		mov r4, r6
+  96              	_flashmang:
+  97 00b4 C268     		ldr r2, [r0, # 0x0c]
+  98 00b6 D207     		lsls r2, r2, # 31
+  99 00b8 FCD4     		bmi _flashmang
+ 100 00ba 0221     		movs r1, # 2
+ 101 00bc 0161     		str r1, [r0, # 0x10]
+ 102 00be 4461     		str r4, [r0, # 0x14]
+ 103 00c0 4221     		movs r1, # 0x42
+ 104 00c2 0161     		str r1, [r0, # 0x10]
+ 105              							@写FLASH
+ 106 00c4 3746     		mov r7, r6
+ 107 00c6 144C     		ldr r4, = cishu
+ 108              	_flashmang1:
+ 109 00c8 C268     		ldr r2, [r0, # 0x0c]
+ 110 00ca D207     		lsls r2, r2, # 31
+ 111 00cc FCD4     		bmi _flashmang1
+ 112 00ce 0121     		movs r1, # 1
+ 113 00d0 0161     		str r1, [r0, # 0x10]
+ 114 00d2 2388     		ldrh r3, [r4]
+ARM GAS  1.s 			page 3
+
+
+ 115 00d4 3B80     		strh r3, [r7]
+ 116              	_flashmang2:
+ 117 00d6 C268     		ldr r2, [r0, # 0x0c]
+ 118 00d8 D207     		lsls r2, r2, # 31
+ 119 00da FCD4     		bmi _flashmang2
+ 120 00dc 6388     		ldrh r3, [r4, # 0x02]
+ 121 00de 7B80     		strh r3, [r7, # 0x02]
+ 122              	_flashmang3:
+ 123 00e0 C268     		ldr r2, [r0, # 0x0c]
+ 124 00e2 D207     		lsls r2, r2, # 31
+ 125 00e4 FCD4     		bmi _flashmang3
+ 126              		@movs r1, # 0x80
+ 127              		@str r1, [r0]          		@flsh上锁
+ 128 00e6 1748     		ldr r0, = 0xe000ed0c
+ 129 00e8 1749     		ldr r1, = 0x05fa0004
+ 130              		@str r1, [r0]          		@复位
+ 131              	ddd:
+ 132 00ea FEE7     		b ddd
+ 133              	_nmi_handler:
+ 134 00ec 7047     		bx lr
+ 135              	_hard_fault:
+ 136 00ee 7047     		bx lr
+ 137              	_svc_handler:
+ 138 00f0 7047     		bx lr
+ 139              	_pendsv_handler:
+ 140 00f2 7047     		bx lr
+ 141              	_systickzhongduan:
+ 142 00f4 1548     		ldr r0, = 0xe0000d04
+ 143 00f6 1649     		ldr r1, = 0x02000000
+ 144 00f8 0160     		str r1, [r0]                 @ 清除SYSTICK中断
+ 145 00fa 0A49     		ldr r1, = flashdizhi
+ 146 00fc 0B4A     		ldr r2, = flashdizhi1
+ 147 00fe 064E     		ldr r6, = cishu
+ 148 0100 0B68     		ldr r3, [r1]
+ 149 0102 1468     		ldr r4, [r2]
+ 150 0104 1D68     		ldr r5, [r3]
+ 151 0106 0135     		adds r5, r5, # 1
+ 152 0108 3560     		str r5, [r6]
+ 153 010a 2046     		mov r0, r4
+ 154 010c CBE70000 		b _xieflash
+ 154      00080008 
+ 154      FFFFFFFF 
+ 154      00000020 
+ 154      00040000 
+ARM GAS  1.s 			page 4
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:0000000020001000 STACKINIT
+                 1.s:6      *ABS*:0000000020000000 cishu
+                 1.s:7      *ABS*:0000000020000004 flashdizhi
+                 1.s:8      *ABS*:0000000020000008 flashdizhi1
+                 1.s:10     .text:0000000000000000 xiangliangbiao
+                 1.s:27     .text:0000000000000040 _start
+                 1.s:133    .text:00000000000000ec _nmi_handler
+                 1.s:135    .text:00000000000000ee _hard_fault
+                 1.s:137    .text:00000000000000f0 _svc_handler
+                 1.s:139    .text:00000000000000f2 _pendsv_handler
+                 1.s:141    .text:00000000000000f4 _systickzhongduan
+                 1.s:28     .text:0000000000000040 _jianceflash
+                            .text:0000000000000000 $d
+                 1.s:29     .text:0000000000000040 $t
+                 1.s:40     .text:0000000000000056 _zhaozuidade
+                 1.s:87     .text:00000000000000a6 _xieflash
+                 1.s:47     .text:0000000000000062 _zhaozuidadexunhuan
+                 1.s:53     .text:000000000000006c _xiaoyu
+                 1.s:64     .text:0000000000000080 _meichaochufanwei
+                 1.s:72     .text:000000000000008e _meichaochufanwei1
+                 1.s:78     .text:0000000000000098 _systick
+                 1.s:85     .text:00000000000000a4 tingxiale
+                 1.s:96     .text:00000000000000b4 _flashmang
+                 1.s:108    .text:00000000000000c8 _flashmang1
+                 1.s:116    .text:00000000000000d6 _flashmang2
+                 1.s:122    .text:00000000000000e0 _flashmang3
+                 1.s:131    .text:00000000000000ea ddd
+                 1.s:154    .text:000000000000010e $d
+                 1.s:154    .text:0000000000000110 $d
+
+NO UNDEFINED SYMBOLS

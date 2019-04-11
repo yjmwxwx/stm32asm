@@ -1,0 +1,162 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data	
+   4              	        	.equ STACKINIT,          0x20000300
+   5              	
+   6              	.section .text
+   7              	vectors:        
+   8 0000 00030020 	        .word STACKINIT         
+   9 0004 1D000000 	        .word _start + 1        
+  10 0008 A3000000 	        .word _nmi_handler + 1  
+  11 000c A5000000 	        .word _hard_fault  + 1  
+  12 0010 A7000000 	        .word _memory_fault + 1 
+  13 0014 A9000000 	        .word _bus_fault + 1    
+  14 0018 AB000000 	        .word _usage_fault + 1 
+  15              	
+  16              	_start:
+  17              	shizhong:
+  18 001c 2348     		ldr r0, = 0x40021000 @ rcc_cr
+  19 001e 2449     		ldr r1, = 0x15683     
+  20 0020 0160     		str r1, [r0]
+  21              	gsszbz: 
+  22 0022 0268     		ldr r2, [r0]
+  23 0024 2349     		ldr r1, = 0x20000    
+  24 0026 1142     		tst r1, r2           @HSE时钟标志位           
+  25 0028 00D1     		bne rccchushihua
+  26 002a FAE7     		b gsszbz
+  27              	rccchushihua: 
+  28 002c 2248     		ldr r0, = 0x40022000   @FLASH访问控制
+  29 002e 3221     		movs r1, # 0x32
+  30 0030 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  31 0032 2248     		ldr r0, = 0x40021004 
+  32 0034 2249     		ldr r1, = 0x110000    @ HSE-PLL-6倍频
+  33 0036 0160     		str r1, [r0]
+  34 0038 1C48     		ldr r0, = 0x40021000
+  35 003a 2249     		ldr r1, = 0x1035683     @ PLL开
+  36 003c 0160     		str r1, [r0]
+  37              	chaxun:
+  38 003e 0268     		ldr r2, [r0]
+  39 0040 2149     		ldr r1, = 0x2000000     @ PLL锁定标志位
+  40 0042 1142     		tst r1, r2              
+  41 0044 00D1     		bne rccgg               @ 等待PLL锁定 
+  42 0046 FAE7     		b chaxun
+  43              	rccgg:
+  44 0048 1C48     		ldr r0, = 0x40021004
+  45 004a 2049     		ldr r1, = 0x11000a      @ PLL作为系统时钟
+  46 004c 0160     		str r1, [r0]
+  47              	shi_zhong_she_zhi:
+  48 004e 2048     		ldr r0, = 0x40021014    @ AHB外部时钟
+  49 0050 2049     		ldr r1, = 0x60014       @ 开时钟
+  50 0052 0160     		str r1, [r0]
+  51              		@ DMA（0）SRAM（2）FLITF（4）CRC（6）PA（17）
+  52              		@PB（18）PC（19）PD（20）PF（22）TSCEN（24）
+  53 0054 2048     		ldr r0, = 0x4002101c
+  54 0056 2149     		ldr r1, = 0x132
+  55 0058 0160     		str r1, [r0]
+  56              	tim14chushihua:
+  57 005a 2148     		        ldr r0, = 0x40002000
+ARM GAS  1.s 			page 2
+
+
+  58 005c 0021     		        ldr r1, = 0
+  59 005e 8162     		        str r1, [r0, # 0x28]
+  60 0060 2049     		        ldr r1, = 10000
+  61 0062 C162     		        str r1, [r0, # 0x2c]
+  62 0064 7021     		        ldr r1, = 0x70
+  63 0066 8161     		        str r1, [r0, # 0x18]
+  64 0068 0121     		        ldr r1, = 0x01
+  65 006a 0162     		        str r1, [r0, # 0x20]
+  66 006c 1D49     			ldr r1, = 10000
+  67 006e 4163     		        str r1, [r0, # 0x34]
+  68 0070 8121     		        ldr r1, = 0x81
+  69 0072 0160     		        str r1, [r0]
+  70              		
+  71              	io_she_zhi:
+  72              		@a(0x48000000)b(0x48000400)c(0x48000800)d(0x48000c00)f(0x48001400)
+  73 0074 1C48     		ldr r0, = 0x48000000   @ 端口模式
+  74              		@ 输入（00）通用输出（01）复用功能（10）模拟（11）
+  75 0076 1D49     		ldr r1, = 0x28000200  @ PA4
+  76 0078 0160     		str r1, [r0]
+  77              		@偏移0x4 = 端口输出类型 @ （0 推挽）（ 1 开漏）
+  78              		@偏移0x8 = 输出速度  00低速 01中速 11高速
+  79              		@偏移0xC = 上拉下拉 00无上下拉  01 上拉 10下拉
+  80              		@偏移0x10 = 输入数据寄存器
+  81              		@偏移0x14 = 输出数据寄存器
+  82              		@偏移0x18 = 端口开  0-15置位 
+  83              		@偏移0x28 = 端口关
+  84              		@0X20 = 复用低
+  85              		@0x24 = 复用高
+  86 007a 1D49     		ldr r1, = 0x40000
+  87 007c 0162     		str r1, [r0, # 0x20]
+  88              	huxideng:
+  89 007e 1848     		ldr r0, = 0x40002000
+  90 0080 416B     		ldr r1, [r0, # 0x34]
+  91 0082 1C4D     		ldr r5, = 0x1000
+  92              	huxideng1:
+  93 0084 013D     		subs r5, r5, # 1
+  94 0086 FDD1     		bne huxideng1
+  95 0088 1A4D     		ldr r5, = 0x1000
+  96 008a 0139     		subs r1, r1, # 1
+  97 008c 4163     		str r1, [r0, # 0x34]
+  98 008e F9D1     		bne huxideng1
+  99              	huxideng2:
+ 100 0090 013D     		subs r5, r5, # 1
+ 101 0092 FDD1     		bne huxideng2
+ 102 0094 174D     		ldr r5, = 0x1000
+ 103 0096 0131     		adds r1, r1, # 1
+ 104 0098 4163     		str r1, [r0, # 0x34]
+ 105 009a 124A     		ldr r2, = 10000
+ 106 009c 9142     		cmp r1, r2
+ 107 009e F7D9     		bls huxideng2
+ 108 00a0 EDE7     		b huxideng
+ 109              		
+ 110              		
+ 111              	_nmi_handler:
+ 112 00a2 7047     		bx lr
+ 113              	_hard_fault:
+ 114 00a4 7047     		bx lr
+ARM GAS  1.s 			page 3
+
+
+ 115              	_memory_fault:
+ 116 00a6 7047     		bx lr
+ 117              	_bus_fault:
+ 118 00a8 7047     		bx lr
+ 119              	_usage_fault:
+ 120 00aa 7047     	 	bx lr
+ 121 00ac 00100240 		
+ 121      83560100 
+ 121      00000200 
+ 121      00200240 
+ 121      04100240 
+ARM GAS  1.s 			page 4
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:20000300 STACKINIT
+                 1.s:7      .text:00000000 vectors
+                 1.s:16     .text:0000001c _start
+                 1.s:111    .text:000000a2 _nmi_handler
+                 1.s:113    .text:000000a4 _hard_fault
+                 1.s:115    .text:000000a6 _memory_fault
+                 1.s:117    .text:000000a8 _bus_fault
+                 1.s:119    .text:000000aa _usage_fault
+                 1.s:17     .text:0000001c shizhong
+                            .text:00000000 $d
+                 1.s:18     .text:0000001c $t
+                 1.s:21     .text:00000022 gsszbz
+                 1.s:27     .text:0000002c rccchushihua
+                 1.s:37     .text:0000003e chaxun
+                 1.s:43     .text:00000048 rccgg
+                 1.s:47     .text:0000004e shi_zhong_she_zhi
+                 1.s:56     .text:0000005a tim14chushihua
+                 1.s:71     .text:00000074 io_she_zhi
+                 1.s:88     .text:0000007e huxideng
+                 1.s:92     .text:00000084 huxideng1
+                 1.s:99     .text:00000090 huxideng2
+                 1.s:121    .text:000000ac $d
+
+NO UNDEFINED SYMBOLS

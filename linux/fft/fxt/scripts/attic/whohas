@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+
+# $0 func
+# lists *.h files that declare func()
+
+#set -vx
+
+#if [ ! -f scripts/hh.lst ]; then
+#    echo 'run  "make tags" !';
+#    exit 1;
+#fi
+#HFILES=$(cat scripts/hh.lst)
+HFILES='*/*.h'
+
+PAT="\b$1\b\(";
+LIST=$(grep -E -l $PAT $HFILES )
+
+
+for f in $LIST; do
+
+    echo "----  FOUND declaration in   $f ";
+    grep -E -n $PAT $f
+    b=$(basename $f);
+    echo;
+    echo "#include \"$b\"";
+    echo;
+    echo "#include \"$b\" // $1()";
+    echo;
+    echo;
+
+done
+
+
+exit 0;
+########################

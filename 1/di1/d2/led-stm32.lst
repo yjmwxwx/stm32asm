@@ -1,0 +1,129 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	        .thumb                 
+   2              	        .syntax unified
+   3              	        .equ RAMBASE, 		  0x20000000
+   4              		.equ GPIOC_CRH,   0x40011004
+   5              	        .equ GPIOC_ODR,   0x4001100C
+   6              	        .equ RCC_APB2ENR,    	  0x40021018
+   7              		.equ STACKINIT,           0x20005000
+   8              		.equ SYSTICKCSR,          0xE000E010
+   9              		.equ SYSTICKRVR,          0xE000E014
+  10              		.equ SYSTICKCVR,          0xE000E018
+  11              		.equ SYSTICKCALVR,	  0xE000E01C
+  12              		.equ SCB_VTOR_TBLOFF,	  0x1FFFFF80	
+  13              	        .equ SCB_VTOR_TBLBASE,    0x20000000	
+  14              		.equ VTOR,	          0xE000ED08
+  15              	
+  16              	
+  17              	.section .text
+  18              		.global vectors
+  19              	        .org 0
+  20              		.global _start
+  21              	vectors:
+  22 0000 00500020 	        .word STACKINIT            
+  23 0004 00000000 	        .word _start 	      
+  24 0008 66000000 	        .word _nmi_handler 
+  25 000c 68000000 	        .word _hard_fault  
+  26 0010 6A000000 	        .word _memory_fault 
+  27 0014 6C000000 	        .word _bus_fault 
+  28 0018 6E000000 	        .word _usage_fault
+  29 001c 00000000 		.word 0
+  30 0020 00000000 		.word 0
+  31 0024 00000000 		.word 0
+  32 0028 00000000 		.word 0
+  33 002c 70000000 		.word _svc
+  34 0030 72000000 		.word _debugmon
+  35 0034 00000000 		.word 0
+  36 0038 74000000 		.word _pendsv
+  37 003c 76000000 		.word _systick
+  38              	
+  39              	_start:
+  40              		@@set the preload value to the max (this is a 24-bit downcounting timer)
+  41 0040 0F4A     	        ldr r2, = SYSTICKRVR
+  42 0042 6FF07F40 	        mov r0, # 0x00FFFFFF
+  43 0046 1060     	        str r0, [r2]
+  44              	
+  45              	        @@set the clock source to SYSCLK (fastest) and enable the timer
+  46 0048 0E4A     	        ldr r2, = SYSTICKCSR	
+  47 004a 4FF00700 	        mov r0, # 0x07
+  48 004e 1060     	        str r0, [r2]
+  49              		@@
+  50 0050 0D4A     	        ldr r2, = RCC_APB2ENR
+  51 0052 4FF01000 	        mov r0, 0x10
+  52 0056 1060     	        str r0, [r2]
+  53              		@@
+  54 0058 0C4A     		ldr r2, = GPIOC_CRH
+  55 005a 0D48     	        ldr r0, = 0x44434444
+  56 005c 1060     	        str r0, [r2]
+  57              		@@
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 005e 0D4A     		ldr r2, = GPIOC_ODR
+  59 0060 4FF00000 		mov r0, 0
+  60 0064 1060     		str r0, [r2]
+  61              	
+  62              	
+  63              	_nmi_handler:
+  64 0066 7047     		BX LR
+  65              	_hard_fault:
+  66 0068 7047     		BX LR
+  67              	_memory_fault:
+  68 006a 7047     		BX LR
+  69              	_bus_fault:
+  70 006c 7047     		BX LR
+  71              	_usage_fault:
+  72 006e 7047     		BX LR 
+  73              	_svc:
+  74 0070 7047     		BX LR
+  75              	_debugmon:
+  76 0072 7047     		BX LR
+  77              	_pendsv:
+  78 0074 7047     		BX LR
+  79              	_systick:
+  80 0076 074A     		ldr r2, = GPIOC_ODR
+  81 0078 4FF48050 		mov r0, 0x1000
+  82 007c 1060     		str r0, [r2]
+  83 007e 7047     		BX LR	
+  84              		
+  85              	
+  86              	
+  87 0080 14E000E0 	 
+  87      10E000E0 
+  87      18100240 
+  87      04100140 
+  87      44444344 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:3      *ABS*:20000000 RAMBASE
+         led-stm32.s:4      *ABS*:40011004 GPIOC_CRH
+         led-stm32.s:5      *ABS*:4001100c GPIOC_ODR
+         led-stm32.s:6      *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:7      *ABS*:20005000 STACKINIT
+         led-stm32.s:8      *ABS*:e000e010 SYSTICKCSR
+         led-stm32.s:9      *ABS*:e000e014 SYSTICKRVR
+         led-stm32.s:10     *ABS*:e000e018 SYSTICKCVR
+         led-stm32.s:11     *ABS*:e000e01c SYSTICKCALVR
+         led-stm32.s:12     *ABS*:1fffff80 SCB_VTOR_TBLOFF
+         led-stm32.s:13     *ABS*:20000000 SCB_VTOR_TBLBASE
+         led-stm32.s:14     *ABS*:e000ed08 VTOR
+         led-stm32.s:21     .text:00000000 vectors
+         led-stm32.s:39     .text:00000040 _start
+         led-stm32.s:63     .text:00000066 _nmi_handler
+         led-stm32.s:65     .text:00000068 _hard_fault
+         led-stm32.s:67     .text:0000006a _memory_fault
+         led-stm32.s:69     .text:0000006c _bus_fault
+         led-stm32.s:71     .text:0000006e _usage_fault
+         led-stm32.s:73     .text:00000070 _svc
+         led-stm32.s:75     .text:00000072 _debugmon
+         led-stm32.s:77     .text:00000074 _pendsv
+         led-stm32.s:79     .text:00000076 _systick
+                            .text:00000000 $d
+         led-stm32.s:41     .text:00000040 $t
+         led-stm32.s:87     .text:00000080 $d
+
+NO UNDEFINED SYMBOLS

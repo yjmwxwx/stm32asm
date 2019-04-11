@@ -1,0 +1,123 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4 0000 DB0F4940 	xiaoshu:	.float 3.1415927
+   5 0004 33332340 	xiaoshu1:	.float 2.55
+   6              		.equ STACKINIT,         0x20005000
+   7              	.section .text
+   8              	_xiangliangbiao:
+   9 0000 00500020 		.word STACKINIT
+  10 0004 1D000000 		.word _start + 1
+  11 0008 87000000 		.word _nmi_handler + 1
+  12 000c 89000000 		.word _hard_fault  + 1
+  13 0010 8B000000 		.word _memory_fault + 1
+  14 0014 8D000000 		.word _bus_fault + 1
+  15 0018 8F000000 		.word _usage_fault + 1
+  16              	
+  17              	_start:
+  18 001c 1C48     		ldr r0, = xiaoshu
+  19 001e 00F00DF8 		bl _fudianzhuandingdian
+  20 0022 8046     		mov r8, r0
+  21 0024 1B48     		ldr r0, = xiaoshu1
+  22 0026 00F009F8 		bl _fudianzhuandingdian
+  23 002a 8146     		mov r9, r0
+  24 002c 4046     		mov r0, r8
+  25 002e 4946     		mov r1, r9
+  26 0030 4018     		adds r0, r0, r1
+  27 0032 8246     		mov r10, r0
+  28 0034 00F019F8 		bl _dingdianzhuanfudian
+  29 0038 8346     		mov r11, r0
+  30              	tingting:
+  31 003a FEE7     		b tingting
+  32              		
+  33              	_fudianzhuandingdian:
+  34 003c 0168     		ldr r1, [r0]
+  35 003e CA0D     		lsrs r2, r1, # 23
+  36 0040 4B02     		lsls r3, r1, # 9
+  37 0042 5B0A     		lsrs r3, r3, # 9
+  38              		
+  39 0044 7F3A     		subs r2, r2, # 127
+  40 0046 0121     		movs r1, # 1
+  41 0048 11FA02F2 		lsls r2, r1, r2
+  42              	_weishu:
+  43 004c 124F     		ldr r7, = 10000000
+  44 004e 1825     		movs r5, # 24
+  45 0050 0020     		movs r0, # 0
+  46              	_weishuxunhuan:
+  47 0052 013D     		subs r5, r5, # 1
+  48 0054 06D4     		bmi _tiaochuweishu
+  49 0056 1E02     		lsls r6, r3, # 8
+  50 0058 AE40     		lsls r6, r6, r5
+  51 005a FAD5     		bpl _weishuxunhuan
+  52 005c 37FA05F4 		lsrs r4, r7, r5
+  53 0060 0019     		adds r0, r0, r4
+  54 0062 F6E7     		b _weishuxunhuan
+  55              	_tiaochuweishu:
+  56 0064 C019     		adds r0, r0, r7
+  57 0066 5043     		muls r0, r0, r2
+ARM GAS  1.s 			page 2
+
+
+  58 0068 7047     		bx lr
+  59              		
+  60              		
+  61              	_dingdianzhuanfudian:
+  62 006a 0027     		movs r7, # 0
+  63              	_panduanweishu:
+  64 006c 0137     		adds r7, r7, # 1
+  65 006e 10FA07F6 		lsls r6, r0, r7
+  66 0072 FBD5     		bpl _panduanweishu
+  67 0074 7600     		lsls r6, r6, # 1
+  68 0076 360A     		lsrs r6, r6, # 8
+  69              	
+  70 0078 1F25     		movs r5, # 31
+  71 007a EF1B     		subs r7, r5, r7
+  72 007c 7F37     		adds r7, r7, # 127
+  73 007e FF05     		lsls r7, r7, # 23
+  74 0080 3E43     		orrs r6, r7
+  75 0082 3000     		movs r0, r6
+  76 0084 7047     		bx lr
+  77              		
+  78              		
+  79              	_nmi_handler:
+  80 0086 7047     		bx lr
+  81              	_hard_fault:
+  82 0088 7047     		bx lr
+  83              	_memory_fault:
+  84 008a 7047     		bx lr
+  85              	_bus_fault:
+  86 008c 7047     		bx lr
+  87              	_usage_fault:
+  88 008e 70470000 	 	bx lr
+  88      00000400 
+  88      00008096 
+  88      9800
+ARM GAS  1.s 			page 3
+
+
+DEFINED SYMBOLS
+                 1.s:4      .data:0000000000000000 xiaoshu
+                 1.s:5      .data:0000000000000004 xiaoshu1
+                 1.s:6      *ABS*:0000000020005000 STACKINIT
+                 1.s:8      .text:0000000000000000 _xiangliangbiao
+                 1.s:17     .text:000000000000001c _start
+                 1.s:79     .text:0000000000000086 _nmi_handler
+                 1.s:81     .text:0000000000000088 _hard_fault
+                 1.s:83     .text:000000000000008a _memory_fault
+                 1.s:85     .text:000000000000008c _bus_fault
+                 1.s:87     .text:000000000000008e _usage_fault
+                            .text:0000000000000000 $d
+                 1.s:18     .text:000000000000001c $t
+                 1.s:33     .text:000000000000003c _fudianzhuandingdian
+                 1.s:61     .text:000000000000006a _dingdianzhuanfudian
+                 1.s:30     .text:000000000000003a tingting
+                 1.s:42     .text:000000000000004c _weishu
+                 1.s:46     .text:0000000000000052 _weishuxunhuan
+                 1.s:55     .text:0000000000000064 _tiaochuweishu
+                 1.s:63     .text:000000000000006c _panduanweishu
+                 1.s:88     .text:0000000000000090 $d
+
+NO UNDEFINED SYMBOLS

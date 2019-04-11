@@ -1,0 +1,173 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              		.section .data
+   4              		.equ zhanding, 0x20000100
+   5              		.equ ledyanshi, 8000000
+   6              		.section .text
+   7              	xiangliangbiao:
+   8 ???? 00010020 		                .word zhanding
+   9 ???? 1D000000 		                .word _start + 1
+  10 ???? F3000000 		                .word _nmi_handler + 1
+  11 ???? F5000000 		                .word _hard_fault  + 1
+  12 ???? F7000000 		                .word _memory_fault + 1
+  13 ???? F9000000 		                .word _bus_fault + 1
+  14 ???? FB000000 		                .word _usage_fault + 1
+  15              	_start:
+  16 ???? 4FF00050 		ldr r0, = 0x20000000
+  17 ???? 3649     		ldr r1, = 0x20000100
+  18 ???? 374A     		ldr r2, = 0x20000300
+  19              	tingzhu:
+  20              		ldrb r0, [r1, r2]!
+  21 ???? FEE7     		b tingzhu
+  22              		
+  23              		
+  24 ???? 3748     		ldr r0, = 0x40022000
+  25 ???? 4FF03201 		mov r1, # 0x00000032
+  26 ???? 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启
+  27 ???? 3648     		ldr r0, = 0x40021000
+  28 ???? 4FF48011 		ldr r1, = 0x100000
+  29 ???? 4160     		str r1, [r0, # 0x04]
+  30 ???? 354C     		ldr r4, = 0x42420000
+  31 ???? 4FF00101 		mov r1, # 1
+  32 ???? 2166     		str r1, [r4, # 0x60]
+  33              	ceshi:
+  34 ???? 0168     		ldr r1, [r0]
+  35 ???? 8901     		lsls r1, r1, # 0x06
+  36 ???? FCD5     		bpl ceshi
+  37 ???? 3249     		ldr r1, = 0x100002
+  38 ???? 4160     		str r1, [r0, # 0x04]
+  39 ???? 72B6     		cpsid i
+  40              	shiyan:
+  41 ???? 3248     		ldr r0, = 0x8001000
+  42 ???? 00F01CF8 		bl yecachu
+  43 ???? 00F032F8 		bl shancunmang
+  44 ???? 3048     		ldr r0, = 0x40022010
+  45 ???? 4FF00101 		mov r1, # 0x01
+  46 ???? 0160     		str r1, [r0]
+  47 ???? 4FF00055 		ldr r5, = 0x20000000
+  48 ???? 2C4A     		ldr r2, = 0x8001000
+  49 ???? 4FF0C806 		mov r6, # 200
+  50              	xieflash:
+  51 ???? 00F027F8 		bl shancunmang
+  52 ???? 35F8023B 		ldrh r3, [r5], # 0x02
+  53 ???? 00F023F8 		bl shancunmang
+  54 ???? 22F8023B 		strh r3, [r2], # 0x02
+  55 ???? 00F01FF8 		bl shancunmang
+  56 ???? 013E     		subs r6, # 1
+  57 ???? F3D1     		bne xieflash
+ARM GAS  1.s 			page 2
+
+
+  58 ???? 2648     		ldr r0, = 0x40022010
+  59 ???? 4FF00001 		mov r1, # 0
+  60 ???? 0160     		str r1, [r0]
+  61 ???? 1DE0     		b ledled
+  62              	cunchushuju:
+  63              	yecachu:
+  64 ???? 1FB5     		push {r0-r4,lr}
+  65 ???? 0346     		mov r3, r0
+  66 ???? 00F00DF8 		bl flashkey
+  67 ???? 00F012F8 		bl shancunmang
+  68 ???? 1B4A     		ldr r2, = 0x40022000
+  69 ???? 0220     		movs r0, # 2
+  70 ???? 1061     		str r0, [r2, # 0x10]
+  71 ???? 5361     		str r3, [r2, # 0x14]
+  72 ???? 4220     		movs r0, # 0x42
+  73 ???? 1061     		str r0, [r2, # 0x10]
+  74 ???? 00F00AF8 		bl shancunmang
+  75 ???? 0020     		movs r0, # 0
+  76 ???? 1061     		str r0, [r2, # 0x10]
+  77 ???? 1FBD     		pop {r0-r4,pc}
+  78              	flashkey:
+  79 ???? 03B5     		push {r0-r1,lr}
+  80 ???? 1548     		ldr r0, = 0x40022000
+  81 ???? 1B49     		ldr r1, = 0x45670123
+  82 ???? 4160     		str r1, [r0, # 0x04]
+  83 ???? 1B49     		ldr r1, = 0xcdef89ab
+  84 ???? 4160     		str r1, [r0, # 0x04]
+  85 ???? 03BD     		pop {r0-r1,pc}
+  86              	shancunmang:
+  87 ???? 03B5     		push {r0-r1,lr}
+  88 ???? 1248     		ldr r0, = 0x40022000
+  89              	flashmang:
+  90 ???? C168     		ldr r1, [r0, # 0x0c]
+  91 ???? C907     		lsls r1, r1, # 0x1f
+  92 ???? FCD1     		bne flashmang
+  93 ???? 03BD     		pop {r0-r1,pc}
+  94              	ledled:
+  95 ???? 1748     		ldr r0, = 0x40021018
+  96 ???? 0421     		ldr r1, = 0x04
+  97 ???? 0160     		str r1, [r0]
+  98              	
+  99 ???? 1748     		ldr r0, = 0x40010800
+ 100 ???? 4FF03331 		ldr r1, = 0x33333333
+ 101 ???? 0160     		str r1, [r0]
+ 102 ???? 4FF03331 		ldr r1, = 0x33333333
+ 103 ???? 4160     		str r1, [r0, # 0x04]
+ 104              	xunhuan:
+ 105 ???? 144A     		ldr r2, = ledyanshi
+ 106 ???? 4FF6FF71 		ldr r1, = 0xffff
+ 107 ???? C160     		str r1, [r0, # 0x0c]
+ 108              		
+ 109              	dd1:
+ 110 ???? 013A     		subs r2, # 1
+ 111 ???? FDD1     		bne dd1
+ 112 ???? 4FF00001 		mov r1, # 0
+ 113 ???? C160     		str r1, [r0, # 0x0c]
+ 114 ???? 104A     		ldr r2, = ledyanshi
+ARM GAS  1.s 			page 3
+
+
+ 115              	dd2:	
+ 116 ???? 013A     		subs r2, # 1
+ 117 ???? FDD1     		bne dd2
+ 118 ???? F2E7     		b xunhuan
+ 119              		
+ 120              	_nmi_handler:
+ 121 ???? 7047     		bx lr
+ 122              	_hard_fault:
+ 123 ???? 7047     		bx lr
+ 124              	_memory_fault:
+ 125 ???? 7047     		bx lr
+ 126              	_bus_fault:
+ 127 ???? 7047     		bx lr
+ 128              	_usage_fault:
+ 129 ???? 70470001 	 	bx lr
+ 129      00200003 
+ 129      00200020 
+ 129      02400010 
+ 129      02400000 
+ARM GAS  1.s 			page 4
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:20000100 zhanding
+                 1.s:5      *ABS*:007a1200 ledyanshi
+                 1.s:7      .text:00000000 xiangliangbiao
+                 1.s:15     .text:0000001c _start
+                 1.s:120    .text:000000f2 _nmi_handler
+                 1.s:122    .text:000000f4 _hard_fault
+                 1.s:124    .text:000000f6 _memory_fault
+                 1.s:126    .text:000000f8 _bus_fault
+                 1.s:128    .text:000000fa _usage_fault
+                            .text:00000000 $d
+                 1.s:16     .text:0000001c $t
+                 1.s:19     .text:00000024 tingzhu
+                 1.s:33     .text:0000003e ceshi
+                 1.s:40     .text:0000004a shiyan
+                 1.s:63     .text:00000088 yecachu
+                 1.s:86     .text:000000b8 shancunmang
+                 1.s:50     .text:00000066 xieflash
+                 1.s:94     .text:000000c4 ledled
+                 1.s:62     .text:00000088 cunchushuju
+                 1.s:78     .text:000000aa flashkey
+                 1.s:89     .text:000000bc flashmang
+                 1.s:104    .text:000000d8 xunhuan
+                 1.s:109    .text:000000e0 dd1
+                 1.s:115    .text:000000ec dd2
+                 1.s:129    .text:000000fc $d
+
+NO UNDEFINED SYMBOLS

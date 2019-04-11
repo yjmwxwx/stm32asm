@@ -1,0 +1,280 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4 0000 41524D20 	lcdshuju: .ascii "ARM ARM ARM ARM  "
+   4      41524D20 
+   4      41524D20 
+   4      41524D20 
+   4      20
+   5 0011 53544D33 	lcdshuju1: .ascii "STM32F103C8T6   "
+   5      32463130 
+   5      33433854 
+   5      36202020 
+   6              	        	.equ STACKINIT,          0x20005000
+   7              			.equ yanshius,           0x20000200
+   8              			.equ ledkongzhi,         0x20000204
+   9              			.equ lcdshu,		  0x20000208
+  10              			.equ lcdyanshi,		800000
+  11              			.equ lcdyanshi1, 	2000
+  12              	.section .text
+  13              	vectors:        
+  14 0000 00500020 	        .word STACKINIT         
+  15 0004 1D000000 	        .word _start + 1        
+  16 0008 AD010000 	        .word _nmi_handler + 1  
+  17 000c AF010000 	        .word _hard_fault  + 1  
+  18 0010 B1010000 	        .word _memory_fault + 1 
+  19 0014 B3010000 	        .word _bus_fault + 1    
+  20 0018 B5010000 	        .word _usage_fault + 1 
+  21              	
+  22              	_start:
+  23 001c 4FF00000 		mov r0, # 0
+  24 0020 4FF00001 		mov r1, # 0
+  25 0024 4FF00002 		mov r2, # 0
+  26 0028 4FF00003 		mov r3, # 0
+  27 002c 4FF00004 		mov r4, # 0
+  28 0030 4FF00005 		mov r5, # 0
+  29 0034 4FF00006 		mov r6, # 0 
+  30 0038 4FF00007 		mov r7, # 0
+  31 003c 4FF00008 		mov r8, # 0
+  32 0040 4FF00009 		mov r9, # 0
+  33 0044 4FF0000A 		mov r10, # 0
+  34 0048 4FF0000B 		mov r11, # 0 
+  35              	
+  36              	@@AFIO-MAPR 开SWD模式
+  37 004c 5A48     		ldr r0, = 0x40010004
+  38 004e 5B49     		ldr r1, = 0x02000000
+  39 0050 0160     		str r1, [r0]
+  40              		shizhong:
+  41              		
+  42 0052 5B48     		ldr r0, = 0x40021000
+  43 0054 5B49     		ldr r1, = 0x14D83
+  44 0056 0160     		str r1, [r0]
+  45              	gsszbz: 
+  46 0058 0268     		ldr r2, [r0]
+  47 005a 5B49     		ldr r1, = 0x20000
+  48 005c 1142     		tst r1, r2           @高速时钟标志位           
+  49 005e 40F00280 		bne rccchushihua
+  50 0062 FFF7F9BF 		b gsszbz
+ARM GAS  led-stm32.s 			page 2
+
+
+  51              	rccchushihua: 
+  52 0066 5948     		ldr r0, = 0x40022000
+  53 0068 4FF03201 		mov r1, # 0x00000032
+  54 006c 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  55 006e 5848     		ldr r0, = 0x40021004
+  56 0070 5849     		ldr r1, = 0x1D8400
+  57 0072 0160     		str r1, [r0]
+  58 0074 5248     		ldr r0, = 0x40021000
+  59 0076 5849     		ldr r1, = 0x1033D03
+  60 0078 0160     		str r1, [r0]
+  61              	chaxun:
+  62 007a 0268     		ldr r2, [r0]
+  63 007c 4F49     		ldr r1, = 0x2000000
+  64 007e 1142     		tst r1, r2
+  65 0080 40F00280 		bne rccgg
+  66 0084 FFF7F9BF 		b chaxun
+  67              	rccgg:
+  68 0088 5148     		ldr r0, = 0x40021004
+  69 008a 5449     		ldr r1, = 0x1D8402
+  70 008c 0160     		str r1, [r0]
+  71              	
+  72              	
+  73              	rccapb2enr:
+  74 008e 5448     	        ldr r0, = 0x40021018
+  75 0090 4FF03D01 	        mov r1, # 0x3D
+  76 0094 0160     	        str r1, [r0]
+  77              	ioshezhi:
+  78 0096 5348     		ldr r0, = 0x40010800 @ gpioa
+  79 0098 5349     		ldr r1, = 0x44443443
+  80 009a 0160     		str r1, [r0]
+  81 009c 5348     	        ldr r0, = 0x40010c04
+  82 009e 5449     	        ldr r1, = 0x33334444
+  83 00a0 0160     	        str r1, [r0]
+  84              		
+  85              	lcdchushihua:
+  86 00a2 5448     		ldr r0, = 0x20000208
+  87 00a4 DFF850A1 		ldr r10, = 0x42210180
+  88 00a8 4FF00009 		mov r9,  # 0
+  89 00ac CAF80090 		str r9, [r10]
+  90              	
+  91 00b0 4FF03301 		MOV R1, # 0x33
+  92 00b4 0160     		str r1, [r0]
+  93 00b6 00F05AF8 		bl xielcd
+  94              	
+  95 00ba 504E     		ldr r6, = lcdyanshi
+  96              	yanshila3:
+  97 00bc 013E     		subs r6, # 1
+  98 00be 7FF4FDAF 		bne yanshila3
+  99              	
+ 100 00c2 4FF03201 		MOV R1, # 0x32
+ 101 00c6 0160     		str r1, [r0]
+ 102 00c8 00F051F8 		bl xielcd
+ 103              	
+ 104 00cc 4B4E     		ldr r6, = lcdyanshi
+ 105              	yanshila5:
+ 106 00ce 013E     		subs r6, # 1
+ 107 00d0 7FF4FDAF 		bne yanshila5
+ARM GAS  led-stm32.s 			page 3
+
+
+ 108              	
+ 109 00d4 4FF02801 		MOV R1, # 0x28
+ 110 00d8 0160     		str r1, [r0]
+ 111 00da 00F048F8 		bl xielcd
+ 112              	
+ 113 00de 4FF00C01 		MOV R1, # 0x0c
+ 114 00e2 0160     		str r1, [r0]
+ 115 00e4 00F043F8 		bl xielcd
+ 116              	
+ 117 00e8 4FF00101 		MOV R1, # 0x01
+ 118 00ec 0160     		str r1, [r0]
+ 119 00ee 00F03EF8 		bl xielcd
+ 120 00f2 424E     		ldr r6, = lcdyanshi
+ 121              	yanshila6:
+ 122 00f4 013E     		subs r6, # 1
+ 123 00f6 7FF4FDAF 		bne yanshila6
+ 124              	zhuchengxu:
+ 125 00fa 4FF00004 		mov r4, # 0
+ 126              	
+ 127              		
+ 128 00fe 00F002F8 		bl lcdlcd
+ 129              	ddd3:
+ 130 0102 FFF7FEBF 		b ddd3
+ 131              		
+ 132              		
+ 133              	
+ 134              	
+ 135              	lcdlcd:
+ 136 0106 2DE9FF47 		push {r0-r10, lr}
+ 137              	
+ 138              	lcdlcd1:
+ 139 010a DFF8ECA0 		ldr r10, = 0x42210180
+ 140 010e 4FF00009 		mov r9,  # 0
+ 141 0112 CAF80090 		str r9, [r10]
+ 142 0116 3748     		ldr r0, = 0x20000208
+ 143 0118 4FF08001 		MOV R1, # 0x80
+ 144 011c 2144     		add r1, r1, r4
+ 145 011e 0160     		str r1, [r0]
+ 146 0120 00F025F8 		bl xielcd
+ 147 0124 402C     		cmp r4, 0x40
+ 148 0126 00F00580 		beq lcddd2
+ 149              	lcdd1:	
+ 150 012a 3549     		ldr r1, = lcdshuju
+ 151 012c 4FF00003 		mov r3, # 0
+ 152 0130 00F003B8 		b lcdchengxu
+ 153 0134 3349     	lcddd2:	ldr r1, = lcdshuju1
+ 154 0136 4FF00003 		mov r3, # 0
+ 155              	
+ 156              	lcdchengxu:
+ 157 013a CA5C     		ldrb r2, [r1, r3]
+ 158 013c 0260     		str r2, [r0]
+ 159 013e DFF8B8A0 		ldr r10, = 0x42210180
+ 160 0142 4FF00109 		mov r9,  # 1
+ 161 0146 CAF80090 		str r9, [r10]
+ 162 014a 00F010F8 		bl xielcd
+ 163 014e 03F10103 		add r3, # 1
+ 164 0152 102B     		cmp r3, # 16
+ARM GAS  led-stm32.s 			page 4
+
+
+ 165 0154 7FF4F1AF 		bne lcdchengxu
+ 166 0158 402C     		cmp r4, # 0x40
+ 167 015a 00F00480 		beq fanhuilala
+ 168 015e 4FF04004 		mov r4, # 0x40
+ 169 0162 FFF7D2BF 		b lcdlcd1
+ 170              	
+ 171              	fanhuilala:
+ 172 0166 4FF00004 		mov r4, # 0
+ 173 016a BDE8FF87 		pop {r0-r10, pc}
+ 174              	
+ 175              	
+ 176              	xielcd:
+ 177 016e 2DE9FF43 		push {r0-r9, lr}
+ 178 0172 254C     		ldr r4, = 0x22004110
+ 179 0174 0FCC     		ldmia r4!, {r0-r3}
+ 180 0176 00F006F8 		bl xielcd1
+ 181 017a 244C     		ldr r4, = 0x22004100
+ 182 017c 0FCC     		ldmia r4!, {r0-r3}
+ 183 017e 00F002F8 		bl xielcd1
+ 184 0182 BDE8FF83 		pop {r0-r9, pc}
+ 185              		
+ 186              	xielcd1:
+ 187 0186 2DE9FF47 		push {r0-r10, lr}
+ 188 018a 214F     		ldr r7,  = 0x4221018c
+ 189 018c 4FF0010B 		mov r11, # 1
+ 190 0190 C7F800B0 		str r11, [r7]
+ 191 0194 1F4D     		ldr r5, = 0x422181b0
+ 192 0196 0FC5     		stmia r5!, {r0-r3}
+ 193 0198 1F4E     		ldr r6, = lcdyanshi1
+ 194              	yanshila:
+ 195 019a 013E     		subs r6, # 1
+ 196 019c 7FF4FDAF 		bne yanshila
+ 197 01a0 4FF0000B 		mov r11, # 0
+ 198 01a4 C7F800B0 		str r11, [r7]
+ 199 01a8 BDE8FF87 		pop {r0-r10, pc}
+ 200              		
+ 201              	_nmi_handler:
+ 202 01ac 7047     		bx lr
+ 203              	_hard_fault:
+ 204 01ae 7047     		bx lr
+ 205              	_memory_fault:
+ 206 01b0 7047     		bx lr
+ 207              	_bus_fault:
+ 208 01b2 7047     		bx lr
+ 209              	_usage_fault:
+ 210 01b4 7047     	 	bx lr
+ 211 01b6 00000400 		
+ 211      01400000 
+ 211      00020010 
+ 211      0240834D 
+ 211      01000000 
+ARM GAS  led-stm32.s 			page 5
+
+
+DEFINED SYMBOLS
+         led-stm32.s:4      .data:00000000 lcdshuju
+         led-stm32.s:5      .data:00000011 lcdshuju1
+         led-stm32.s:6      *ABS*:20005000 STACKINIT
+         led-stm32.s:7      *ABS*:20000200 yanshius
+         led-stm32.s:8      *ABS*:20000204 ledkongzhi
+         led-stm32.s:9      *ABS*:20000208 lcdshu
+         led-stm32.s:10     *ABS*:000c3500 lcdyanshi
+         led-stm32.s:11     *ABS*:000007d0 lcdyanshi1
+         led-stm32.s:13     .text:00000000 vectors
+         led-stm32.s:22     .text:0000001c _start
+         led-stm32.s:201    .text:000001ac _nmi_handler
+         led-stm32.s:203    .text:000001ae _hard_fault
+         led-stm32.s:205    .text:000001b0 _memory_fault
+         led-stm32.s:207    .text:000001b2 _bus_fault
+         led-stm32.s:209    .text:000001b4 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:23     .text:0000001c $t
+         led-stm32.s:40     .text:00000052 shizhong
+         led-stm32.s:45     .text:00000058 gsszbz
+         led-stm32.s:51     .text:00000066 rccchushihua
+         led-stm32.s:61     .text:0000007a chaxun
+         led-stm32.s:67     .text:00000088 rccgg
+         led-stm32.s:73     .text:0000008e rccapb2enr
+         led-stm32.s:77     .text:00000096 ioshezhi
+         led-stm32.s:85     .text:000000a2 lcdchushihua
+         led-stm32.s:176    .text:0000016e xielcd
+         led-stm32.s:96     .text:000000bc yanshila3
+         led-stm32.s:105    .text:000000ce yanshila5
+         led-stm32.s:121    .text:000000f4 yanshila6
+         led-stm32.s:124    .text:000000fa zhuchengxu
+         led-stm32.s:135    .text:00000106 lcdlcd
+         led-stm32.s:129    .text:00000102 ddd3
+         led-stm32.s:138    .text:0000010a lcdlcd1
+         led-stm32.s:153    .text:00000134 lcddd2
+         led-stm32.s:149    .text:0000012a lcdd1
+         led-stm32.s:156    .text:0000013a lcdchengxu
+         led-stm32.s:171    .text:00000166 fanhuilala
+         led-stm32.s:186    .text:00000186 xielcd1
+         led-stm32.s:194    .text:0000019a yanshila
+         led-stm32.s:211    .text:000001b6 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,666 @@
+ARM GAS  1.s 			page 1
+
+
+   1              			@ stm32f030f4p6 asm
+   2              		 .thumb
+   3              		         .syntax unified
+   4              	.section .data
+   5              	zhengxian1k:
+   6 0000 32003500 		.short 0x32,0x35,0x39,0x3c,0x3f,0x42,0x45,0x48,0x4b,0x4e,0x50,0x53,0x55,0x58,0x5a,0x5c,0x5d,0x5f,0
+   6      39003C00 
+   6      3F004200 
+   6      45004800 
+   6      4B004E00 
+   7              	qingping:
+   8 00c2 20202020 		.ascii "                "
+   8      20202020 
+   8      20202020 
+   8      20202020 
+   9              	fute:
+  10 00d2 56       		.ascii "V"
+  11              	fute1:
+  12 00d3 563D     		.ascii	"V="
+  13              	lcdshuju:
+  14 00d5 796A6D77 		.ascii  "yjmwxwx-20180225"
+  14      7877782D 
+  14      32303138 
+  14      30323235 
+  15              	dianhua:	
+  16 00e5 20202020 		.ascii	"      15552208295"
+  16      20203135 
+  16      35353232 
+  16      30383239 
+  16      35
+  17              	qq:
+  18 00f6 20202051 		.ascii	"   QQ:3341656346"
+  18      513A3333 
+  18      34313635 
+  18      36333436 
+  19              		.equ STACKINIT,                 0x20001000
+  20              		.equ asciimabiao,       0x20000000
+  21              		.equ dianyabiao,	0x20000010
+  22              		.equ pingjundianya,	0x20000410
+  23              		.equ jishu,		0x20000414
+  24              	.section .text
+  25              	vectors:
+  26 0000 00100020 		.word STACKINIT
+  27 0004 B1000000 		.word _start + 1
+  28 0008 F1030000 		.word _nmi_handler + 1
+  29 000c F3030000 		.word _hard_fault  + 1
+  30 0010 00000000 		.word 0
+  31 0014 00000000 		.word 0
+  32 0018 00000000 		.word 0
+  33 001c 00000000 		.word 0
+  34 0020 00000000 		.word 0
+  35 0024 00000000 		.word 0
+  36 0028 00000000 		.word 0
+  37 002c F5030000 		.word _svc_handler +1
+  38 0030 00000000 		.word 0
+  39 0034 00000000 		.word 0
+  40 0038 F7030000 		.word _pendsv_handler +1
+ARM GAS  1.s 			page 2
+
+
+  41 003c F9030000 		.word _systickzhongduan +1               @ 15
+  42 0040 07040000 		.word aaa +1     @ _wwdg +1          @ 0
+  43 0044 07040000 		.word aaa +1     @_pvd +1            @ 1
+  44 0048 07040000 		.word aaa +1     @_rtc +1            @ 2
+  45 004c 07040000 		.word aaa +1     @_flash +1          @ 3
+  46 0050 07040000 		.word aaa +1	@ _rcc + 1          @ 4
+  47 0054 07040000 		.word aaa +1      @_exti0_1  +1      @ 5
+  48 0058 07040000 		.word aaa +1      @ _exti2_3 +1      @ 6
+  49 005c 07040000 		.word aaa +1       @_exti4_15 +1     @ 7
+  50 0060 07040000 		.word aaa +1                         @ 8
+  51 0064 07040000 		.word aaa +1 	@_dma1_1  +1    @ 9
+  52 0068 07040000 		.word aaa +1    @_dma1_2_3 +1        @ 10
+  53 006c 07040000 		.word aaa +1       @_dma1_4_5 +1     @ 11
+  54 0070 07040000 		.word aaa +1	 @_adc1 +1          @ 12
+  55 0074 07040000 		.word aaa +1       @_tim1_brk_up +1  @ 13
+  56 0078 07040000 		.word aaa +1        @ _tim1_cc +1    @ 14
+  57 007c 07040000 		.word aaa +1         @_tim2 +1       @ 15
+  58 0080 07040000 		.word aaa +1          @_tim3 +1      @ 16
+  59 0084 07040000 		.word aaa +1                         @ 17
+  60 0088 07040000 		.word aaa +1		                @ 18
+  61 008c 07040000 		.word aaa +1	@_tim14 +1    @ 19
+  62 0090 07040000 		.word aaa +1                         @ 20
+  63 0094 07040000 		.word aaa +1         @_tim16 +1      @ 21
+  64 0098 07040000 		.word aaa +1         @_tim17 +1      @ 22
+  65 009c 07040000 		.word aaa +1          @_i2c   +1     @ 23
+  66 00a0 07040000 		.word aaa +1                         @ 24
+  67 00a4 07040000 		.word aaa +1           @_spi   +1    @ 25
+  68 00a8 07040000 		.word aaa +1                         @ 26
+  69 00ac 07040000 		.word aaa +1         @_usart1 +1     @ 27
+  70              		.align 2
+  71              	
+  72              	_start:
+  73              	shizhong:
+  74 00b0 8D48     		ldr r0, = 0x40021000 @ rcc
+  75 00b2 8E4A     		ldr r2, = 0x40022000   @FLASH访问控制
+  76 00b4 3221     		movs r1, # 0x32
+  77 00b6 1160     		str r1, [r2]           @FLASH缓冲 缓冲开启
+  78 00b8 8B48     		ldr r0, = 0x40021000 @ rcc
+  79 00ba 8D49     		ldr r1, = 0x100002
+  80 00bc 4160     		str r1, [r0, # 0x04]
+  81 00be 8D49     		ldr r1, = 0x1000001
+  82 00c0 0160     		str r1, [r0]
+  83              	dengrc:
+  84 00c2 0168     		ldr r1, [r0]
+  85 00c4 8907     		lsls r1, # 30
+  86 00c6 FCD5     		bpl dengrc
+  87              	dengpll:
+  88 00c8 0168     		ldr r1, [r0]
+  89 00ca 8901     		lsls r1, # 6
+  90 00cc FCD5     		bpl dengpll
+  91              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  92 00ce 0121     		movs r1, # 0x01
+  93 00d0 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  94              	dengdai14mshizhongwending:
+  95 00d2 416B     		ldr r1, [r0, # 0x34]
+  96 00d4 8907     		lsls r1, r1, # 30     @ 左移30位
+  97 00d6 FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+ARM GAS  1.s 			page 3
+
+
+  98              	
+  99              	neicunqingling:
+ 100 00d8 8748     		ldr r0, = 0x20000000
+ 101 00da 0021     		movs r1, # 0
+ 102 00dc 874B     		ldr r3, = 0x1000
+ 103              	neicunqinglingxunhuan:
+ 104 00de 043B     		subs r3, # 4
+ 105 00e0 C150     		str r1, [r0, r3]
+ 106 00e2 FCD1     		bne neicunqinglingxunhuan
+ 107              	
+ 108              	_waisheshizhong:			 @ 外设时钟
+ 109              		@+0x14=RCC_AHBENR
+ 110              		@0=DMA @2=SRAM @4=FLITF@6=CRC @17=PA @18=PB @19=PC @20=PD @22=PF
+ 111 00e4 8048     		ldr r0, = 0x40021000
+ 112 00e6 8649     		ldr r1, = 0x460005
+ 113 00e8 4161     		str r1, [r0, # 0x14]
+ 114              	
+ 115              		@+0x18外设时钟使能寄存器 (RCC_APB2ENR)
+ 116              		@0=SYSCFG @5=USART6EN @9=ADC @11=TIM1 @12=SPI1 @14=USART1 @16=TIM15 @17=TIM16 @18=TIM17 @22=DBGMCU
+ 117 00ea 8649     		ldr r1, = 0xa00
+ 118 00ec 8161     		str r1, [r0, # 0x18]
+ 119              		@+0X1C=RCC_APB1ENR
+ 120              		@1=TIM3 @4=TIM6 @5=TIM7 @8=TIM14 @11=WWDG @14=SPI @17=USRT2 @18=USART3 @20=USART5 @21=I2C1
+ 121              		@22=I2C2 @23=USB @28=PWR
+ 122              	dmachushihua:
+ 123              		@+0=LSR,+4=IFCR,
+ 124              		@+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
+ 125              		@+1c=CCR2,+20=CNDTR2,+24=CPAR2,+28=CMAR2
+ 126              		@+30=CCR3,+34=CNDTR3,+38=CPAR2,+3c=CMAR3
+ 127              		@+44=CCR4,+48=CNDTR4,+4c=CPAR4,+50=CMAR4
+ 128              		@+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
+ 129              		@+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
+ 130              		@+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
+ 131              	
+ 132              		@ adc dma
+ 133 00ee 8648     		ldr r0, = 0x40020000
+ 134 00f0 8649     		ldr r1, = 0x40012440
+ 135 00f2 0161     		str r1, [r0, # 0x10]
+ 136 00f4 8649     		ldr r1, = dianyabiao
+ 137 00f6 4161     		str r1, [r0, # 0x14]
+ 138 00f8 8649     		ldr r1, =  0xff
+ 139 00fa C160     		str r1, [r0, # 0x0c]
+ 140 00fc 8649     		ldr r1, = 0xaa1
+ 141 00fe 8160     		str r1, [r0, # 0x08]
+ 142              	
+ 143              		@tim1ch3DMA
+ 144 0100 8148     		ldr r0, = 0x40020000
+ 145 0102 8649     		ldr r1, = 0x40012c3c @ 外设地址
+ 146 0104 0166     		str r1, [r0, # 0x60]
+ 147 0106 8649     		ldr r1, = zhengxian1k @ 储存器地址
+ 148 0108 4166     		str r1, [r0, # 0x64]
+ 149 010a 8649     		ldr r1, = 96             @点数
+ 150 010c C165     		str r1, [r0, # 0x5c]
+ 151 010e 8649     		ldr r1, = 0x25b1         @ 储存到外设
+ 152 0110 8165     		str r1, [r0, # 0x58]
+ 153              	tim1chushiha:
+ 154 0112 8648     		ldr r0, = 0x40012c00 @ tim1_cr1
+ARM GAS  1.s 			page 4
+
+
+ 155 0114 0021     		movs r1, # 0
+ 156 0116 8162     		str r1, [r0, # 0x28] @ psc
+ 157 0118 8549     		ldr r1, = 100
+ 158 011a C162     		str r1, [r0, # 0x2c] @ ARR
+ 159 011c 8549     		ldr r1, = 0x68
+ 160 011e C161     		str r1, [r0, # 0x1c] @ ccmr2  CC3
+ 161 0120 8549     		ldr r1, = 0x100    @  CC3
+ 162 0122 0162     		str r1, [r0, # 0x20] @ ccer
+ 163 0124 8549     		ldr r1, = 0x8000
+ 164 0126 4164     		str r1, [r0, # 0x44] @ BDTR
+ 165 0128 8549     		ldr r1, = 0x800 @ CC3 DMA
+ 166 012a C160     		str r1, [r0, # 0x0c] @ DIER
+ 167 012c 8549     		ldr r1, = 0xe1
+ 168 012e 0160     		str r1, [r0]
+ 169              	_adcchushihua:
+ 170 0130 8548     		ldr r0, = 0x40012400  @ adc基地址
+ 171 0132 8649     		ldr r1, = 0x80000000
+ 172 0134 8160     		str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
+ 173              	_dengadcjiaozhun:
+ 174 0136 8168     		ldr r1, [r0, # 0x08]
+ 175 0138 0900     		 movs r1, r1
+ 176 013a FCD4     		bmi _dengadcjiaozhun   @ 等ADC校准
+ 177              	_kaiadc:
+ 178 013c 8168     		ldr r1, [r0, # 0x08]
+ 179 013e 0122     		movs r2, # 0x01
+ 180 0140 1143     		orrs r1, r1, r2
+ 181 0142 8160     		str r1, [r0, # 0x08]
+ 182              	_dengdaiadcwending:
+ 183 0144 0168     		ldr r1, [r0]
+ 184 0146 C907     		lsls r1, r1, # 31
+ 185 0148 FCD5     		bpl _dengdaiadcwending @ 等ADC稳定
+ 186              	_tongdaoxuanze:
+ 187 014a 8149     		ldr r1, = 0x01
+ 188 014c 8162     		str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
+ 189 014e 8149     		ldr r1, = 0x3003        @ 13 连续转换
+ 190 0150 C160     		str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
+ 191 0152 0721     		movs r1, # 0x07         @
+ 192 0154 4161     		str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
+ 193 0156 8168     		ldr r1, [r0, # 0x08]
+ 194 0158 7F4A     		ldr r2, = 0x04         @ 开始转换
+ 195 015a 1143     		orrs r1, r1, r2
+ 196 015c 8160     		str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
+ 197              	
+ 198              	
+ 199              	
+ 200              	_waishezhongduan:			@外设中断
+ 201              		@0xE000E100    0-31  写1开，写0没效
+ 202              		@0XE000E180    0-31 写1关，写0没效
+ 203              		@0XE000E200    0-31 挂起，写0没效
+ 204              		@0XE000E280    0-31 清除， 写0没效
+ 205              	
+ 206              		
+ 207              	_systick:				@ systick定时器初始化
+ 208              	
+ 209 015e 7F48     		ldr r0, = 0xe000e010
+ 210 0160 7F49     		ldr r1, = 0xffffff
+ 211 0162 4160     		str r1, [r0, # 4]
+ARM GAS  1.s 			page 5
+
+
+ 212 0164 8160     		str r1, [r0, # 8]
+ 213 0166 0721     		movs r1, # 0x07
+ 214 0168 0160     		str r1, [r0]
+ 215              	
+ 216              		
+ 217              	io_she_zhi:
+ 218              		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 219              		@a(0x48000000)b(0x48000400)c(0x48000800)d(0x48000c00)f(0x48001400)
+ 220              		@ 输入（00），通用输出（01），复用功能（10），模拟（11）
+ 221              		@偏移0x4 = 端口输出类型 @ （0 推挽），（ 1 开漏）
+ 222              		@偏移0x8 = 输出速度  00低速， 01中速， 11高速
+ 223              		@偏移0xC = 上拉下拉 (00无上下拉，  01 上拉， 10下拉)
+ 224              		@偏移0x10 = 输入数据寄存器
+ 225              		@偏移0x14 = 输出数据寄存器
+ 226              		@偏移0x18 = 端口开  0-15置位
+ 227              		@偏移0x28 = 端口关
+ 228              		@0X20 = 复用低
+ 229              		@GPIO口0（0-3位）每个IO口占用4位
+ 230              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+ 231              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+ 232              		@0x24 = 复用高
+ 233              		@GPIO口8 （0-3位）每个IO口占用4位
+ 234              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+ 235              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+ 236              		@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 237              	
+ 238 016a 7E48     		ldr r0, = 0x48000000
+ 239 016c 7E49     		ldr r1, = 0x28205553
+ 240 016e 0160     		str r1, [r0]
+ 241              	
+ 242 0170 7E49     		ldr r1, = 0x200
+ 243 0172 4162     		str r1, [r0, # 0x24]
+ 244              	
+ 245              	_lcdchushihua:
+ 246 0174 3320     		movs r0, # 0x33
+ 247 0176 0021     		movs r1, # 0
+ 248 0178 00F07FF8 		bl _xielcd
+ 249 017c 00F078F8 		bl _lcdyanshi
+ 250 0180 3220     		movs r0, # 0x32
+ 251 0182 0021     		movs r1, # 0
+ 252 0184 00F079F8 		bl _xielcd
+ 253 0188 00F072F8 		bl _lcdyanshi
+ 254 018c 2820     		movs r0, # 0x28
+ 255 018e 0021     		movs r1, # 0
+ 256 0190 00F073F8 		bl _xielcd
+ 257 0194 00F06CF8 		bl _lcdyanshi
+ 258 0198 0C20     		movs r0, # 0x0c
+ 259 019a 0021     		movs r1, # 0
+ 260 019c 00F06DF8 		bl _xielcd
+ 261 01a0 00F066F8 		bl _lcdyanshi
+ 262 01a4 0120     		movs r0, # 0x01
+ 263 01a6 0021     		movs r1, # 0
+ 264 01a8 00F067F8 		bl _xielcd
+ 265 01ac 00F060F8 		bl _lcdyanshi
+ 266              		
+ 267              	tingting:
+ 268 01b0 6F48     		ldr r0, = jishu
+ARM GAS  1.s 			page 6
+
+
+ 269 01b2 0168     		ldr r1, [r0]
+ 270 01b4 0A29     		cmp r1, # 10
+ 271 01b6 04D0     		beq _lcddi1
+ 272 01b8 1429     		cmp r1, # 20
+ 273 01ba 09D0     		beq _lcddi2
+ 274 01bc 1E29     		cmp r1, # 30
+ 275 01be 0ED0     		beq _lcddi3
+ 276 01c0 16E0     		b _tiaoguolcdxunhuan
+ 277              	_lcddi1:
+ 278 01c2 8020     		movs r0, # 0x80
+ 279 01c4 6B49     		ldr r1, = lcdshuju
+ 280 01c6 1022     		movs r2, # 16
+ 281 01c8 FF23     		movs r3, # 0xff
+ 282 01ca 00F043F8 		bl _lcdxianshi
+ 283 01ce 0FE0     		b _tiaoguolcdxunhuan
+ 284              	_lcddi2:
+ 285 01d0 8020     		movs r0, # 0x80
+ 286 01d2 6949     		ldr r1, = dianhua
+ 287 01d4 1022     		movs r2, # 16
+ 288 01d6 FF23     		movs r3, # 0xff
+ 289 01d8 00F03CF8 		bl _lcdxianshi
+ 290 01dc 08E0     		b _tiaoguolcdxunhuan
+ 291              	_lcddi3:
+ 292              		
+ 293 01de 8020     		movs r0, # 0x80
+ 294 01e0 6649     		ldr r1, = qq
+ 295 01e2 1022     		movs r2, # 16
+ 296 01e4 FF23     		movs r3, # 0xff
+ 297 01e6 00F035F8 		bl _lcdxianshi
+ 298 01ea 6148     		ldr r0, = jishu
+ 299 01ec 0021     		movs r1, # 0
+ 300 01ee 0160     		str r1, [r0]
+ 301              	_tiaoguolcdxunhuan:
+ 302              		
+ 303              		
+ 304              	
+ 305              	
+ 306              	
+ 307              		
+ 308              	
+ 309              	_adcpingjun:
+ 310 01f0 4748     		ldr r0, = dianyabiao
+ 311 01f2 6349     		ldr r1, = 0x3fc
+ 312 01f4 0022     		movs r2, # 0
+ 313 01f6 1346     		mov r3, r2
+ 314 01f8 1C46     		mov r4, r3
+ 315 01fa 2546     		mov r5, r4
+ 316              	_adcpingjunxunhuan:
+ 317 01fc C258     		ldr r2, [r0, r3]
+ 318 01fe 002A     		cmp r2, # 0
+ 319 0200 01D1     		bne _leijia
+ 320 0202 0135     		adds r5, r5, # 1
+ 321 0204 00E0     		b _tiaoguoleijia
+ 322              	_leijia:	
+ 323 0206 A418     		adds r4, r4, r2
+ 324              	_tiaoguoleijia:	
+ 325 0208 0433     		adds r3, r3, # 4
+ARM GAS  1.s 			page 7
+
+
+ 326 020a 8B42     		cmp r3, r1
+ 327 020c F6D1     		bne _adcpingjunxunhuan
+ 328 020e FF23     		movs r3, # 0xff
+ 329 0210 5B1B     		subs r3, r3, r5
+ 330 0212 1946     		mov r1, r3
+ 331 0214 2046     		mov r0, r4
+ 332 0216 00F0D8F8 		bl _chufa
+ 333              		
+ 334 021a 5A49     		ldr r1, = 3300
+ 335 021c 4843     		muls r0, r0, r1
+ 336 021e 5A49     		ldr r1, = pingjundianya
+ 337 0220 400B     		lsrs r0, r0, # 13		@求电压
+ 338 0222 0860     		str r0, [r1]
+ 339              	
+ 340              		
+ 341 0224 C020     		movs r0, # 0xc0
+ 342 0226 5949     		ldr r1, = fute1
+ 343 0228 0222     		movs r2, # 2
+ 344 022a 00F013F8 		bl _lcdxianshi
+ 345              	
+ 346 022e 564B     		ldr r3, = pingjundianya
+ 347 0230 0521     		movs r1, # 5
+ 348 0232 1868     		ldr r0, [r3]
+ 349 0234 304A     		ldr r2, = asciimabiao
+ 350 0236 0123     		movs r3, # 1
+ 351 0238 00F0AEF8 		bl _zhuanascii
+ 352              	
+ 353 023c C320     		movs r0, # 0xc3
+ 354 023e 2E49     		ldr r1, = asciimabiao
+ 355 0240 0522     		movs r2, # 5
+ 356 0242 00F007F8 		bl _lcdxianshi
+ 357              	
+ 358 0246 C820     		movs r0, # 0xc8
+ 359 0248 5149     		ldr r1, = fute
+ 360 024a 414A     		ldr r2, = 1
+ 361 024c FF23     		movs r3, # 0xff
+ 362 024e 00F001F8 		bl _lcdxianshi
+ 363              		
+ 364 0252 ADE7     		b tingting
+ 365              	
+ 366              	_lcdxianshi:  		@r0=LCD位置，r1=数据地址，r2=长度
+ 367 0254 1FB5     		push {r0-r4,lr}
+ 368 0256 0C46     		mov r4, r1
+ 369              		
+ 370 0258 0021     		movs r1, # 0	
+ 371 025a 00F00EF8 		bl _xielcd
+ 372              		
+ 373 025e 0121     		movs r1, # 1
+ 374 0260 0023     		movs r3, # 0
+ 375              	_lcdxianshixunhuan:
+ 376 0262 E05C     		ldrb r0, [r4,r3]
+ 377 0264 00F009F8 		bl _xielcd
+ 378 0268 0133     		adds r3, r3, # 1
+ 379 026a 9342     		cmp r3, r2
+ 380 026c F9D1     		bne _lcdxianshixunhuan
+ 381 026e 1FBD     		pop {r0-r4,pc}
+ 382              		
+ARM GAS  1.s 			page 8
+
+
+ 383              	_lcdyanshi:
+ 384 0270 20B5     		push {r5,lr}
+ 385 0272 484D     		ldr r5, = 0x2000
+ 386              	_lcdyanshixunhuan:
+ 387 0274 013D     		subs r5, r5, # 1
+ 388 0276 FDD1     		bne _lcdyanshixunhuan
+ 389 0278 20BD     		pop {r5,pc}
+ 390              		
+ 391              	_xielcd:		@入R0=8位,r1=0命令,r1=1数据
+ 392 027a FFB5     		push {r0-r7,lr}
+ 393 027c 0609     		lsrs r6, r0, # 4
+ 394 027e 0007     		lsls r0, r0, # 28
+ 395 0280 000F     		lsrs r0, r0, # 28
+ 396 0282 8022     		movs r2, # 0x80		@ RS
+ 397 0284 4023     		movs r3, # 0x40		@ E
+ 398 0286 3C25     		movs r5, # 0x3c
+ 399 0288 364C     		ldr r4, = 0x48000000
+ 400 028a 0029     		cmp r1, # 0
+ 401 028c 01D0     		beq _lcdmingling
+ 402 028e A261     		str r2, [r4, # 0x18]	@RS=1
+ 403 0290 00E0     		b _lcdshuju
+ 404              	_lcdmingling:
+ 405 0292 A262     		str r2, [r4, # 0x28]	@RS=0
+ 406              	_lcdshuju:
+ 407 0294 A361     		str r3, [r4, # 0x18]	@E=1
+ 408 0296 A562     		str r5, [r4, # 0x28]
+ 409              	
+ 410 0298 F707     		lsls r7, r6, # 31
+ 411 029a BF0E     		lsrs r7, r7, # 26
+ 412 029c A761     		str r7, [r4, # 0x18]
+ 413              		
+ 414 029e 7708     		lsrs r7, r6, # 1
+ 415 02a0 FF07     		lsls r7, r7, # 31
+ 416 02a2 FF0E     		lsrs r7, r7, # 27
+ 417 02a4 A761     		str r7, [r4, # 0x18]
+ 418              		
+ 419 02a6 B708     		lsrs r7, r6, # 2
+ 420 02a8 FF07     		lsls r7, r7, # 31
+ 421 02aa 3F0F     		lsrs r7, r7, # 28
+ 422 02ac A761     		str r7, [r4, # 0x18]
+ 423              		
+ 424 02ae F708     		lsrs r7, r6, # 3
+ 425 02b0 FF07     		lsls r7, r7, # 31
+ 426 02b2 7F0F     		lsrs r7, r7, # 29
+ 427 02b4 A761     		str r7, [r4, # 0x18]
+ 428              		
+ 429 02b6 FFF7DBFF 		bl _lcdyanshi
+ 430 02ba A362     		str r3, [r4, # 0x28]	@E=0
+ 431              	
+ 432              	
+ 433 02bc A361     		str r3, [r4, # 0x18]    @E=1
+ 434 02be A562     		str r5, [r4, # 0x28]
+ 435              	
+ 436 02c0 C707     		lsls r7, r0, # 31
+ 437 02c2 BF0E     		lsrs r7, r7, # 26
+ 438 02c4 A761     		str r7, [r4, # 0x18]
+ 439              	
+ARM GAS  1.s 			page 9
+
+
+ 440 02c6 4708     		lsrs r7, r0, # 1
+ 441 02c8 FF07     		lsls r7, r7, # 31
+ 442 02ca FF0E     		lsrs r7, r7, # 27
+ 443 02cc A761     		str r7, [r4, # 0x18]
+ 444              	
+ 445 02ce 8708     		lsrs r7, r0, # 2
+ 446 02d0 FF07     		lsls r7, r7, # 31
+ 447 02d2 3F0F     		lsrs r7, r7, # 28
+ 448 02d4 A761     		str r7, [r4, # 0x18]
+ 449              	
+ 450 02d6 C708     		lsrs r7, r0, # 3
+ 451 02d8 FF07     		lsls r7, r7, # 31
+ 452 02da 7F0F     		lsrs r7, r7, # 29
+ 453 02dc A761     		str r7, [r4, # 0x18]
+ 454              	
+ 455 02de FFF7C7FF 		bl _lcdyanshi
+ 456 02e2 A362     		str r3, [r4, # 0x28]    @E=0
+ 457              		
+ 458 02e4 FFBD     		pop {r0-r7,pc}
+ 459 02e6 00000010 		.ltorg
+ 459      02400020 
+ 459      02400200 
+ 459      10000100 
+ 459      00010000 
+ 460              	
+ 461              	
+ 462              	_zhuanascii:				@ 16进制转数码管码
+ 463              			@ R0要转的数据， R1长度，R2结果表首地址, r3=小数点位置
+ 464 0398 FFB5     		push {r0-r7,lr}
+ 465 039a 1F46     		mov r7, r3
+ 466 039c 0546     		mov r5, r0
+ 467 039e 0E46     		mov r6, r1
+ 468 03a0 0A21     		movs r1, # 10
+ 469              	_xunhuanqiuma:
+ 470 03a2 00F012F8 		bl _chufa
+ 471 03a6 0446     		mov r4, r0
+ 472 03a8 4C43     		muls r4, r1
+ 473 03aa 2B1B     		subs r3, r5, r4
+ 474 03ac 3033     		adds r3, r3, # 0x30
+ 475 03ae 0546     		mov r5, r0
+ 476 03b0 013E     		subs r6, r6, # 1
+ 477 03b2 08D0     		beq _qiumafanhui
+ 478 03b4 BE42     		cmp r6, r7
+ 479 03b6 02D1     		bne _meidaoxiaoshudian  
+ 480 03b8 2E24     		movs r4, # 0x2e		@小数点
+ 481 03ba 9455     		strb r4, [r2,r6]	@插入小数点
+ 482 03bc 013E     		subs r6, r6, # 1
+ 483              	_meidaoxiaoshudian:	
+ 484 03be 9355     		strb r3, [r2,r6]
+ 485 03c0 3600     		movs r6, r6
+ 486 03c2 EED1     		bne _xunhuanqiuma
+ 487 03c4 FFBD     		pop {r0-r7,pc}
+ 488              	_qiumafanhui:
+ 489 03c6 9355     		strb r3, [r2, r6]
+ 490 03c8 FFBD     		pop {r0-r7,pc}
+ 491              		
+ 492              	_chufa:				@软件除法
+ARM GAS  1.s 			page 10
+
+
+ 493              		@ r0 除以 r1 等于 商(r0)余数R1
+ 494 03ca 1EB5     		push {r1-r4,lr}
+ 495 03cc 0028     		cmp r0, # 0
+ 496 03ce 0ED0     		beq _chufafanhui
+ 497 03d0 0029     		cmp r1, # 0
+ 498 03d2 0CD0     		beq _chufafanhui
+ 499 03d4 0246     		mov r2, r0
+ 500 03d6 0123     		movs r3, # 1
+ 501 03d8 DB07     		lsls r3, r3, # 31
+ 502 03da 0020     		movs r0, # 0
+ 503 03dc 0446     		mov r4, r0
+ 504              	_chufaxunhuan:
+ 505 03de 5200     		lsls r2, r2, # 1
+ 506 03e0 6441     		adcs r4, r4, r4
+ 507 03e2 8C42     		cmp r4, r1
+ 508 03e4 01D3     		bcc _chufaweishubudao0
+ 509 03e6 C018     		adds r0, r0, r3
+ 510 03e8 641A     		subs r4, r4, r1
+ 511              	_chufaweishubudao0:
+ 512 03ea 5B08     		lsrs r3, r3, # 1
+ 513 03ec F7D1     		bne _chufaxunhuan
+ 514              	_chufafanhui:
+ 515 03ee 1EBD     		pop {r1-r4,pc}
+ 516              		.ltorg
+ 517              	
+ 518              	_nmi_handler:
+ 519 03f0 7047     		bx lr
+ 520              	_hard_fault:
+ 521 03f2 7047     		bx lr
+ 522              	_svc_handler:
+ 523 03f4 7047     		bx lr
+ 524              	_pendsv_handler:
+ 525 03f6 7047     		bx lr
+ 526              	_systickzhongduan:
+ 527 03f8 034A     		ldr r2, = jishu
+ 528 03fa 0448     		ldr r0, = 0xe0000d04
+ 529 03fc 1368     		ldr r3, [r2]
+ 530 03fe 0449     		ldr r1, = 0x02000000
+ 531 0400 0133     		adds r3, r3, # 1
+ 532 0402 1360     		str r3, [r2]
+ 533 0404 0160     		str r1, [r0]                 @ 清除SYSTICK中断
+ 534              	aaa:
+ 535 0406 70471404 		bx lr
+ 535      0020040D 
+ 535      00E00000 
+ 535      0002
+ARM GAS  1.s 			page 11
+
+
+DEFINED SYMBOLS
+                 1.s:5      .data:0000000000000000 zhengxian1k
+                 1.s:7      .data:00000000000000c2 qingping
+                 1.s:9      .data:00000000000000d2 fute
+                 1.s:11     .data:00000000000000d3 fute1
+                 1.s:13     .data:00000000000000d5 lcdshuju
+                 1.s:15     .data:00000000000000e5 dianhua
+                 1.s:17     .data:00000000000000f6 qq
+                 1.s:19     *ABS*:0000000020001000 STACKINIT
+                 1.s:20     *ABS*:0000000020000000 asciimabiao
+                 1.s:21     *ABS*:0000000020000010 dianyabiao
+                 1.s:22     *ABS*:0000000020000410 pingjundianya
+                 1.s:23     *ABS*:0000000020000414 jishu
+                 1.s:25     .text:0000000000000000 vectors
+                 1.s:72     .text:00000000000000b0 _start
+                 1.s:518    .text:00000000000003f0 _nmi_handler
+                 1.s:520    .text:00000000000003f2 _hard_fault
+                 1.s:522    .text:00000000000003f4 _svc_handler
+                 1.s:524    .text:00000000000003f6 _pendsv_handler
+                 1.s:526    .text:00000000000003f8 _systickzhongduan
+                 1.s:534    .text:0000000000000406 aaa
+                            .text:0000000000000000 $d
+                 1.s:70     .text:00000000000000b0 $t
+                 1.s:73     .text:00000000000000b0 shizhong
+                 1.s:83     .text:00000000000000c2 dengrc
+                 1.s:87     .text:00000000000000c8 dengpll
+                 1.s:94     .text:00000000000000d2 dengdai14mshizhongwending
+                 1.s:99     .text:00000000000000d8 neicunqingling
+                 1.s:103    .text:00000000000000de neicunqinglingxunhuan
+                 1.s:108    .text:00000000000000e4 _waisheshizhong
+                 1.s:122    .text:00000000000000ee dmachushihua
+                 1.s:153    .text:0000000000000112 tim1chushiha
+                 1.s:169    .text:0000000000000130 _adcchushihua
+                 1.s:173    .text:0000000000000136 _dengadcjiaozhun
+                 1.s:177    .text:000000000000013c _kaiadc
+                 1.s:182    .text:0000000000000144 _dengdaiadcwending
+                 1.s:186    .text:000000000000014a _tongdaoxuanze
+                 1.s:200    .text:000000000000015e _waishezhongduan
+                 1.s:207    .text:000000000000015e _systick
+                 1.s:217    .text:000000000000016a io_she_zhi
+                 1.s:245    .text:0000000000000174 _lcdchushihua
+                 1.s:391    .text:000000000000027a _xielcd
+                 1.s:383    .text:0000000000000270 _lcdyanshi
+                 1.s:267    .text:00000000000001b0 tingting
+                 1.s:277    .text:00000000000001c2 _lcddi1
+                 1.s:284    .text:00000000000001d0 _lcddi2
+                 1.s:291    .text:00000000000001de _lcddi3
+                 1.s:301    .text:00000000000001f0 _tiaoguolcdxunhuan
+                 1.s:366    .text:0000000000000254 _lcdxianshi
+                 1.s:309    .text:00000000000001f0 _adcpingjun
+                 1.s:316    .text:00000000000001fc _adcpingjunxunhuan
+                 1.s:322    .text:0000000000000206 _leijia
+                 1.s:324    .text:0000000000000208 _tiaoguoleijia
+                 1.s:492    .text:00000000000003ca _chufa
+                 1.s:462    .text:0000000000000398 _zhuanascii
+                 1.s:375    .text:0000000000000262 _lcdxianshixunhuan
+                 1.s:386    .text:0000000000000274 _lcdyanshixunhuan
+ARM GAS  1.s 			page 12
+
+
+                 1.s:404    .text:0000000000000292 _lcdmingling
+                 1.s:406    .text:0000000000000294 _lcdshuju
+                 1.s:459    .text:00000000000002e6 $d
+                 1.s:459    .text:00000000000002e8 $d
+                 1.s:464    .text:0000000000000398 $t
+                 1.s:469    .text:00000000000003a2 _xunhuanqiuma
+                 1.s:488    .text:00000000000003c6 _qiumafanhui
+                 1.s:483    .text:00000000000003be _meidaoxiaoshudian
+                 1.s:514    .text:00000000000003ee _chufafanhui
+                 1.s:504    .text:00000000000003de _chufaxunhuan
+                 1.s:511    .text:00000000000003ea _chufaweishubudao0
+                 1.s:535    .text:0000000000000408 $d
+
+NO UNDEFINED SYMBOLS

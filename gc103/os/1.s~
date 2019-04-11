@@ -1,0 +1,69 @@
+	 .thumb                 
+         .syntax unified
+.section .data
+	.equ STACKINIT,         0x20005000
+	.equ yanshi, 		0xfffff
+.section .text
+_xiangliangbiao:
+	.word STACKINIT
+	.word _start + 1
+	.word _nmi_handler + 1
+	.word _hard_fault  + 1
+	.word _memory_fault + 1
+	.word _bus_fault + 1
+	.word _usage_fault + 1
+_start:
+	ldr r0, = 0x40021000
+	mov r1, # 1
+	str r1, [r0]
+_gsszbz: 
+	ldr r2, [r0]
+	tst r1, r2           @HSI时钟标志位           
+	bne _rccchushihua
+	b _gsszbz
+_rccchushihua: 
+	ldr r4, = 0x40022000
+	mov r1, # 0x00000032
+	str r1, [r4]           @FLASH缓冲 缓冲开启 
+	ldr r1, = 0x1c0000
+	str r1, [r0, # 0x04]
+	ldr r0, = 0x40021000
+	ldr r1, = 0x1000001
+	str r1, [r0]
+_chaxun:
+	ldr r2, [r0]
+	ldr r1, = 0x2000000
+	tst r1, r2
+	bne _rccgg               @等待PLL稳定
+	b _chaxun
+_rccgg:
+	ldr r0, = 0x40021004
+	ldr r1, = 0x1c0002
+	str r1, [r0]            @ PLL作为系统时钟
+_waisheshizhong:
+	ldr r0, = 0x40021014
+	mov r1, # 1
+	str r1, [r0]
+        ldr r0, = 0x40021018 @ APB2_ENR
+        ldr r1, = 0x83c
+        str r1, [r0]
+	
+_ioshezhi:
+
+	ldr r0, = 0x40010800
+	ldr r1, = 0x44444bbb
+	str r1, [r0, # 0x04]
+	ldr r0, = 0x40010c00
+	ldr r1, = 0xbbb44444
+	str r1, [r0, # 0x04]
+
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_memory_fault:
+	bx lr
+_bus_fault:
+	bx lr
+_usage_fault:
+ 	bx lr

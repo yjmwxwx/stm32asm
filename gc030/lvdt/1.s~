@@ -1,0 +1,58 @@
+	@ stm32f030f4p6 asm
+	@ lvdt实验
+	 .thumb
+	.syntax unified
+	.section .data
+	.equ STACKINIT,         0x20001000
+.section .text
+xiangliangbiao:        
+        .word STACKINIT         
+        .word _start + 1        
+        .word _nmi_handler + 1  
+        .word _hard_fault  + 1  
+        .word 0 
+        .word 0    
+        .word 0
+	.word 0
+	.word 0
+	.word 0
+	.word 0
+	.word _svc_handler +1
+	.word 0 
+	.word 0
+	.word _pendsv_handler +1
+	.word _systickzhongduan + 1
+_start:
+_shizhong:
+	ldr r2, = 0x40022000   @FLASH访问控制
+	movs r1, # 0x32
+	str r1, [r2]
+	ldr r0, = 0x40021000 @ rcc
+	@0x34时钟控制寄存器 2 (RCC_CR2)
+	movs r1, # 0x01
+	str r1, [r0, # 0x34]  @ HSI开14M时钟
+_dengdai14mshizhongwending:
+	ldr r1, [r0, # 0x34]
+	lsls r1, r1, # 30     @ 左移30位
+	bpl _dengdai14mshizhongwending  @ 等待14M时钟稳定
+
+_neicunqingling:
+	ldr r0, = 0x20000000
+	movs r1, # 0
+	ldr r3, = 0x1000
+_neicunqinglingxunhuan:
+	subs r3, # 4
+	str r1, [r0, r3]
+	bne _neicunqinglingxunhuan
+
+
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_svc_handler:
+	bx lr
+_pendsv_handler:
+	bx lr
+_systickzhongduan:
+	bx lr

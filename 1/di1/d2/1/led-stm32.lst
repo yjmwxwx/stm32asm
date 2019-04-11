@@ -1,0 +1,146 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	
+   2              	
+   3              	@@@ Directives
+   4              	        .thumb                
+   5              	        .syntax unified
+   6              	
+   7              	@@@ Equates
+   8              	        .equ RAMBASE, 0x20000000 
+   9              	
+  10              		.equ GPIOC_CRH,   0x40011004
+  11              	        .equ GPIOC_ODR,   0x4001100C
+  12              	        .equ RCC_APB2ENR, 0x40021018
+  13              	        .equ STACKINIT,   0x20005000
+  14              		.equ systkkz, 	  0xE000E010
+  15              		.equ systkcz,	  0xE000E014
+  16              		.equ syst1,       0xE000E014
+  17              		.equ syst2,       0xE000E018
+  18              		.equ shijian,     0x22006404
+  19              		.equ zhongduancishu, 0x20000210 
+  20              	        .equ Flag1,    0x20000200  
+  21              		.equ Bit1,   0x00000002 
+  22              		.equ ledled, 0x33333333       
+  23              		
+  24              		
+  25              	
+  26              	
+  27              	        
+  28              	.section .text
+  29              	        .org 0
+  30              	
+  31              	@@@ Vectors
+  32              	vectors:        
+  33 0000 00500020 	        .word STACKINIT            
+  34 0004 41000000 	        .word _start + 1	      
+  35 0008 5B000000 	        .word _nmi_handler + 1 
+  36 000c 5D000000 	        .word _hard_fault  + 1
+  37 0010 00000000 	        .word 0 
+  38 0014 00000000 	        .word 0
+  39 0018 00000000 	        .word 0
+  40 001c 00000000 		.word 0
+  41 0020 00000000 		.word 0
+  42 0024 00000000 		.word 0
+  43 0028 00000000 		.word 0
+  44 002c 00000000 		.word 0
+  45 0030 00000000 		.word 0
+  46 0034 00000000 		.word 0
+  47 0038 00000000 		.word 0
+  48 003c 5F000000 		.word _systick + 1
+  49              	
+  50              	_start:
+  51 0040 0C48     		ldr r0, = systkkz	@@systkic定时器控制寄存器
+  52 0042 4FF00001 		mov r1, #0	
+  53 0046 0160     		str r1, [r0]		@@停止定时器
+  54              		
+  55 0048 0B49     		ldr r1, = 0xff	        @@重装值	
+  56 004a 0C4B     		ldr r3, = systkcz       @@重载
+  57 004c 1960     		str r1, [r3]		@@装入重载值
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 004e 0C4C     		ldr r4, = syst2           @@STVCVR寄存器
+  59 0050 2160     		str r1, [r4]		@@ 往STCVR随便写任意数
+  60 0052 4FF00701 		mov r1, # 0x7		@@选择FCLK为时钟源
+  61 0056 0160     		str r1, [r0]		@@开定时
+  62              	
+  63              	
+  64              		
+  65              	
+  66              	 
+  67              	
+  68              	loop:
+  69              		
+  70              	
+  71 0058 FEE7     	        b      loop
+  72              	
+  73              		
+  74              		
+  75              	
+  76              		   
+  77              	
+  78              		
+  79              	
+  80              		
+  81              	
+  82              	                       
+  83              	_nmi_handler:
+  84 005a 7047     		bx lr
+  85              	_hard_fault:
+  86 005c 7047     		bx lr
+  87              	_systick:
+  88              		
+  89 005e 0949     		ldr r1, = ledled
+  90 0060 05F10105 		add r5, 1
+  91 0064 0139     		subs r1, 1
+  92 0066 04D3     		bcc dingshi1
+  93 0068 4FF00001 		mov r1, #0
+  94 006c 0160     		str r1, [r0]
+  95 006e 06F10106 		add r6,1
+  96              	
+  97              		
+  98              	dingshi1:
+  99 0072 7047     		bx lr
+ 100              	
+ 101              	
+ 102              	
+ 103              	
+ 104              	
+ 105              	
+ 106 0074 10E000E0 	    
+ 106      FF000000 
+ 106      14E000E0 
+ 106      18E000E0 
+ 106      33333333 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:8      *ABS*:20000000 RAMBASE
+         led-stm32.s:10     *ABS*:40011004 GPIOC_CRH
+         led-stm32.s:11     *ABS*:4001100c GPIOC_ODR
+         led-stm32.s:12     *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:13     *ABS*:20005000 STACKINIT
+         led-stm32.s:14     *ABS*:e000e010 systkkz
+         led-stm32.s:15     *ABS*:e000e014 systkcz
+         led-stm32.s:16     *ABS*:e000e014 syst1
+         led-stm32.s:17     *ABS*:e000e018 syst2
+         led-stm32.s:18     *ABS*:22006404 shijian
+         led-stm32.s:19     *ABS*:20000210 zhongduancishu
+         led-stm32.s:20     *ABS*:20000200 Flag1
+         led-stm32.s:21     *ABS*:00000002 Bit1
+         led-stm32.s:22     *ABS*:33333333 ledled
+         led-stm32.s:32     .text:00000000 vectors
+         led-stm32.s:50     .text:00000040 _start
+         led-stm32.s:83     .text:0000005a _nmi_handler
+         led-stm32.s:85     .text:0000005c _hard_fault
+         led-stm32.s:87     .text:0000005e _systick
+                            .text:00000000 $d
+         led-stm32.s:51     .text:00000040 $t
+         led-stm32.s:68     .text:00000058 loop
+         led-stm32.s:98     .text:00000072 dingshi1
+         led-stm32.s:106    .text:00000074 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,121 @@
+	 .thumb                 
+         .syntax unified
+.section .data
+	.equ fjiesuo,		0x1ffff056
+	.equ yeca,		0x1ffff22c
+	.equ xieflash,		0x1ffff27c
+	.equ STACKINIT,         0x20005000
+yjmwxwx: .ascii "jlink ob boot 2017-11-19 yjmwxwx"
+.section .text
+_xiangliangbiao:
+	.word STACKINIT
+	.word _start + 1
+	.word _nmi_handler + 1
+	.word _hard_fault  + 1
+	.word _memory_fault + 1
+	.word _bus_fault + 1
+	.word _usage_fault + 1
+
+_start:
+	cpsid i
+	sub sp, sp, # 0x5000
+	ldr r0, = yjmwxwx
+	str r0, [sp]
+	add sp, sp, # 0x5000
+	
+	ldr r0, = 0xffffffff
+	mov r5, r0
+	ldr r2, = 0x8009c00
+	mov r3, # 0x80
+_xunhuanyu:
+	ldr r4, [r2, r3]
+	and r0, r0, r4
+	subs r3, r3, # 0x04
+	bne _xunhuanyu
+	cmp r0, r5
+	bne _crcjisuan
+_daogujian:	
+	ldr r0, = 0xe000ed08
+	ldr r1, = 0x8004000
+	str r1, [r0]
+	add r1, r1, # 4
+	ldr r1, [r1]
+	cpsie i
+	bx r1
+_crcjisuan:
+	ldr r0, = 0x8009c00
+	ldr r1, = 0x5bfe
+	mov r3, # 0
+	movw r4, # 0x8408
+	
+_crcxunhuan:
+	ldrb r5, [r0], # 1
+	eor r6, r6, r5
+	mov r2, # 8
+_crcxunhuan1:
+	mov r5, r6
+	lsrs r6, r6, # 1
+	tst r5, # 1
+	it ne
+	eorne r6, r6, r4
+	
+	subs r2, r2, # 1
+	bne _crcxunhuan1
+	
+	subs r1, r1, # 1
+	bne _crcxunhuan
+	ldr r0, = 0x800f7fe
+	ldr r1, [r0]
+	cmp r6, r1
+	bne _daogujian
+	ldr r7, = fjiesuo
+	mov r6, # 3
+	add r6, r6, pc
+	mov lr, r6
+	mov pc, r7
+
+	mov r5, # 16
+	ldr r0, = 0x8004000
+_yecaxunhuan:	
+	ldr r7, = yeca
+	mov r6, # 3
+	add r6, r6, pc
+	mov lr, r6
+	mov pc, r7
+	add r0, r0, # 4
+	subs r5, r5, # 1
+	bne _yecaxunhuan
+
+	movw r5, # 0x16ff
+	ldr r1, = 0x8004000
+	ldr r4, = 0x8009c00
+_xieflashxunhuan:
+	ldr r0, [r4], # 0x04
+	ldr r7, = xieflash
+	mov r6, # 3
+	add r6, r6, pc
+	mov lr, r6
+	mov pc, r7
+	add r1, r1, # 4
+	subs r5, r5, # 1
+	bne _xieflashxunhuan
+	ldr r0, = 0x8009c00
+	ldr r7, = yeca
+	mov r6, # 3
+	add r6, r6, pc
+	mov lr, r6
+	mov pc, r7
+
+	b _daogujian
+	
+	
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_memory_fault:
+	bx lr
+_bus_fault:
+	bx lr
+_usage_fault:
+ 	bx lr

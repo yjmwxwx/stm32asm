@@ -1,0 +1,899 @@
+ARM GAS  111.s 			page 1
+
+
+   1              	  	.thumb                 
+   2              	        .syntax unified
+   3              	
+   4              	.section .data
+   5              		.align 4
+   6 0000 32303135 	shijian:	 .ascii "2015-06-01"
+   6      2D30362D 
+   6      3031
+   7 000a 594A4D57 	AYJMWXWX:	 .ascii "YJMWXWX"
+   7      585758
+   8 0011 53544D33 	ASTM32ASM:	 .ascii "STM32ASM"
+   8      3241534D 
+   9 0019 4D56     	dianyamv:	 .ascii "MV"
+  10 001b 2E       	dian:	         .ascii "."
+  11 001c 2743     	duxi:	         .ascii "'C"
+  12 001e 54494D33 	tim3xianshi:	 .ascii "TIM3"
+  13 0022 484F4E47 	ahongwai:	 .ascii "HONGWAI"
+  13      574149
+  14 0029 414E4A49 	aanjian:	 .ascii "ANJIAN"
+  14      414E
+  15              		
+  16              	lcdcsh:
+  17 002f 00000100 		.short 0x0000,0x0001,0x0015,0x0030,0x009a,0x0010,0x0011,0x0020,0x0010,0x3428,0x0012,0x0002,0x0013,
+  17      15003000 
+  17      9A001000 
+  17      11002000 
+  17      10002834 
+  18              		
+  19 00c3 00000100 	hongwaijiema:	.int 0x10000,0x20000,0x30000,0xf0000,0x22006180
+  19      00000200 
+  19      00000300 
+  19      00000F00 
+  19      80610022 
+  20 00d7 5DA2FF00 	hongwaimabiao:	.int 0xffa25d,0xff629d,0xffe21d,0xff22dd,0xff02fd,0xffc23d,0xffe01f,0xffa857,0xff906
+  20      9D62FF00 
+  20      1DE2FF00 
+  20      DD22FF00 
+  20      FD02FF00 
+  21              	lcdmabiao:
+  22 0127 00000000 		.byte 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x
+  22      00000000 
+  22      00000000 
+  22      00000000 
+  22      00000008 
+  23              		
+  24              	
+  25              	        .equ STACKINIT, 	0x20005000
+  26              		.equ lcdyanshia, 	40000
+  27              	
+  28              		
+  29 04d7 00000000 	.section .text
+  29      00000000 
+  29      00
+  30              	vectors:        
+  31 0000 00500020 	        .word STACKINIT         
+  32 0004 B9000000 	        .word _start + 1        
+  33 0008 5D060000 	        .word _nmi_handler + 1  
+ARM GAS  111.s 			page 2
+
+
+  34 000c 5F060000 	        .word _hard_fault  + 1  
+  35 0010 61060000 	        .word _memory_fault + 1 
+  36 0014 63060000 	        .word _bus_fault + 1    
+  37 0018 65060000 	        .word _usage_fault + 1 
+  38 001c 00000000 		.word 0
+  39 0020 00000000 		.word 0
+  40 0024 00000000 		.word 0
+  41 0028 00000000 		.word 0
+  42 002c 00000000 		.word 0
+  43 0030 00000000 		.word 0
+  44 0034 00000000 		.word 0 
+  45 0038 00000000 		.word 0
+  46 003c 67060000 		.word _dingshiqi + 1
+  47 0040 00000000 		.word 0
+  48 0044 00000000 		.word 0
+  49 0048 00000000 		.word 0
+  50 004c 00000000 		.word 0
+  51 0050 00000000 		.word 0
+  52 0054 00000000 		.word 0
+  53 0058 00000000 		.word 0
+  54 005c 69060000 		.word _extzhongduan + 1
+  55 0060 00000000 		.word 0
+  56 0064 00000000 		.word 0
+  57 0068 00000000 		.word 0
+  58 006c 00000000 		.word 0
+  59 0070 00000000 		.word 0
+  60 0074 00000000 		.word 0
+  61 0078 00000000 		.word 0
+  62 007c 00000000 		.word 0
+  63 0080 00000000 		.word 0
+  64 0084 00000000 		.word 0
+  65 0088 00000000 		.word 0
+  66 008c 00000000 		.word 0
+  67 0090 00000000 		.word 0
+  68 0094 00000000 		.word 0
+  69 0098 00000000 		.word 0
+  70 009c 00000000 		.word 0
+  71 00a0 00000000 		.word 0
+  72 00a4 00000000 		.word 0
+  73 00a8 00000000 		.word 0
+  74 00ac 00000000 		.word 0
+  75 00b0 00000000 		.word 0
+  76 00b4 F5060000 		.word _tim3dingshiqi + 1
+  77              		
+  78              	_start:
+  79              	chushihua:
+  80 00b8 DFF85406 		ldr r0, = 0x20000014
+  81 00bc 4FF00001 		mov r1, # 0
+  82 00c0 0160     		str r1, [r0]
+  83 00c2 4160     		str r1, [r0, # 4]
+  84 00c4 DFF84C06 		ldr r0, = 0x20000300
+  85 00c8 4FF00001 		mov r1, # 0
+  86 00cc 0161     		str r1, [r0, # 0x10]
+  87 00ce 4161     		str r1, [r0, # 0x14]
+  88 00d0 8160     		str r1, [r0, # 8]
+  89 00d2 DFF84416 		ldr r1, = 0x22006200
+  90 00d6 0160     		str r1, [r0]
+ARM GAS  111.s 			page 3
+
+
+  91 00d8 4FF00001 		mov r1, # 0
+  92 00dc 4160     		str r1, [r0, # 4]
+  93              	@@AFIO-MAPR 开SWD模式
+  94 00de DFF83C06 		ldr r0, = 0x40010004
+  95 00e2 DFF83C16 		ldr r1, = 0x02000000
+  96 00e6 0160     		str r1, [r0]
+  97              	shizhong:
+  98 00e8 DFF83806 		ldr r0, = 0x40021000
+  99 00ec DFF83816 		ldr r1, = 0x14D83
+ 100 00f0 0160     		str r1, [r0]
+ 101              	gsszbz: 
+ 102 00f2 0268     		ldr r2, [r0]
+ 103 00f4 DFF83416 		ldr r1, = 0x20000
+ 104 00f8 1142     		tst r1, r2           @高速时钟标志位           
+ 105 00fa 00D1     		bne rccchushihua
+ 106 00fc F9E7     		b gsszbz
+ 107              	rccchushihua: 
+ 108 00fe DFF83006 		ldr r0, = 0x40022000
+ 109 0102 4FF03201 		mov r1, # 0x00000032
+ 110 0106 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+ 111 0108 DFF82806 		ldr r0, = 0x40021004
+ 112 010c DFF82816 		ldr r1, = 0x1D8400
+ 113 0110 0160     		str r1, [r0]
+ 114 0112 DFF81006 		ldr r0, = 0x40021000
+ 115 0116 DFF82416 		ldr r1, = 0x1033D03
+ 116 011a 0160     		str r1, [r0]
+ 117              	chaxun:
+ 118 011c 0268     		ldr r2, [r0]
+ 119 011e DFF80016 		ldr r1, = 0x2000000
+ 120 0122 1142     		tst r1, r2
+ 121 0124 00D1     		bne rccgg
+ 122 0126 F9E7     		b chaxun
+ 123              	rccgg:
+ 124 0128 DFF80806 		ldr r0, = 0x40021004
+ 125 012c DFF81016 		ldr r1, = 0x1d8402
+ 126 0130 0160     		str r1, [r0]
+ 127              	
+ 128 0132 DFF81006 		ldr r0, = 0x40021018 @rcc_apb2_enr
+ 129 0136 40F23D21 		movw r1, # 0x23d
+ 130 013a 0160     		str r1, [r0]
+ 131              	
+ 132 013c DFF80806 		ldr r0, = 0x4002101c @ rcc_apb1_enr
+ 133 0140 4FF00201 		mov r1, # 0x02
+ 134 0144 0160     		str r1, [r0] @ 开TIM3时钟
+ 135              	tim3chushihua:
+ 136 0146 DFF80406 		ldr r0, = 0x4000042c @ arr 重载
+ 137 014a DFF80416 		ldr r1, = 0x1388
+ 138 014e 0160     		str r1, [r0]
+ 139 0150 DFF80006 		ldr r0, = 0x40000428 @ psc fenpin
+ 140 0154 DFF80016 		ldr r1, = 0x1c1f
+ 141 0158 0160     		str r1, [r0]
+ 142 015a DFF80006 		ldr r0, = 0x4000040c @ dier
+ 143 015e 4FF04101 		mov r1, # 0x41
+ 144 0162 0160     		str r1, [r0]
+ 145              	
+ 146              	
+ 147              		
+ARM GAS  111.s 			page 4
+
+
+ 148              	zhongduan:
+ 149 0164 DFF8F805 		ldr r0, = 0xe000ed0c
+ 150 0168 DFF8F815 		ldr r1, = 0x5fa0500
+ 151 016c 0160     		str r1, [r0]
+ 152              	
+ 153 016e DFF8F805 		ldr r0, = 0xe000e100 @setpend0
+ 154 0172 DFF8F815 		ldr r1, = 0x20000080
+ 155 0176 0160     		str r1, [r0]
+ 156              	
+ 157 0178 DFF8F405 		ldr r0, = 0xe000e400
+ 158 017c 4FF00301 		mov r1, # 3
+ 159 0180 4160     		str r1, [r0, # 0x04]
+ 160 0182 4FF0EA01 		mov r1, # 234
+ 161 0186 C160     		str r1, [r0, # 0x0c]
+ 162              		
+ 163              	
+ 164              	systick:
+ 165 0188 DFF8E805 		ldr r0, = 0xe000e010
+ 166 018c 4FF00001 		mov r1, # 0
+ 167 0190 0160     		str r1, [r0] 
+ 168 0192 DFF8E415 		ldr r1, = 0xffffff
+ 169 0196 4160     		str r1, [r0, # 4]
+ 170 0198 8160     		str r1, [r0, # 8]
+ 171 019a 4FF00001 		mov r1, # 0
+ 172 019e 0160     		str r1, [r0]
+ 173 01a0 DFF8D805 		ldr r0, = 0xe000ed23  @systick优先级
+ 174 01a4 4FF0F001 		mov r1, # 240
+ 175 01a8 0160     		str r1, [r0]
+ 176              	wangbuzhongduanchushihua:
+ 177 01aa DFF8D405 		ldr r0, = 0x40010008 @ afio_exticr1
+ 178 01ae 4FF00001 		mov r1, # 0
+ 179 01b2 0160     		str r1, [r0]
+ 180 01b4 DFF8CC05 		ldr r0, = 0x40010400 @ exti_imr 中断屏蔽
+ 181 01b8 4FF00201 		mov r1, # 0x02
+ 182 01bc 0160     		str r1, [r0]
+ 183 01be 4160     		str r1, [r0, # 0x04] @ exti_emr 事件屏蔽
+ 184 01c0 C160     		str r1, [r0, # 0x0c] @ exti_ftsr 下降沿触发
+ 185              	led1chushihua:
+ 186 01c2 DFF8C405 		ldr r0, = 0x40011400
+ 187 01c6 DFF8C415 		ldr r1, = 0x44444344
+ 188 01ca 0160     		str r1, [r0]
+ 189              	
+ 190 01cc 4FF00401 		mov r1, # 4
+ 191 01d0 C160     		str r1, [r0, # 12]
+ 192 01d2 DFF8BC05 		ldr r0, = 0x20000010
+ 193 01d6 0160     		str r1, [r0]
+ 194              		
+ 195              		
+ 196              	adcchushihua:
+ 197 01d8 DFF8B805 		ldr r0, = 0x4001240c
+ 198 01dc DFF8B815 		ldr r1, = 0x1c0000
+ 199 01e0 0160     		str r1, [r0]
+ 200 01e2 DFF8B805 		ldr r0, = 0x40012434
+ 201 01e6 4FF01001 		mov r1, # 0x10
+ 202 01ea 0160     		str r1, [r0]
+ 203 01ec DFF8B005 		ldr r0, = 0x40012408
+ 204 01f0 DFF8B015 		ldr r1, = 0x9e0009
+ARM GAS  111.s 			page 5
+
+
+ 205 01f4 0160     		str r1, [r0]
+ 206              		
+ 207              	adcjiaozhun:
+ 208 01f6 0168     		ldr r1, [r0]
+ 209 01f8 11F0080F 		tst r1, # 0x8
+ 210 01fc FBD1     		bne adcjiaozhun
+ 211 01fe DFF8A815 		ldr r1, = 0x9e005
+ 212 0202 0160     		str r1, [r0]
+ 213              	adcjiaozhun1:
+ 214 0204 0168     		ldr r1, [r0]
+ 215 0206 11F0040F 		tst r1, # 0x4
+ 216 020a FBD1     		bne adcjiaozhun1
+ 217 020c DFF89C25 		ldr r2, = 0x4001244c
+ 218 0210 1268     		ldr r2, [r2]
+ 219 0212 DFF89C15 		ldr r1, = 0x2000011c
+ 220 0216 0A60     		str r2, [r1]
+ 221 0218 DFF89815 		ldr r1, = 0xde0003
+ 222 021c 0160     		str r1, [r0]
+ 223              	
+ 224              		
+ 225              	ioshezhi:
+ 226 021e DFF89805 		ldr r0, = 0x40010800
+ 227 0222 DFF89815 		ldr r1, = 0x44444484
+ 228 0226 0160     		str r1, [r0]
+ 229 0228 4FF00201 		mov r1, # 0x02
+ 230 022c C160     		str r1, [r0, # 0x0c]
+ 231              		
+ 232              	
+ 233              		
+ 234              		@@AFIO-MAPR 开SWD
+ 235 022e DFF8EC04 		ldr r0, = 0x40010004
+ 236 0232 DFF8EC14 		ldr r1, = 0x02000000
+ 237 0236 0160     		str r1, [r0]
+ 238 0238 DFF88405 		ldr r0, = 0x40011000
+ 239 023c DFF88415 		ldr r1, = 0x33444444 
+ 240 0240 0160     		str r1, [r0]
+ 241 0242 DFF88415 		ldr r1, = 0x44444333
+ 242 0246 4160     		str r1, [r0, # 4]
+ 243 0248 DFF88015 		ldr r1, = 0x7c0
+ 244 024c C160     		str r1, [r0, # 0xc]
+ 245 024e DFF88005 		ldr r0, = 0x40010C00
+ 246 0252 DFF88015 		ldr r1, = 0x33333333
+ 247 0256 0160     		str r1, [r0]
+ 248 0258 DFF87815 		ldr r1, = 0x33333333
+ 249 025c 4160     		str r1, [r0, # 4]
+ 250 025e DFF87815 		ldr r1, = 0xffff
+ 251 0262 C160     		str r1, [r0, # 0xc]
+ 252 0264 DFF87455 		ldr r5, = lcdyanshia
+ 253 0268 4FF00006 		mov r6, # 0
+ 254 026c 4FF00002 		mov r2, # 0
+ 255              	lcdchushihua:
+ 256 0270 06F10106 		add r6, # 1
+ 257 0274 DFF86805 		ldr r0, = lcdcsh
+ 258 0278 845A     		ldrh r4, [r0, r2]
+ 259 027a 02F10202 		add r2, # 2
+ 260 027e 875A     		ldrh r7, [r0, r2]
+ 261 0280 02F10202 		add r2, # 2
+ARM GAS  111.s 			page 6
+
+
+ 262 0284 012E     		cmp r6, # 1
+ 263 0286 0AD0     		beq yanshi1
+ 264 0288 072E     		cmp r6, # 7
+ 265 028a 08D0     		beq yanshi1
+ 266 028c 082E     		cmp r6, # 8
+ 267 028e 06D0     		beq yanshi1
+ 268 0290 0A2E     		cmp r6, # 10
+ 269 0292 04D0     		beq yanshi1
+ 270 0294 00F030F8 		bl lcdchushihua2
+ 271              		
+ 272              	lcd1:
+ 273 0298 942A     		cmp r2, # 0x94
+ 274 029a 05D8     		bhi tiaochu
+ 275 029c E8E7     		b lcdchushihua
+ 276              		
+ 277              	yanshi1:
+ 278 029e 00F02BF8 		bl lcdchushihua2
+ 279 02a2 00F0A7F8 		bl yanshi
+ 280 02a6 F7E7     		b lcd1
+ 281              	tiaochu:
+ 282 02a8 4FF00002 		mov r2, # 0
+ 283 02ac 4FF00008 		mov r8, # 0
+ 284 02b0 4FF00009 		mov r9, # 0
+ 285 02b4 DFF82CA5 		ldr r10, = 0xf800
+ 286              	xxxxxx:
+ 287 02b8 4FF02004 		mov r4, # 0x20
+ 288 02bc 4746     		mov r7, r8
+ 289 02be 00F01BF8 		bl lcdchushihua2
+ 290 02c2 08F10108 		add r8, # 1
+ 291 02c6 B8F1F00F 		cmp r8, # 240
+ 292 02ca 02D1     		bne yyyyyy
+ 293 02cc 4FF00008 		mov r8, # 0
+ 294 02d0 A9E0     		b tiaochuyanse
+ 295              	yyyyyy:
+ 296 02d2 4FF02104 		mov r4, # 0x21
+ 297 02d6 4F46     		mov r7, r9
+ 298 02d8 00F00EF8 		bl lcdchushihua2
+ 299 02dc 09F10109 		add r9, # 1
+ 300 02e0 B9F5A07F 		cmp.w r9, # 320
+ 301 02e4 02D1     		bne xielcd
+ 302 02e6 4FF00009 		mov r9, # 0
+ 303 02ea E5E7     		b xxxxxx
+ 304              	xielcd:
+ 305 02ec 4FF02204 		mov r4, # 0x22
+ 306 02f0 5746     		mov r7, r10
+ 307 02f2 00F001F8 		bl lcdchushihua2
+ 308 02f6 ECE7     		b yyyyyy
+ 309              	
+ 310              	lcdchushihua2:
+ 311 02f8 2DE98B41 		push {r0,r1,r3,r7,r8,lr}
+ 312 02fc E846     		mov r8, r13
+ 313 02fe DFF8E804 		ldr r0, = 0x4001100c
+ 314 0302 4FF49861 		mov r1, # 0x4c0
+ 315 0306 0160     		str r1, [r0]
+ 316 0308 DFF8E034 		ldr r3, = 0x40010c0c
+ 317 030c 1C60     		str r4, [r3]
+ 318 030e 4FF48861 		mov r1, # 0x440
+ARM GAS  111.s 			page 7
+
+
+ 319 0312 0160     		str r1, [r0]
+ 320 0314 4FF4F861 		mov r1, # 0x7c0
+ 321 0318 0160     		str r1, [r0]
+ 322 031a 4FF4B861 		mov r1, # 0x5c0
+ 323 031e 0160     		str r1, [r0]
+ 324 0320 1F60     		str r7, [r3]
+ 325 0322 4FF4A861 		mov r1, # 0x540
+ 326 0326 0160     		str r1, [r0]
+ 327 0328 4FF4F861 		mov r1, # 0x7c0
+ 328 032c 0160     		str r1, [r0]
+ 329 032e C546     		mov r13, r8
+ 330 0330 BDE88B81 		pop {r0,r1,r3,r7,r8,pc}
+ 331              		
+ 332              	lcdxiedongxi:
+ 333 0334 2DE9FF5F 		push {r0-r12, lr}
+ 334 0338 6D46     		mov r5, r13
+ 335 033a 4FF00003 		mov r3, # 0
+ 336 033e 4FF00008 		mov r8, # 0
+ 337 0342 4FF00009 		mov r9, # 0
+ 338              	qulcdma:
+ 339 0346 DFF8A8B4 		ldr r11, = lcdmabiao	
+ 340 034a C15C     	        ldrb r1, [r0, r3]
+ 341 034c 03F10103 		add r3, # 1
+ 342 0350 A1F12004 		sub r4, r1, # 32
+ 343 0354 4FF01007 		mov r7, # 16
+ 344 0358 04FB07F4 		mul r4, r4, r7
+ 345 035c A344     		add r11, r4
+ 346 035e DFF89414 		ldr r1, = 0x20000200
+ 347 0362 0968     		ldr r1, [r1]
+ 348 0364 8B42     		cmp r3, r1
+ 349 0366 04D1     		bne xiezi
+ 350 0368 4FF00003 		mov r3, # 0
+ 351 036c AD46     		mov r13, r5
+ 352 036e BDE8FF9F 		pop {r0-r12, pc}
+ 353              		
+ 354              		
+ 355              	xiezi:
+ 356 0372 1BF80860 		ldrb r6, [r11, r8]
+ 357 0376 4FF02104 		mov r4, # 0x21
+ 358 037a 08EB0207 		add r7, r8, r2
+ 359 037e FFF7BBFF 		bl lcdchushihua2
+ 360 0382 08F10108 		add r8, # 1
+ 361 0386 B8F1100F 		cmp r8, # 16
+ 362 038a 10D1     		bne  xiezi1
+ 363 038c 4FF00008 		mov r8, # 0
+ 364 0390 0CF1080C 		add r12, # 8
+ 365 0394 BCF1F00F 		cmp r12, # 240
+ 366 0398 D5D9     		bls qulcdma
+ 367 039a 4FF0000C 		mov r12, # 0
+ 368 039e 02F12002 		add r2, # 32
+ 369 03a2 B2F5A07F 		cmp r2, # 320
+ 370 03a6 CED9     		bls qulcdma
+ 371 03a8 4FF00002 		mov r2, # 0
+ 372 03ac CBE7     		b qulcdma
+ 373              		
+ 374              	xiezi1:
+ 375 03ae 4FF02004 		mov r4, # 0x20
+ARM GAS  111.s 			page 8
+
+
+ 376 03b2 09EB0C07 		add r7, r9, r12
+ 377 03b6 FFF79FFF 		bl lcdchushihua2
+ 378 03ba 09F10109 		add r9, # 1
+ 379 03be B9F1080F 		cmp r9, # 8
+ 380 03c2 02D1     		bne lcdyu
+ 381 03c4 4FF00009 		mov r9, # 0
+ 382 03c8 D3E7     		b xiezi
+ 383              	lcdyu:
+ 384 03ca 16F0010F 		tst r6, # 0x01
+ 385 03ce 08D1     		bne lcdxiezi
+ 386              	lcdxiezi1:
+ 387 03d0 4FF02204 		mov r4, # 0x22
+ 388 03d4 4FF60007 		movw r7, # 0xf800
+ 389 03d8 FFF78EFF 		bl lcdchushihua2
+ 390 03dc 4FEA7606 		ror r6, # 1
+ 391 03e0 E5E7     		b xiezi1
+ 392              	lcdxiezi:
+ 393 03e2 4FF02204 		mov r4, # 0x22
+ 394 03e6 4FF01F07 		mov r7, # 0x1f
+ 395 03ea FFF785FF 		bl lcdchushihua2
+ 396 03ee 4FEA7606 		ror r6, # 1
+ 397 03f2 DCE7     		b xiezi1
+ 398              	yanshi:
+ 399 03f4 013D     		subs r5, # 1
+ 400 03f6 FDD1     		bne yanshi
+ 401 03f8 F84D     		ldr r5, = lcdyanshia
+ 402 03fa 7047     		bx lr
+ 403              		
+ 404              	shijinzhizhuanakesima: @ 十进制转ASCII
+ 405 03fc 2DE9DB41 		push {r0,r1,r3,r4,r6,r7,r8,lr}
+ 406 0400 E846     		mov r8, r13
+ 407 0402 3168     		ldr r1, [r6]
+ 408 0404 4FF00A04 		mov r4, # 10
+ 409              	zhuanhuanaks:
+ 410 0408 013B     		subs r3, # 1
+ 411 040a B1FBF4F6 		udiv r6, r1, r4
+ 412 040e 06FB04F7 		mul r7, r6, r4
+ 413 0412 A1EB0707 		sub r7, r1, r7
+ 414 0416 07F13007 		add r7, # 0x30
+ 415 041a C754     		strb r7, [r0, r3]
+ 416 041c 3146     		mov r1, r6
+ 417 041e F3D1     		bne zhuanhuanaks
+ 418 0420 C546     		mov r13, r8
+ 419 0422 BDE8DB81 		pop {r0,r1,r3,r4,r6,r7,r8,pc}
+ 420              	
+ 421              		
+ 422              		
+ 423              	tiaochuyanse:
+ 424              		
+ 425              		
+ 426 0426 F348     		ldr r0, = 0x20000200  @ 显示位数
+ 427 0428 4FF00901 		mov r1, # 9
+ 428 042c 0160     		str r1, [r0]
+ 429 042e 4FF04002 		mov r2, # 64           @ 列偏移 
+ 430 0432 4FF0200C 		mov r12, # 32          @ 行偏移
+ 431 0436 F048     		ldr r0, = ASTM32ASM    @ 显示的东西
+ 432 0438 FFF77CFF 		bl lcdxiedongxi
+ARM GAS  111.s 			page 9
+
+
+ 433 043c ED48     		ldr r0, = 0x20000200
+ 434 043e 4FF00801 		mov r1, # 8
+ 435 0442 0160     		str r1, [r0]
+ 436 0444 4FF05002 		mov r2, # 80
+ 437 0448 4FF0200C 		mov r12, # 32
+ 438 044c EB48     		ldr r0, = AYJMWXWX
+ 439 044e FFF771FF 		bl lcdxiedongxi
+ 440 0452 E848     		ldr r0, = 0x20000200
+ 441 0454 4FF00B01 		mov r1, # 11
+ 442 0458 0160     		str r1, [r0]
+ 443 045a 4FF06002 		mov r2, # 96
+ 444 045e 4FF0200C 		mov r12, # 32
+ 445 0462 E748     		ldr r0, = shijian
+ 446 0464 FFF766FF 		bl lcdxiedongxi
+ 447 0468 E248     		ldr r0, = 0x20000200
+ 448 046a 4FF00301 		mov r1, # 3
+ 449 046e 0160     		str r1, [r0]
+ 450 0470 4FF07002 		mov r2, # 112
+ 451 0474 4FF0700C 		mov r12, # 112
+ 452 0478 E248     		ldr r0, = dianyamv
+ 453 047a FFF75BFF 		bl lcdxiedongxi
+ 454              	
+ 455              	adchaofu:	
+ 456 047e DD48     	        ldr r0, = 0x20000200
+ 457 0480 4FF00701 		mov r1, # 7
+ 458 0484 0160     		str r1, [r0]
+ 459 0486 4FF07002 		mov r2, # 112
+ 460 048a 4FF0200C 		mov r12, # 32
+ 461 048e C74E     		ldr r6, = 0x4001244c
+ 462 0490 3068     		ldr r0, [r6]
+ 463 0492 C749     		ldr r1, = 0x2000011c
+ 464 0494 DC4E     		ldr r6, = 0x2000010c
+ 465 0496 0968     		ldr r1, [r1]
+ 466 0498 A0EB0100 		sub r0, r1
+ 467 049c 40F25233 		movw r3, # 850
+ 468 04a0 03FB00F0 		mul r0, r3
+ 469 04a4 4FEA9020 		lsr r0, # 10
+ 470 04a8 3060     		str r0, [r6]
+ 471 04aa 4FF00603 		mov r3, # 6
+ 472 04ae D748     		ldr r0, = 0x20000100
+ 473 04b0 FFF7A4FF 		bl shijinzhizhuanakesima
+ 474 04b4 FFF73EFF 		bl lcdxiedongxi
+ 475              	xianshiwendu:
+ 476 04b8 CE49     		ldr r1, = 0x20000200
+ 477 04ba 4FF00403 		mov r3, # 4
+ 478 04be 0B60     		str r3, [r1]
+ 479 04c0 4FF08002 		mov r2, # 128
+ 480 04c4 4FF0200C 		mov r12, # 32
+ 481 04c8 B84E     		ldr r6, = 0x4001244c
+ 482 04ca 3068     		ldr r0, [r6]
+ 483 04cc B849     		ldr r1, = 0x2000011c
+ 484 04ce 0968     		ldr r1, [r1]
+ 485 04d0 A0EB0100 		sub r0, r1
+ 486 04d4 40F25233 		movw r3, # 850
+ 487 04d8 03FB00F0 		mul r0, r3
+ 488 04dc 4FEA9020 		lsr r0, # 10
+ 489 04e0 4FF47A71 		mov r1, # 1000
+ARM GAS  111.s 			page 10
+
+
+ 490 04e4 00FB01F0 		mul r0, r0, r1
+ 491 04e8 C94C     		ldr r4, = 1430000
+ 492 04ea A4EB0004 		sub r4, r0
+ 493 04ee 4FF02B03 		mov r3, # 43
+ 494 04f2 B4FBF3F0 		udiv r0, r4, r3
+ 495 04f6 40F6C414 		movw r4, # 2500
+ 496 04fa 2044     		add r0, r4
+ 497 04fc C54E     		ldr r6, = 0x20000108
+ 498 04fe 3060     		str r0, [r6]
+ 499 0500 4FF00503 		mov r3, # 5
+ 500 0504 C148     		ldr r0, = 0x20000100
+ 501 0506 FFF779FF 		bl shijinzhizhuanakesima
+ 502 050a FFF713FF 		bl lcdxiedongxi
+ 503 050e B948     		ldr r0, = 0x20000200
+ 504 0510 4FF00501 		mov r1, # 5
+ 505 0514 0160     		str r1, [r0]
+ 506 0516 4FF08002 		mov r2, # 128
+ 507 051a 4FF0400C 		mov r12, # 64
+ 508 051e BD4E     		ldr r6, = 0x20000108
+ 509 0520 4FF00203 		mov r3, # 2
+ 510 0524 B948     		ldr r0, = 0x20000100
+ 511 0526 FFF769FF 		bl shijinzhizhuanakesima
+ 512 052a FFF703FF 		bl lcdxiedongxi
+ 513              		
+ 514              		
+ 515              	
+ 516              		
+ 517 052e B148     		ldr r0, = 0x20000200
+ 518 0530 4FF00201 		mov r1, # 2
+ 519 0534 0160     		str r1, [r0]
+ 520 0536 4FF08002 		mov r2, # 128
+ 521 053a 4FF0380C 		mov r12, # 56
+ 522 053e B648     		ldr r0, = dian
+ 523 0540 FFF7F8FE 		bl lcdxiedongxi
+ 524              	
+ 525 0544 AB48     		ldr r0, = 0x20000200
+ 526 0546 4FF00301 		mov r1, # 3
+ 527 054a 0160     		str r1, [r0]
+ 528 054c 4FF08002 		mov r2, # 128
+ 529 0550 4FF0700C 		mov r12, # 112
+ 530 0554 B148     		ldr r0, = duxi
+ 531 0556 FFF7EDFE 		bl lcdxiedongxi
+ 532              	
+ 533 055a A648     		ldr r0, = 0x20000200
+ 534 055c 4FF00501 		mov r1, # 5
+ 535 0560 0160     		str r1, [r0]
+ 536 0562 4FF09002 		mov r2, # 144
+ 537 0566 4FF0200C 		mov r12, # 32
+ 538 056a AD48     		ldr r0, = tim3xianshi
+ 539 056c FFF7E2FE 		bl lcdxiedongxi
+ 540              	
+ 541 0570 A048     		ldr r0, = 0x20000200
+ 542 0572 4FF00901 		mov r1, # 9
+ 543 0576 0160     		str r1, [r0]
+ 544 0578 4FF09002 		mov r2, # 144
+ 545 057c 4FF0580C 		mov r12, # 88
+ 546 0580 A248     		ldr r0, = 0x20000100
+ARM GAS  111.s 			page 11
+
+
+ 547 0582 834E     		ldr r6, = 0x20000010
+ 548 0584 4FF00803 		mov r3, # 8
+ 549 0588 FFF738FF 		bl shijinzhizhuanakesima
+ 550 058c FFF7D2FE 		bl lcdxiedongxi
+ 551              	
+ 552 0590 9848     		ldr r0, = 0x20000200
+ 553 0592 4FF00801 		mov r1, # 8
+ 554 0596 0160     		str r1, [r0]
+ 555 0598 4FF0A002 		mov r2, # 160
+ 556 059c 4FF0200C 		mov r12, # 32
+ 557 05a0 A048     		ldr r0, = ahongwai
+ 558 05a2 FFF7C7FE 		bl lcdxiedongxi
+ 559              	
+ 560 05a6 9348     		ldr r0, = 0x20000200
+ 561 05a8 4FF00901 		mov r1, # 9
+ 562 05ac 0160     		str r1, [r0]
+ 563 05ae 4FF0A002 		mov r2, # 160
+ 564 05b2 4FF0680C 		mov r12, # 104
+ 565 05b6 9C4E     		ldr r6, = 0x2000030c
+ 566 05b8 4FF00803 		mov r3, # 8
+ 567 05bc 9348     		ldr r0, = 0x20000100
+ 568 05be FFF71DFF 		bl shijinzhizhuanakesima
+ 569 05c2 FFF7B7FE 		bl lcdxiedongxi
+ 570              	hongwaianjianpanduan:  
+ 571 05c6 9848     		ldr r0, = 0x2000030c @ 红外码
+ 572 05c8 9849     		ldr r1, = hongwaimabiao
+ 573 05ca 50F8044C 		ldr r4, [r0, # - 4]
+ 574 05ce 0268     		ldr r2, [r0]
+ 575 05d0 0B59     		ldr r3, [r1, r4]
+ 576 05d2 04F10404 		add r4, # 4
+ 577 05d6 40F8044C 		str r4, [r0, # - 4]
+ 578 05da 542C     		cmp r4, # 84
+ 579 05dc 03D1     		bne bijiaoanjian
+ 580 05de 4FF00004 		mov r4, # 0
+ 581 05e2 40F8044C 		str r4, [r0, # - 4]
+ 582              	bijiaoanjian:
+ 583 05e6 9A42     		cmp r2, r3
+ 584 05e8 04D1     		bne anjianxianshi
+ 585              	nageanjian:
+ 586 05ea 50F8041C 		ldr r1, [r0, # - 4]
+ 587 05ee 4FEA9101 		lsr r1, # 2
+ 588 05f2 8160     		str r1, [r0, # 8]
+ 589              	anjianxianshi:
+ 590 05f4 7F48     		ldr r0, = 0x20000200
+ 591 05f6 4FF00701 		mov r1, # 7
+ 592 05fa 0160     		str r1, [r0]
+ 593 05fc 4FF0B002 		mov r2, # 176
+ 594 0600 4FF0200C 		mov r12, # 32
+ 595 0604 8A48     		ldr r0, = aanjian
+ 596 0606 FFF795FE 		bl lcdxiedongxi
+ 597 060a 7A48     		ldr r0, = 0x20000200
+ 598 060c 4FF00301 		mov r1, # 3
+ 599 0610 0160     		str r1, [r0]
+ 600 0612 4FF0B002 		mov r2, # 176
+ 601 0616 4FF0580C 		mov r12, # 88
+ 602 061a 864E     		ldr r6, = 0x20000314
+ 603 061c 4FF00203 		mov r3, # 2
+ARM GAS  111.s 			page 12
+
+
+ 604 0620 7A48     		ldr r0, = 0x20000100
+ 605 0622 FFF7EBFE 		bl shijinzhizhuanakesima
+ 606 0626 FFF785FE 		bl lcdxiedongxi
+ 607              		
+ 608              		
+ 609              		
+ 610              		
+ 611              	_led1:
+ 612 062a 8348     		ldr r0, = 0x40000400
+ 613 062c 4FF08101 		mov r1, # 0x81
+ 614 0630 0160     		str r1, [r0]
+ 615 0632 4D48     		ldr r0, = 0xe000e100
+ 616 0634 8149     		ldr r1, = 0x20000000
+ 617 0636 0160     		str r1, [r0]
+ 618 0638 814A     		ldr r2, = 0x4001140c
+ 619 063a 5548     		ldr r0, = 0x20000010
+ 620 063c 0168     		ldr r1, [r0]
+ 621 063e 4FF00003 		mov r3, # 0
+ 622 0642 4FF00404 		mov r4, # 0x04
+ 623 0646 FF29     		cmp r1, # 255
+ 624 0648 00D8     		bhi kailed
+ 625 064a 18E7     		b adchaofu
+ 626              	kailed:
+ 627 064c 1360     		str r3, [r2]
+ 628 064e B1F5FF7F 		cmp.w r1, #510
+ 629 0652 00D8     		bhi guanled
+ 630 0654 13E7     		b adchaofu
+ 631              	guanled:
+ 632 0656 1460     		str r4, [r2]
+ 633 0658 0360     		str r3, [r0]
+ 634 065a 10E7     		b adchaofu
+ 635              		
+ 636              	_nmi_handler:
+ 637 065c 7047     		bx lr
+ 638              	_hard_fault:
+ 639 065e 7047     		bx lr
+ 640              	_memory_fault:
+ 641 0660 7047     		bx lr
+ 642              	_bus_fault:
+ 643 0662 7047     		bx lr
+ 644              	_usage_fault:
+ 645 0664 7047     		bx lr
+ 646              	_dingshiqi:
+ 647 0666 7047     		bx lr
+ 648              		
+ 649              		
+ 650              	_extzhongduan:
+ 651 0668 2DE9FF5F 		push {r0-r12, lr}
+ 652 066c E846     		mov r8, sp
+ 653              	guandingshi:
+ 654 066e 4148     		ldr r0, = 0xe000e010
+ 655 0670 4FF00001 		mov r1, # 0
+ 656 0674 0160     		str r1, [r0]
+ 657 0676 8668     		ldr r6, [r0, # 0x08]
+ 658 0678 8660     		str r6, [r0, # 0x08]
+ 659              	hwkaidingshi:
+ 660 067a 4FF00701 		mov r1, # 0x07
+ARM GAS  111.s 			page 13
+
+
+ 661 067e 0160     		str r1, [r0]
+ 662 0680 7049     		ldr r1, = 0x42210104
+ 663 0682 244B     		ldr r3, = 0x20000300
+ 664              	hwchaxungao: 
+ 665 0684 0A68     		ldr r2, [r1]
+ 666 0686 012A     		cmp r2, # 1
+ 667 0688 FCD1     		bne hwchaxungao
+ 668              	hwgaodimaichong:
+ 669 068a 4FF00002 		mov r2, # 0
+ 670 068e 0260     		str r2, [r0]
+ 671 0690 394D     		ldr r5, = 0xffffff
+ 672 0692 A5EB0606 		sub r6, r5, r6
+ 673 0696 6C4D     		ldr r5, = hongwaijiema
+ 674 0698 2A69     		ldr r2, [r5, # 16]
+ 675 069a 1F68     		ldr r7, [r3]
+ 676 069c 9742     		cmp r7, r2
+ 677 069e 01D1     		bne hwpanduan
+ 678 06a0 1D4F     		ldr r7, = 0x22006200
+ 679 06a2 1F60     		str r7, [r3]
+ 680              	hwpanduan:
+ 681 06a4 EA68     		ldr r2, [r5, # 12]
+ 682 06a6 9642     		cmp r6, r2
+ 683 06a8 11D8     		bhi hwfanhui1
+ 684 06aa AA68     		ldr r2, [r5, # 8]
+ 685 06ac 9642     		cmp r6, r2
+ 686 06ae 06D8     		bhi hwjiajia
+ 687 06b0 6A68     		ldr r2, [r5, # 4]
+ 688 06b2 9642     		cmp r6, r2
+ 689 06b4 0ED8     		bhi hw1
+ 690 06b6 2A68     		ldr r2, [r5]
+ 691 06b8 9642     		cmp r6, r2
+ 692 06ba 05D8     		bhi hw0
+ 693 06bc 10E0     		b hwfanhui
+ 694              	hwjiajia:
+ 695 06be 5A68     		ldr r2, [r3, # 4]
+ 696 06c0 02F10102 		add r2, # 1
+ 697 06c4 5A60     		str r2, [r3, # 4]
+ 698 06c6 0BE0     		b hwfanhui
+ 699              		
+ 700              	hw0:
+ 701 06c8 4FF00004 		mov r4, # 0
+ 702 06cc 04E0     		b hwchucun
+ 703              	hwfanhui1:  @红外写数据偏移重载
+ 704 06ce 124A     		ldr r2, = 0x22006200
+ 705 06d0 1A60     		str r2, [r3]
+ 706 06d2 05E0     		b hwfanhui
+ 707              	hw1:
+ 708 06d4 4FF00104 		mov r4, # 1
+ 709              	hwchucun:
+ 710 06d8 1A68     		ldr r2, [r3]
+ 711 06da 42F8044D 		stmfd r2!, {r4}
+ 712 06de 1A60     		str r2, [r3]
+ 713              	hwfanhui:
+ 714 06e0 4FF00702 		mov r2, # 0x07
+ 715 06e4 0260     		str r2, [r0]
+ 716 06e6 5948     		ldr r0, = 0x40010414 @ exti_pr 挂起
+ 717 06e8 4FF00201 		mov r1, # 0x02
+ARM GAS  111.s 			page 14
+
+
+ 718 06ec 0160     		str r1, [r0]
+ 719 06ee C546     		mov sp, r8
+ 720 06f0 BDE8FF9F 		pop {r0-r12, pc}
+ 721              		
+ 722              		
+ 723              	_tim3dingshiqi:
+ 724 06f4 1FB5     		push {r0-r4, lr}
+ 725 06f6 6C46     		mov r4, sp
+ 726 06f8 5148     		ldr r0, = 0x4001140c
+ 727 06fa 2549     		ldr r1, = 0x20000010
+ 728 06fc 0A68     		ldr r2, [r1]
+ 729 06fe 02F10102 		add r2, r2, # 1
+ 730 0702 0A60     		str r2, [r1]
+ 731 0704 5248     		ldr r0, = 0xe000e180
+ 732 0706 4D49     		ldr r1, = 0x20000000
+ 733 0708 0160     		str r1, [r0]
+ 734 070a A546     		mov sp, r4
+ 735 070c 1FBD     		pop {r0-r4, pc}
+ 736              		
+ 737 070e 00001400 		
+ 737      00200003 
+ 737      00200062 
+ 737      00220400 
+ 737      01400000 
+ARM GAS  111.s 			page 15
+
+
+DEFINED SYMBOLS
+               111.s:5      .data:00000000 $d
+               111.s:6      .data:00000000 shijian
+               111.s:7      .data:0000000a AYJMWXWX
+               111.s:8      .data:00000011 ASTM32ASM
+               111.s:9      .data:00000019 dianyamv
+               111.s:10     .data:0000001b dian
+               111.s:11     .data:0000001c duxi
+               111.s:12     .data:0000001e tim3xianshi
+               111.s:13     .data:00000022 ahongwai
+               111.s:14     .data:00000029 aanjian
+               111.s:16     .data:0000002f lcdcsh
+               111.s:19     .data:000000c3 hongwaijiema
+               111.s:20     .data:000000d7 hongwaimabiao
+               111.s:21     .data:00000127 lcdmabiao
+               111.s:25     *ABS*:20005000 STACKINIT
+               111.s:26     *ABS*:00009c40 lcdyanshia
+               111.s:30     .text:00000000 vectors
+               111.s:78     .text:000000b8 _start
+               111.s:636    .text:0000065c _nmi_handler
+               111.s:638    .text:0000065e _hard_fault
+               111.s:640    .text:00000660 _memory_fault
+               111.s:642    .text:00000662 _bus_fault
+               111.s:644    .text:00000664 _usage_fault
+               111.s:646    .text:00000666 _dingshiqi
+               111.s:650    .text:00000668 _extzhongduan
+               111.s:723    .text:000006f4 _tim3dingshiqi
+               111.s:79     .text:000000b8 chushihua
+                            .text:00000000 $d
+               111.s:80     .text:000000b8 $t
+               111.s:97     .text:000000e8 shizhong
+               111.s:101    .text:000000f2 gsszbz
+               111.s:107    .text:000000fe rccchushihua
+               111.s:117    .text:0000011c chaxun
+               111.s:123    .text:00000128 rccgg
+               111.s:135    .text:00000146 tim3chushihua
+               111.s:148    .text:00000164 zhongduan
+               111.s:164    .text:00000188 systick
+               111.s:176    .text:000001aa wangbuzhongduanchushihua
+               111.s:185    .text:000001c2 led1chushihua
+               111.s:196    .text:000001d8 adcchushihua
+               111.s:207    .text:000001f6 adcjiaozhun
+               111.s:213    .text:00000204 adcjiaozhun1
+               111.s:225    .text:0000021e ioshezhi
+               111.s:255    .text:00000270 lcdchushihua
+               111.s:277    .text:0000029e yanshi1
+               111.s:310    .text:000002f8 lcdchushihua2
+               111.s:272    .text:00000298 lcd1
+               111.s:281    .text:000002a8 tiaochu
+               111.s:398    .text:000003f4 yanshi
+               111.s:286    .text:000002b8 xxxxxx
+               111.s:295    .text:000002d2 yyyyyy
+               111.s:423    .text:00000426 tiaochuyanse
+               111.s:304    .text:000002ec xielcd
+               111.s:332    .text:00000334 lcdxiedongxi
+               111.s:338    .text:00000346 qulcdma
+               111.s:355    .text:00000372 xiezi
+ARM GAS  111.s 			page 16
+
+
+               111.s:374    .text:000003ae xiezi1
+               111.s:383    .text:000003ca lcdyu
+               111.s:392    .text:000003e2 lcdxiezi
+               111.s:386    .text:000003d0 lcdxiezi1
+               111.s:404    .text:000003fc shijinzhizhuanakesima
+               111.s:409    .text:00000408 zhuanhuanaks
+               111.s:455    .text:0000047e adchaofu
+               111.s:475    .text:000004b8 xianshiwendu
+               111.s:570    .text:000005c6 hongwaianjianpanduan
+               111.s:582    .text:000005e6 bijiaoanjian
+               111.s:589    .text:000005f4 anjianxianshi
+               111.s:585    .text:000005ea nageanjian
+               111.s:611    .text:0000062a _led1
+               111.s:626    .text:0000064c kailed
+               111.s:631    .text:00000656 guanled
+               111.s:653    .text:0000066e guandingshi
+               111.s:659    .text:0000067a hwkaidingshi
+               111.s:664    .text:00000684 hwchaxungao
+               111.s:668    .text:0000068a hwgaodimaichong
+               111.s:680    .text:000006a4 hwpanduan
+               111.s:703    .text:000006ce hwfanhui1
+               111.s:694    .text:000006be hwjiajia
+               111.s:707    .text:000006d4 hw1
+               111.s:700    .text:000006c8 hw0
+               111.s:713    .text:000006e0 hwfanhui
+               111.s:709    .text:000006d8 hwchucun
+               111.s:737    .text:0000070e $d
+
+NO UNDEFINED SYMBOLS

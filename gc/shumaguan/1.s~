@@ -1,0 +1,132 @@
+	 .thumb                 
+         .syntax unified
+.section .data
+shumaguanmabiao: .byte 0x88,0xbe,0xc4,0x94,0xb2,0x91,0x81,0xbc,0x80,0x90,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf
+	
+	
+	
+        	.equ STACKINIT,          0x20005000
+.section .text
+xiangliangbiao:
+	                .word STACKINIT
+	                .word _start + 1
+	                .word _nmi_handler + 1
+	                .word _hard_fault  + 1
+	                .word _memory_fault + 1
+	                .word _bus_fault + 1
+	                .word _usage_fault + 1
+	
+_start:
+	str r1, [r0, # 0x04]
+	ldr r0, = 0x40021000
+	ldr r1, = 0x14D83
+	str r1, [r0]
+gsszbz: 
+	ldr r2, [r0]
+	ldr r1, = 0x20000
+	tst r1, r2           @HSE高速时钟标志位           
+	bne rccchushihua
+	b gsszbz
+rccchushihua: 
+	ldr r0, = 0x40022000
+	mov r1, # 0x00000032
+	str r1, [r0]           @FLASH缓冲 缓冲开启 
+	ldr r0, = 0x40021004
+	ldr r1, = 0x1D8400
+	str r1, [r0]
+	ldr r0, = 0x40021000
+	ldr r1, = 0x1033D03
+	str r1, [r0]
+chaxun:
+	ldr r2, [r0]
+	ldr r1, = 0x2000000
+	tst r1, r2
+	bne rccgg
+	b chaxun
+rccgg:
+	ldr r0, = 0x40021004
+	ldr r1, = 0x1D8402
+	str r1, [r0]
+waisheshizhong:
+	
+
+@APB2_ENR=0X40021018 0(AFIO)1(保留)2(PA)3(PB)4(PC)5(PD)6(PE)78(保留)
+@9(ADC1)10(ADC2)11(TIM1)12(SPI1)13(保留)14（USART1）15(保留)
+	ldr r0, = 0x40021018 @ APB2_ENR
+	ldr r1, = 0x3c
+	str r1, [r0]
+	
+	ldr r0, = 0x40010c00
+	@PA=0x40010800 PB=0x40010c00 PC=0x40011000 
+	@PD=0x40011400 PE=0x40011800 PF=0x40011c00 
+	@ IO 1(通用推挽10M)2(通用推挽2M)3(通用推挽50M)
+	@4(浮空输入)5(通用开漏输出10M)6(通用开漏输出2M)
+	@7(通用开漏输出50M)8(上拉下拉输入)9(复用功能推挽输出10M)
+	@A(复用功能推挽输出2M)B(复用功能推挽输出50M)C(保留)
+	@D(复用功能开溜输出10M)E(复用功能开漏输出2M)F(复用功能开漏输出50M)
+	@ 偏移0X8=IDR 输入数据寄存器
+	@偏移0XC=ODR 输出数据寄存器
+	@偏移0X10=BSRR IO开
+	@偏移0X14=BRR  IO关
+	ldr r1, = 0x55555555
+	str r1, [r0]
+	str r1, [r0, # 0x04]
+
+@IO_fuyong:
+@	ldr r0, = 0x40010000 @ AFIO
+@	ldr r1, = 0x200
+@	str r1, [r0]
+
+zhuchengxu:
+	mov r3, # 10
+	ldr r0, = shumaguanmabiao
+xieshumaguan:
+	ldr r2, = 0x20000000
+	ldrb r1, [r0], # 1
+	strb r1, [r2]
+	bl xie595
+	subs r3, r3, # 1
+	bne xieshumaguan
+	b zhuchengxu
+	
+	
+xie595:
+	push {r0-r12,lr}
+	mov r12, sp
+	ldr r0, = 0x422181b0
+	mov r1, # 1
+	mov r2, # 0
+	ldr r3, = 0x22000000
+	mov r4, # 8
+	ldr r6, = 0xff
+xunhuan595:
+	ldrb r5, [r3], # 4
+	strb r5, [r0]
+	strb r2, [r0, # 0x08] @ 595_11 输入锁存
+	ldrb r5, [r3], # 4
+	strb r5, [r0]
+	strb r1, [r0, # 0x08]
+	subs r4, # 1
+	bne xunhuan595
+	strb r2, [r0, # 0x04]
+yanshi595:
+	subs r6, # 1
+	bne yanshi595
+	strb r1, [r0, # 0x04]
+	ldr r6, = 0xffffff
+yanshi1595:
+	subs r6, # 1
+	bne yanshi1595
+	mov sp, r12
+	pop {r0-r12,pc}
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_memory_fault:
+	bx lr
+_bus_fault:
+	bx lr
+_usage_fault:
+ 	bx lr
+	

@@ -1,0 +1,121 @@
+ARM GAS  1.s 			page 1
+
+
+   1              	@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data
+   5              		.equ duizhanding,       0x20001000 @ 堆栈顶	
+   6              	.section .text
+   7              	vectors:          @向量表
+   8 0000 00100020 	        .word duizhanding                     
+   9 0004 11000000 	        .word _start + 1             @复位向量
+  10 0008 87000000 	        .word _nmi_handler + 1  
+  11 000c 89000000 	        .word _hard_fault  + 1  
+  12              	_start:
+  13 0010 1E48     		ldr r0, = 0xfedcba98
+  14 0012 1F49     		ldr r1, = 0x123
+  15 0014 00F026F8 		bl _chufa
+  16 0018 03B4     		push {r0-r1}
+  17              	
+  18 001a 1C48     		ldr r0, = 0xfedcba98
+  19 001c 1D49     		ldr r1, = 0x76543210
+  20 001e 1E4A     		ldr r2, = 0x32104567
+  21 0020 00F003F8 		bl _chufa64
+  22 0024 07B4     		push {r0-r2}
+  23              		
+  24              	_tingxia:
+  25 0026 0900     		movs r1, r1
+  26 0028 FDE7     		b _tingxia
+  27              		
+  28              	_chufa64:		@64位除以32位软件除法
+  29              		@ r0-r1除以r2等于R0-R1余数R2
+  30 002a F0B4     		push {r4-r7}
+  31 002c 0346     		mov r3, r0
+  32 002e 0E46     		mov r6, r1
+  33 0030 0124     		movs r4, # 1
+  34 0032 2746     		mov r7, r4
+  35 0034 E407     		lsls r4, r4, # 31
+  36 0036 0020     		movs r0, # 0
+  37 0038 0546     		mov r5, r0
+  38              	_chufaxunhuan64:
+  39 003a 5B00     		lsls r3, r3, # 1
+  40 003c 6D41     		adcs r5, r5, r5
+  41 003e 9542     		cmp r5, r2
+  42 0040 01D3     		bcc _chufaweishubudao64
+  43 0042 0019     		adds r0, r0, r4
+  44 0044 AD1A     		subs r5, r5, r2
+  45              	_chufaweishubudao64:
+  46 0046 6408     		lsrs r4, r4, # 1
+  47 0048 F7D1     		bne _chufaxunhuan64
+  48 004a 01B4     		push {r0}
+  49 004c FF07     		lsls r7, r7, # 31
+  50 004e 03D5     		bpl _chufafanhui64
+  51 0050 3C46     		mov r4, r7
+  52 0052 3346     		mov r3, r6
+  53 0054 0020     		movs r0, # 0
+  54 0056 F0E7     		b _chufaxunhuan64
+  55              	_chufafanhui64:
+  56 0058 0146     		mov r1, r0
+  57 005a 2A46     		mov r2, r5
+ARM GAS  1.s 			page 2
+
+
+  58 005c 01BC     		pop {r0}
+  59 005e 01BC     		pop {r0}
+  60 0060 F0BC     		pop {r4-r7}
+  61 0062 7047     		bx lr
+  62              	
+  63              	_chufa:		@软件除法
+  64              		@ r0 除以 r1 等于 商(r0)余数(r1)
+  65 0064 10B4     		push {r4}
+  66 0066 0246     		mov r2, r0
+  67 0068 0123     		movs r3, # 1
+  68 006a DB07     		lsls r3, r3, # 31
+  69 006c 0020     		movs r0, # 0
+  70 006e 0446     		mov r4, r0
+  71              	_chufaxunhuan:
+  72 0070 5200     		lsls r2, r2, # 1
+  73 0072 6441     		adcs r4, r4, r4
+  74 0074 8C42     		cmp r4, r1
+  75 0076 01D3     		bcc _chufaweishubudao0
+  76 0078 C018     		adds r0, r0, r3
+  77 007a 641A     		subs r4, r4, r1
+  78              	_chufaweishubudao0:
+  79 007c 5B08     		lsrs r3, r3, # 1
+  80 007e F7D1     		bne _chufaxunhuan
+  81 0080 2146     		mov r1, r4
+  82 0082 10BC     		pop {r4}
+  83 0084 7047     		bx lr
+  84              	
+  85              	_nmi_handler:	
+  86 0086 7047     		bx lr
+  87              	_hard_fault:
+  88 0088 70470000 		bx lr 
+  88      98BADCFE 
+  88      23010000 
+  88      10325476 
+  88      67451032 
+ARM GAS  1.s 			page 3
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:0000000020001000 duizhanding
+                 1.s:7      .text:0000000000000000 vectors
+                 1.s:12     .text:0000000000000010 _start
+                 1.s:85     .text:0000000000000086 _nmi_handler
+                 1.s:87     .text:0000000000000088 _hard_fault
+                            .text:0000000000000000 $d
+                 1.s:13     .text:0000000000000010 $t
+                 1.s:63     .text:0000000000000064 _chufa
+                 1.s:28     .text:000000000000002a _chufa64
+                 1.s:24     .text:0000000000000026 _tingxia
+                 1.s:38     .text:000000000000003a _chufaxunhuan64
+                 1.s:45     .text:0000000000000046 _chufaweishubudao64
+                 1.s:55     .text:0000000000000058 _chufafanhui64
+                 1.s:71     .text:0000000000000070 _chufaxunhuan
+                 1.s:78     .text:000000000000007c _chufaweishubudao0
+                 1.s:88     .text:000000000000008a $d
+                 1.s:88     .text:000000000000008c $d
+
+NO UNDEFINED SYMBOLS

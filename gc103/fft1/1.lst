@@ -1,0 +1,339 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4              	fftbiao:
+   5 0000 00400000 		.short  0x4000,0x0000,0x4000,0x0000,0x4000,0x0000,0xdd5d,0x3b21,0x22a3,0x187e,0x0000,0x2d41,0xa57e
+   5      00400000 
+   5      00400000 
+   5      5DDD213B 
+   5      A3227E18 
+   6              		        
+   7              	fftshuru:
+   8 00f0 00000000 		.long 0x00000,0x10000,0x20000,0x30000
+   8      00000100 
+   8      00000200 
+   8      00000300 
+   9 0100 00000400 		.long 0x40000,0x50000,0x60000,0x70000
+   9      00000500 
+   9      00000600 
+   9      00000700 
+  10 0110 00000800 		.long 0x80000,0x90000,0xa0000,0xb0000
+  10      00000900 
+  10      00000A00 
+  10      00000B00 
+  11 0120 00000C00 		.long 0xc0000,0xd0000,0xe0000,0xf0000
+  11      00000D00 
+  11      00000E00 
+  11      00000F00 
+  12              		
+  13 0130 00001000 		.long 0x100000,0x110000,0x120000,0x130000
+  13      00001100 
+  13      00001200 
+  13      00001300 
+  14 0140 00001400 		.long 0x140000,0x150000,0x160000,0x170000
+  14      00001500 
+  14      00001600 
+  14      00001700 
+  15 0150 00001800 		.long 0x180000,0x190000,0x1a0000,0x1b0000
+  15      00001900 
+  15      00001A00 
+  15      00001B00 
+  16 0160 00001C00 		.long 0x1c0000,0x1d0000,0x1e0000,0x1f0000
+  16      00001D00 
+  16      00001E00 
+  16      00001F00 
+  17              		
+  18 0170 00002000 	        .long 0x200000,0x210000,0x220000,0x230000
+  18      00002100 
+  18      00002200 
+  18      00002300 
+  19 0180 00002400 		.long 0x240000,0x250000,0x260000,0x270000
+  19      00002500 
+  19      00002600 
+  19      00002700 
+  20 0190 00002800 		.long 0x280000,0x290000,0x2a0000,0x2b0000
+  20      00002900 
+  20      00002A00 
+  20      00002B00 
+ARM GAS  1.s 			page 2
+
+
+  21 01a0 00002C00 		.long 0x2c0000,0x2d0000,0x2e0000,0x2f0000
+  21      00002D00 
+  21      00002E00 
+  21      00002F00 
+  22              		
+  23              		
+  24 01b0 00003000 		.long 0x300000,0x310000,0x320000,0x330000
+  24      00003100 
+  24      00003200 
+  24      00003300 
+  25 01c0 00003400 		.long 0x340000,0x350000,0x360000,0x370000
+  25      00003500 
+  25      00003600 
+  25      00003700 
+  26 01d0 00003800 		.long 0x380000,0x390000,0x3a0000,0x3b0000
+  26      00003900 
+  26      00003A00 
+  26      00003B00 
+  27 01e0 00003C00 		.long 0x3c0000,0x3d0000,0x3e0000,0x3f0000
+  27      00003D00 
+  27      00003E00 
+  27      00003F00 
+  28              	
+  29              		
+  30              		
+  31              		.equ STACKINIT,         0x20005000
+  32              		.equ fftshuchu,		0x20001000
+  33              	.section .text
+  34              	_xiangliangbiao:
+  35 0000 00500020 		.word STACKINIT
+  36 0004 1D000000 		.word _start + 1
+  37 0008 0F020000 		.word _nmi_handler + 1
+  38 000c 11020000 		.word _hard_fault  + 1
+  39 0010 13020000 		.word _memory_fault + 1
+  40 0014 15020000 		.word _bus_fault + 1
+  41 0018 17020000 		.word _usage_fault + 1
+  42              	
+  43              	_start:
+  44              	_neicunqingling:
+  45 001c 4FF00050 		ldr r0, = 0x20000000
+  46 0020 0021     		movs r1, # 0
+  47 0022 4FF4A043 		ldr r3, = 0x5000
+  48              	_neicunqinglingxunhuan:
+  49 0026 043B     		subs r3, # 4
+  50 0028 C150     		str r1, [r0, r3]
+  51 002a FCD1     		bne _neicunqinglingxunhuan
+  52              		
+  53 002c 7A48     		ldr r0, = fftshuchu
+  54 002e 7B49     		ldr r1, = fftshuru
+  55 0030 4022     		movs r2, # 64
+  56 0032 00F001F8 		bl _fft
+  57              		
+  58              	tingting:
+  59              	
+  60 0036 FEE7     		b tingting
+  61              	_fft:
+  62 0038 2DE9F04F 		push {r4-r11,lr}
+ARM GAS  1.s 			page 3
+
+
+  63 003c 4FF0000C 		mov r12, # 0
+  64 0040 4FF00003 		mov r3, # 0
+  65              	loc_c:
+  66 0044 01EB9C6E 		add lr, r1, r12, lsr # 26
+  67              		
+  68 0048 BEF90250 		ldrsh r5, [lr, # 2]
+  69 004c 3EF9404B 		ldrsh r4, [lr], # 0x40
+  70              	
+  71 0050 BEF90290 		ldrsh r9, [lr, # 2]
+  72 0054 3EF9408B 		ldrsh r8, [lr], # 0x40
+  73              	
+  74 0058 BEF90270 		ldrsh r7, [lr, # 2]
+  75 005c 3EF9406B 		ldrsh r6, [lr], # 0x40
+  76              	
+  77 0060 BEF902B0 		ldrsh r11, [lr, # 2]
+  78 0064 3EF940AB 		ldrsh r10, [lr], # 0x40
+  79              	
+  80 0068 D044     		add r8, r8, r10
+  81 006a D944     		add r9, r9, r11
+  82              		
+  83 006c A8EB4A0A 		sub r10, r8, r10, lsl # 1
+  84 0070 A9EB4B0B 		sub r11, r9, r11, lsl # 1
+  85              	
+  86 0074 4FEAA404 		mov r4, r4, asr # 2
+  87 0078 4FEAA505 		mov r5, r5, asr # 2
+  88              	
+  89 007c 04EBA604 		add r4, r4, r6, asr # 2
+  90 0080 05EBA705 		add r5, r5, r7, asr # 2
+  91              	
+  92 0084 A4EB6606 		sub r6, r4, r6, asr # 1
+  93 0088 A5EB6707 		sub r7, r5, r7, asr # 1
+  94              	
+  95 008c 04EBA804 		add r4, r4, r8, asr # 2
+  96 0090 05EBA905 		add r5, r5, r9, asr # 2
+  97              	
+  98 0094 A4EB6808 		sub r8, r4, r8, asr # 1
+  99 0098 A5EB6909 		sub r9, r5, r9, asr # 1
+ 100              	
+ 101 009c 06EBAB06 		add r6, r6, r11, asr # 2
+ 102 00a0 A7EBAA07 		sub r7, r7, r10, asr # 2
+ 103              	
+ 104 00a4 A6EB6B0B 		sub r11, r6, r11, asr # 1
+ 105 00a8 07EB6A0A 		add r10, r7, r10, asr # 1
+ 106              	
+ 107 00ac 4580     		strh r5, [r0, # 2]
+ 108 00ae 20F8044B 		strh r4, [r0], # 4
+ 109              	
+ 110 00b2 4780     		strh r7, [r0, # 2]
+ 111 00b4 20F8046B 		strh r6, [r0], # 4
+ 112              	
+ 113 00b8 A0F80290 		strh r9, [r0, # 2]
+ 114 00bc 20F804BB 		strh r11, [r0], # 4
+ 115              	
+ 116 00c0 03F10103 		add r3, r3, # 1
+ 117 00c4 93FAA3FC 		rbit r12, r3
+ 118              		
+ 119 00c8 102B     		cmp r3, # 0x10
+ARM GAS  1.s 			page 4
+
+
+ 120 00ca BBD1     		bne loc_c
+ 121              	
+ 122 00cc A0EB8201 		sub r1, r0, r2, lsl # 2
+ 123 00d0 4FF01003 		mov r3, # 0x10
+ 124 00d4 4FEA1212 		lsr r2, r2, # 4
+ 125 00d8 5148     		ldr  r0, = fftbiao
+ 126              	loc_ae:
+ 127 00da 06B4     		push {r1, r2}
+ 128 00dc 03EB430C 		add r12, r3, r3, lsl # 1
+ 129 00e0 6144     		add r1, r1, r12
+ 130 00e2 A2F58032 		sub r2, r2, # 0x10000
+ 131              	
+ 132              	loc_ba:
+ 133 00e6 02EB8332 		add r2, r2, r3, lsl # 14
+ 134              	loc_be:
+ 135 00ea B1F90250 		ldrsh r5, [r1, # 2]
+ 136 00ee B1F90040 		ldrsh r4, [r1]
+ 137              	
+ 138 00f2 A1EB0301 		sub r1, r1, r3
+ 139              	
+ 140 00f6 B0F902B0 		ldrsh r11, [r0, # 2]
+ 141 00fa B0F900A0 		ldrsh r10, [r0]
+ 142              	
+ 143 00fe 00F10400 		add r0, r0, # 4
+ 144 0102 A5EB040E 		sub lr, r5, r4
+ 145              	
+ 146 0106 0EFB0BFC 		mul r12, lr, r11
+ 147 010a 0AEB4B0E 		add lr, r10, r11, lsl # 1
+ 148 010e 05FB0ACB 		mla r11, r5, r10, r12
+ 149 0112 04FB0ECA 		mla r10, r4, lr, r12
+ 150 0116 B1F90250 		ldrsh r5, [r1, # 2]
+ 151 011a B1F90040 		ldrsh r4, [r1]
+ 152              	
+ 153 011e A1EB0301 		sub r1, r1, r3
+ 154              	
+ 155 0122 B0F90290 		ldrsh r9, [r0, # 2]
+ 156 0126 B0F90080 		ldrsh r8, [r0]
+ 157 012a 00F10400 		add r0, r0, # 4
+ 158 012e A5EB040E 		sub lr, r5, r4
+ 159 0132 0EFB09FC 		mul r12, lr, r9
+ 160 0136 08EB490E 		add lr, r8, r9, lsl # 1
+ 161 013a 05FB08C9 		mla r9, r5, r8, r12
+ 162 013e 04FB0EC8 		mla r8, r4, lr, r12
+ 163 0142 B1F90250 		ldrsh r5, [r1, # 2]
+ 164 0146 B1F90040 		ldrsh r4, [r1]
+ 165              	
+ 166 014a A1EB0301 		sub r1, r1, r3
+ 167 014e B0F90270 		ldrsh r7, [r0, # 2]
+ 168 0152 B0F90060 		ldrsh r6, [r0]
+ 169 0156 00F10400 		add r0, r0, # 4
+ 170 015a A5EB040E 		sub lr, r5, r4
+ 171 015e 0EFB07FC 		mul r12, lr, r7
+ 172 0162 06EB470E 		add lr, r6, r7, lsl # 1
+ 173 0166 05FB06C7 		mla r7, r5, r6, r12
+ 174 016a 04FB0EC6 		mla r6, r4, lr, r12
+ 175 016e B1F90250 		ldrsh r5, [r1, # 2]
+ 176 0172 B1F90040 		ldrsh r4, [r1]
+ARM GAS  1.s 			page 5
+
+
+ 177 0176 0946     		mov r1, r1
+ 178 0178 D044     		add r8, r8, r10
+ 179 017a D944     		add r9, r9, r11
+ 180 017c A8EB4A0A 		sub r10, r8, r10, lsl # 1
+ 181 0180 A9EB4B0B 		sub r11, r9, r11, lsl # 1
+ 182              	
+ 183 0184 4FEAA404 		mov r4, r4, asr # 2
+ 184 0188 4FEAA505 		mov r5, r5, asr # 2
+ 185              	
+ 186 018c 04EB2644 		add r4, r4, r6, asr # 16
+ 187 0190 05EB2745 		add r5, r5, r7, asr # 16
+ 188 0194 A4EBE636 		sub r6, r4, r6, asr # 15
+ 189 0198 A5EBE737 		sub r7, r5, r7, asr # 15
+ 190 019c 04EB2844 		add r4, r4, r8, asr # 16
+ 191 01a0 05EB2945 		add r5, r5, r9, asr # 16
+ 192 01a4 A4EBE838 		sub r8, r4, r8, asr # 15
+ 193 01a8 A5EBE939 		sub r9, r5, r9, asr # 15
+ 194 01ac 06EB2B46 		add r6, r6, r11, asr # 16
+ 195 01b0 A7EB2A47 		sub r7, r7, r10, asr # 16
+ 196 01b4 A6EB2B4B 		sub r11, r6, r11, asr # 16
+ 197 01b8 A7EBEA3A 		sub r10, r7, r10, asr # 15
+ 198              	
+ 199 01bc 4D80     		strh r5, [r1, # 2]
+ 200 01be 0C80     		strh r4, [r1]
+ 201 01c0 1944     		add r1, r1, r3
+ 202 01c2 4F80     		strh r7, [r1, # 2]
+ 203 01c4 0C80     		strh r4, [r1]
+ 204 01c6 1944     		add r1, r1, r3
+ 205 01c8 4F80     		strh r7, [r1, # 2]
+ 206 01ca 0E80     		strh r6, [r1]
+ 207 01cc 1944     		add r1, r1, r3
+ 208 01ce A1F80290 		strh r9, [r1, # 2]
+ 209 01d2 A1F80080 		strh r8, [r1]
+ 210 01d6 1944     		add r1, r1, r3
+ 211 01d8 A1F802A0 		strh r10, [r1, # 2]
+ 212 01dc 21F804BB 		strh r11, [r1], # 4
+ 213 01e0 B2F58032 		subs r2, r2, # 0x10000
+ 214 01e4 81DA     		bge loc_be
+ 215 01e6 03EB430C 		add r12, r3, r3, lsl # 1
+ 216 01ea 6144     		add r1, r1, r12
+ 217 01ec A2F10102 		sub r2, r2, # 1
+ 218 01f0 5FEA024E 		movs lr, r2, lsl # 16
+ 219 01f4 18BF     		it ne
+ 220 01f6 A0EB0C00 		subne r0, r0, r12
+ 221 01fa 7FF474AF 		bne loc_ba
+ 222 01fe 06BC     		pop {r1,r2}
+ 223 0200 4FEA8303 		mov r3, r3, lsl # 2
+ 224 0204 9208     		lsrs r2, r2, # 2
+ 225 0206 7FF468AF 		bne loc_ae
+ 226 020a BDE8F08F 		pop {r4-r11,pc}
+ 227              	
+ 228              		
+ 229              	_nmi_handler:
+ 230 020e 7047     		bx lr
+ 231              	_hard_fault:
+ 232 0210 7047     		bx lr
+ 233              	_memory_fault:
+ARM GAS  1.s 			page 6
+
+
+ 234 0212 7047     		bx lr
+ 235              	_bus_fault:
+ 236 0214 7047     		bx lr
+ 237              	_usage_fault:
+ 238 0216 70470010 	 	bx lr
+ 238      0020F000 
+ 238      00000000 
+ 238      0000
+ARM GAS  1.s 			page 7
+
+
+DEFINED SYMBOLS
+                 1.s:4      .data:0000000000000000 fftbiao
+                 1.s:7      .data:00000000000000f0 fftshuru
+                 1.s:31     *ABS*:0000000020005000 STACKINIT
+                 1.s:32     *ABS*:0000000020001000 fftshuchu
+                 1.s:34     .text:0000000000000000 _xiangliangbiao
+                 1.s:43     .text:000000000000001c _start
+                 1.s:229    .text:000000000000020e _nmi_handler
+                 1.s:231    .text:0000000000000210 _hard_fault
+                 1.s:233    .text:0000000000000212 _memory_fault
+                 1.s:235    .text:0000000000000214 _bus_fault
+                 1.s:237    .text:0000000000000216 _usage_fault
+                 1.s:44     .text:000000000000001c _neicunqingling
+                            .text:0000000000000000 $d
+                 1.s:45     .text:000000000000001c $t
+                 1.s:48     .text:0000000000000026 _neicunqinglingxunhuan
+                 1.s:61     .text:0000000000000038 _fft
+                 1.s:58     .text:0000000000000036 tingting
+                 1.s:65     .text:0000000000000044 loc_c
+                 1.s:126    .text:00000000000000da loc_ae
+                 1.s:132    .text:00000000000000e6 loc_ba
+                 1.s:134    .text:00000000000000ea loc_be
+                 1.s:238    .text:0000000000000218 $d
+
+NO UNDEFINED SYMBOLS

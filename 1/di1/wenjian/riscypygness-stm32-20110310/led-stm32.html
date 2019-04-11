@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+lang="en" xml:lang="en">
+<head>
+<title>ARM Cortex M3 Assembly Language Example</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2011-01-16 Sun"/>
+<meta name="author" content="Frank Sergeant"/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color:lightblue; font-weight:normal }
+  .target { }
+  .timestamp { color: grey }
+  .timestamp-kwd { color: CadetBlue }
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*/-->
+</script>
+</head><body>
+<h1 class="title">ARM Cortex M3 Assembly Language Example</h1>
+
+
+
+
+
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Abstract </a></li>
+<li><a href="#sec-2">2 The hardware </a></li>
+<li><a href="#sec-3">3 The software tools </a>
+<ul>
+<li><a href="#sec-3.1">3.1 The assembler and linker </a></li>
+<li><a href="#sec-3.2">3.2 The preprocessor </a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4 The assembly language program </a>
+<ul>
+<li><a href="#sec-4.1">4.1 Source code listing </a></li>
+<li><a href="#sec-4.2">4.2 Notes about the source code </a></li>
+</ul>
+</li>
+<li><a href="#sec-5">5 Assembling and linking </a></li>
+<li><a href="#sec-6">6 Burning the flash with a JTAG connector </a></li>
+<li><a href="#sec-7">7 Other files </a>
+<ul>
+<li><a href="#sec-7.1">7.1 The link file </a></li>
+<li><a href="#sec-7.2">7.2 The OpenOCD configuration file </a></li>
+<li><a href="#sec-7.3">7.3 Bonus section </a></li>
+</ul>
+</li>
+<li><a href="#sec-8">8 Download </a></li>
+<li><a href="#sec-9">9 Conclusion </a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">1 Abstract </h2>
+<div id="text-1">
+
+
+<p>
+This note describes an LED blinking program for the Olimex STM32-P103
+ARM Cortex M3 board written in assembly language.
+</p>
+<p>
+It shows the commands for assembling and linking with the GNU
+assembler and linker and also the commands for burning the program
+into the board's flash memory via a JTAG connector and the OpenOCD
+software.
+</p>
+<p>
+The binary file is also available in case you would like to jump right
+to burning it into flash.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">2 The hardware </h2>
+<div id="text-2">
+
+
+<p>
+The Olimex STM32-P103 ARM Cortex M3 board is available from Olimex
+(<a href="http://olimex.com/dev/stm32-p103.html">http://olimex.com/dev/stm32-p103.html</a>) or SparkFun
+(<a href="http://www.sparkfun.com/products/8560">http://www.sparkfun.com/products/8560</a>).
+</p>
+<p>
+The MCU is an ST Micros STM32F103RBT6 with 128KB flash and 20KB RAM
+(and lots of IO, timers, serial ports, etc.).
+</p>
+<p>
+The board connects bit 12 of Port C to the LED (labeled "STAT" on the
+board).  When bit 12 of Port C is low, the LED lights up.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">3 The software tools </h2>
+<div id="text-3">
+
+
+<p>
+The software described here, needed to preprocess, assemble, link, and
+burn the demo program into the ARM Cortex board, runs on Linux.  If
+you do not have Linux available, it can be as simple as temporarily
+booting an Ubuntu live CD (see details at
+<a href="http://pygmy.utoh.org/riscy/">http://pygmy.utoh.org/riscy/</a>).
+</p>
+
+</div>
+
+<div id="outline-container-3.1" class="outline-3">
+<h3 id="sec-3.1">3.1 The assembler and linker </h3>
+<div id="text-3.1">
+
+
+<p>
+We use (parts of) the GNU toolchain, running on Linux (such as Ubuntu
+10.04).  In particular we need the GNU "binutils" package, which
+includes the ARM assembler and linker and some utilities to manipulate
+the output files.  We do not need the C or C++ compiler.
+</p>
+<p>
+This is a <b>cross assembler</b>.  It runs on a PC (such as a typical
+desktop or laptop with an Intel CPU) but produces code for an ARM CPU.
+</p>
+<p>
+If you don't have GNU binutils for the ARM installed, you can download
+my tools bundle at <a href="http://pygmy.utoh.org/riscy/">http://pygmy.utoh.org/riscy/</a>.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3.2" class="outline-3">
+<h3 id="sec-3.2">3.2 The preprocessor </h3>
+<div id="text-3.2">
+
+
+<p>
+The GNU ARM assembler prefers to use the at-sign for comments.  I
+prefer to use the semicolon for comments.  So, I write the assembly
+language program using semicolons for comments then run the program
+through a preprocessor that converts semicolons to at-signs before
+feeding the program to the ARM assembler.
+</p>
+<p>
+The preprocessor program is named <code>preasm.tcl</code> and is included in the
+tools bundle mentioned in the previous section.  If you prefer, you
+can manually convert the semicolons to at-signs.
+</p>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4">4 The assembly language program </h2>
+<div id="text-4">
+
+
+
+</div>
+
+<div id="outline-container-4.1" class="outline-3">
+<h3 id="sec-4.1">4.1 Source code listing </h3>
+<div id="text-4.1">
+
+
+<p>
+Here is the program source code (from the file named <code>led-stm32.asm</code>).
+</p>
+<pre class="example">
+;;; led-stm32.asm
+;;; written by Frank Sergeant
+;;;    frank@pygmy.utoh.org
+;;;    http://pygmy.utoh.org/riscy
+;;; This program is in the public domain.  See http://pygmy.utoh.org/riscy/cortex/ 
+;;; for notes about the program and how to assemble, link, and burn to flash.
+
+;;; Blink the LED on the Olimex STM32-P103 ARM Cortex M3 board.
+
+;;; Directives
+        .thumb                  ; (same as saying '.code 16')
+        .syntax unified
+
+;;; Equates
+        .equ GPIOC_CRH,   0x40011004
+        .equ GPIOC_ODR,   0x4001100C
+        .equ RCC_APB2ENR, 0x40021018
+        .equ STACKINIT,   0x20005000
+        
+        .equ LEDDELAY,    800000
+        
+.section .text
+        .org 0
+
+;;; Vectors
+vectors:        
+        .word STACKINIT         ; stack pointer value when stack is empty
+        .word _start + 1        ; reset vector (manually adjust to odd for thumb)
+        .word _nmi_handler + 1  ; 
+        .word _hard_fault  + 1  ; 
+        .word _memory_fault + 1 ; 
+        .word _bus_fault + 1    ; 
+        .word _usage_fault + 1  ; 
+
+_start:
+
+        ;; Enable the Port C peripheral clock by setting bit 4
+        ldr r6, = RCC_APB2ENR
+        mov r0, 0x10
+        str r0, [r6]
+        
+        ;; Set the config and mode bits for Port C bit 12 so it will
+        ;; be a push-pull output (up to 50 MHz) by setting bits 19-16
+        ;; to '0011'.
+
+        ldr r6, = GPIOC_CRH
+        ldr r0, = 0x44434444
+        str r0, [r6]
+
+        ;; Load R2 and R3 with the "on" and "off" constants
+        mov r2, 0              ; value to turn on LED
+        mov r3, 0x1000         ; value to turn off LED
+
+        ldr r6, = GPIOC_ODR    ;  point to Port C output data register
+        
+loop:
+        str r2, [r6]           ; clear Port C, pin 12, turning on LED
+        ldr r1, = LEDDELAY
+delay1:
+        subs r1, 1
+        bne delay1
+        
+        str r3, [r6]           ; set Port C, pin 12, turning off LED
+        ldr r1, = LEDDELAY
+delay2:
+        subs r1, 1
+        bne delay2
+
+        b loop                 ; continue forever
+
+_dummy:                        ; if any int gets triggered, just hang in a loop
+_nmi_handler:
+_hard_fault:
+_memory_fault:
+_bus_fault:
+_usage_fault:
+        add r0, 1
+        add r1, 1
+        b _dummy                                                                                          
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4.2" class="outline-3">
+<h3 id="sec-4.2">4.2 Notes about the source code </h3>
+<div id="text-4.2">
+
+
+<p>
+The goal for this program (other than blinking the LED) is to start
+with a <b>very simple</b> program.  This lets us check out our toolchain,
+our flash utility, our JTAG connector and software, and our mental
+model of how it all works without getting bogged down in unnecessary
+complexities.  For example, we do not use subroutines.  We only set up
+the hardware stack because the ARM Cortex loads the stack pointer
+automatically.  We hard-code the output port configuration register
+(rather than setting just the bits we need for the LED pin).  We do
+not alter the clock source or speed (we use the default internal 8 MHz
+clock).  We just want something to run <b>now</b> !
+</p>
+<p>
+The STM32 MCU uses the "Thumb-2" instruction set, not the "ARM"
+instruction set.  Even though the <code>.thumb</code> directive is equivalent to
+the <code>.code 16</code> directive, the processor is still a 32-bit processor.
+</p>
+<p>
+We define some symbolic constants, including the initial stack value
+(<code>STACKINIT</code>) and the LED delay value (<code>LEDDELAY</code>).  If, after getting
+the program to run, you would prefer to make the LED blink faster or
+slower, then change the value of <code>LEDDELAY</code>.
+</p>
+<p>
+The program starts at address zero (0x0000 0000) with the vector
+table.  Each vector table slot is 4 bytes long.  The first entry is
+the initial value for the stack pointer.  We use 0x2000 5000 so the
+hardware stack will grow downward from the very top of on-board RAM.
+</p>
+<p>
+The second slot in the vector table holds the address where program
+execution will begin.  In this case, it is at the label <code>_start</code>.
+Actually, we adjust the address slightly in the vector table by adding
+1 to it to make it odd.  This is required because, in Thumb mode, a
+value loaded into the program counter must have its least significant
+bit set.  I suppose there is a way to avoid doing this by putting the
+vectors is a special section and giving the linker certain command
+options. 
+</p>
+<p>
+We fill in several more slots in the vector table for various
+exceptions.  They all point to a loop at the end of the program.  We
+do not expect any of these exceptions to be triggered, but if they
+are, the program will just hang in a loop, incrementing two registers
+(so we will have something to look at if we are tracing the program in
+a debugger).
+</p>
+<p>
+On this MCU, the IO ports do not work until you enable their clocks.
+We need to use Port C so we enable its peripheral clock.
+</p>
+<p>
+The rest of the logic should be straightforward.  We alternately write
+a "1" bit and then a "0" bit to the output data register for bit 12 of
+Port C (to turn the LED off and on), killing time so the LED flashes
+at exactly the speed we like best (adjust <code>LEDDELAY</code> to your personal
+taste). 
+</p>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5">5 Assembling and linking </h2>
+<div id="text-5">
+
+
+<p>
+Assuming you have the assembler and linker and other tools installed
+where I install them, here are the commands to preprocess, assemble,
+link, and build a binary:
+</p>
+<pre class="example">
+$ /usr/local/bin/preasm.tcl led-stm32.asm led-stm32.s 
+$ /usr/local/arm/bin/arm-elf-as -mcpu=cortex-m3 -mthumb -mapcs-32 -gstabs -ahls=led-stm32.lst -o led-stm32.o led-stm32.s
+$ /usr/local/arm/bin/arm-elf-ld -v -T stm32.ld -nostartfiles -o led-stm32.elf led-stm32.o
+$ /usr/local/arm/bin/arm-elf-objcopy -O binary led-stm32.elf  led-stm32.bin
+</pre>
+
+<p>
+The goal is to produce the file <code>led-stm32.bin</code> to burn into the MCU's
+flash memory.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6">6 Burning the flash with a JTAG connector </h2>
+<div id="text-6">
+
+
+<p>
+You can use any method you prefer to burn <code>led-stm32.bin</code> into the
+flash.  Here is how I do it.
+</p>
+<p>
+You can burn led-stm32.bin into the target board's flash with OpenOCD
+and the Olimex ARM USB Tiny JTAG adaptor
+(<a href="http://olimex.com/dev/arm-usb-tiny.html">http://olimex.com/dev/arm-usb-tiny.html</a>) this way
+</p>
+<ul>
+<li>
+Open a terminal and start the OpenOCD daemon with
+<pre class="example">
+$ openocd -f openocdstm32.cfg
+</pre>
+
+</li>
+<li>
+In another terminal, connect to the daemon with
+<pre class="example">
+$ telnet localhost 4444
+</pre>
+
+</li>
+<li>
+Then in the telnet terminal, type the following commands (not all
+are necessary)
+
+<pre class="example">
+&gt; help
+  run above to see all OpenOCD commands
+&gt; halt
+&gt; poll
+&gt; stm32x unlock
+  I'm not sure above is needed
+&gt; flash erase_sector 0 0 0
+  erase sector 0 (where we will load our new program)
+&gt; flash info 0
+&gt; flash erase_check 0 
+  this shows we erased sector 0 successfully
+&gt; flash write_bank 0 led-stm32.bin 0 
+&gt; mdw 0 7               
+  above displays the 7 vector slots as 32-bit words, note all slots except
+  the first have the least significant bit set
+&gt; mdb 0 28
+  above displays the 7 vector slots as 28 bytes (note, little endian)
+&gt; cortex_m3 disassemble 0x1c  0x20
+  above disassembles the program starting at the label "_start"
+&gt; reset init
+&gt; resume
+</pre>
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7">7 Other files </h2>
+<div id="text-7">
+
+
+<p>
+You need several other files, whose contents are listed below.  See
+the next section for the download bundle.
+</p>
+
+</div>
+
+<div id="outline-container-7.1" class="outline-3">
+<h3 id="sec-7.1">7.1 The link file </h3>
+<div id="text-7.1">
+
+
+<p>
+stm32.ld
+</p>
+<pre class="example">
+/* Simple linker script for the STM32 ARM Cortex M3.  Link the text 
+   of the program into on-board flash and use on-board RAM for data and stack. 
+*/
+   
+SECTIONS
+{
+        /* interrupt vectors start at zero */
+        . = 0x0;  /* start of flash */
+
+        .text :  {  *(.text)   }
+
+        /* constant data follows code but still in flash */
+        .data :
+        { 
+          *(.data) 
+          *(.rom)
+        }
+
+        /* internal RAM starts at 0x20000000 */
+        . = 0x20000000; 
+        .ram : { *(.ram) }
+
+        .bss :
+        {
+          *(.bss)
+          *(.ram)
+        }
+}                                                                                          
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-7.2" class="outline-3">
+<h3 id="sec-7.2">7.2 The OpenOCD configuration file </h3>
+<div id="text-7.2">
+
+
+<p>
+openocdstm32.cfg
+</p>
+<pre class="example">
+# This file is for use with the Olimex STM32-P103 board.  
+# It is named openocdstm32.cfg.  Run it this way:
+#    $ openocd -f openocdstm32.cfg
+
+# This is the JTAG connector I use
+source [find interface/olimex-jtag-tiny.cfg]
+
+# This is close enough to the board I use
+source [find board/olimex_stm32_h103.cfg]
+
+# tell gdb our flash memory map and enable flash programming
+gdb_memory_map enable
+gdb_flash_program enable
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-7.3" class="outline-3">
+<h3 id="sec-7.3">7.3 Bonus section </h3>
+<div id="text-7.3">
+
+
+<p>
+Although this note does not go into the details of using the GNU
+debugger (GDB) with this board and JTAG, here are the listings for my
+GDB configuration files.
+</p>
+
+</div>
+
+<div id="outline-container-7.3.1" class="outline-4">
+<h4 id="sec-7.3.1">7.3.1 Common GDB settings go in the home directory </h4>
+<div id="text-7.3.1">
+
+
+<p>
+This file is named <code>.gdbinit</code>.  It goes in my home directory.  It is
+always loaded first by GDB.  It contains only settings that are common
+to all my projects.
+</p>
+<pre class="example">
+# Note, start this within Emacs as
+#  M-x arm-elf-gdb --annotate=3
+
+# This .gdbinit file is in the home directory.  It is always read
+# first.  Here we put only common settings.  We also use a .gdbinit
+# file in each working directory which is specific to the particular
+# project.
+
+set complaints 1
+
+set output-radix 0x10
+set input-radix 0x10
+
+set endian little
+
+dir .
+set prompt (arm-gdb) 
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-7.3.2" class="outline-4">
+<h4 id="sec-7.3.2">7.3.2 Project-specific GDB settings go in the project subdirectory </h4>
+<div id="text-7.3.2">
+
+
+<p>
+This file is also named <code>.gdbinit</code>.  GDB loads this after loading the
+one in the home directory.  A separate <code>.gdbinit</code> goes in each
+project subdirectory.  For this LED example, it goes in
+<code>~/riscy/cortex/</code>, e.g., <code>/home/frank/riscy/cortex/.gdbinit</code>.
+</p>
+<pre class="example">
+# Note, start this within Emacs as
+#  M-x arm-elf-gdb --annotate=3
+
+# This .gdbinit file is in the working directory for the STM32 ARM
+# Cortex work.  It handles settings specific to this project and is
+# read by GDB after reading the .gdbinit in the home directory (which
+# sets common options such as the radix).
+
+cd ~/riscy/cortex
+file ~/riscy/cortex/led-stm32.elf
+
+dir .
+set prompt (cortex-gdb) 
+
+# connect to openOCD running on gdb port 3333
+target remote localhost:3333
+
+# Set a breakpoint
+b _start
+</pre>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8">8 Download </h2>
+<div id="text-8">
+
+
+<p>
+The file <a href="http://pygmy.utoh.org/riscy/cortex/led-stm32.zip">http://pygmy.utoh.org/riscy/cortex/led-stm32.zip</a> contains
+</p>
+<dl>
+<dt>led-stm32.html</dt><dd>
+this file
+
+</dd>
+<dt>openocdstm32.cfg</dt><dd>
+the JTAG/OpenOCD configuration file
+
+</dd>
+<dt>stm32.ld</dt><dd>
+the linker file
+
+</dd>
+<dt>led-stm32.asm</dt><dd>
+the LED blinking program source code
+
+</dd>
+<dt>led-stm32.s</dt><dd>
+the preprocessed LED blinking program source code
+
+</dd>
+<dt>led-stm32.lst</dt><dd>
+the listing file produced by the assembler
+
+</dd>
+<dt>led-stm32.bin</dt><dd>
+the binary ready to burn into the MCU's flash
+
+</dd>
+</dl>
+
+<p>Also, the GNU binutils compiled on 32-bit Ubuntu 10.04 to cross
+assemble for the ARM (and ARM Cortex) along with the preprocessor are
+available at <a href="http://pygmy.utoh.org/riscy/">http://pygmy.utoh.org/riscy/</a> &ndash; look for "The Bundle of
+Tools".
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-9" class="outline-2">
+<h2 id="sec-9">9 Conclusion </h2>
+<div id="text-9">
+
+
+<p>
+Please email me with any comments or corrections or questions.
+</p></div>
+</div>
+<div id="postamble"><p class="author"> Author: Frank Sergeant
+<a href="mailto:frank@pygmy.utoh.org">&lt;frank@pygmy.utoh.org&gt;</a>
+</p>
+<p class="date"> Date: 2011-01-16 Sun</p>
+<p>HTML generated by org-mode 6.21b in emacs 23</p>
+</div></body>
+</html>

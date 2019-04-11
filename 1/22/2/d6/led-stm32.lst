@@ -1,0 +1,262 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	@@@
+   2              	        .thumb                 
+   3              	        .syntax unified
+   4              	@@@
+   5              	        .equ STACKINIT, 	0x20005000
+   6              		.equ GPIOC_CRH,   	0x40011004
+   7              	        .equ GPIOC_ODR,   	0x4001100C
+   8              	        .equ RCC_APB2ENR,	0x40021018
+   9              		.equ syskz,		0xE000E010 @ 控制寄存器
+  10              		.equ syscz,		0xE000E014 @systick定时器重载
+  11              		.equ syssz,		0xE000E018 @systick计数值查询
+  12              		.equ rcckz,		0x40021000 @rcc时钟控制寄存器
+  13              		.equ rccpz,		0x40021004 @时钟配置寄存器
+  14              		.equ flashacr,		0x40022000 @flash闪存访问寄存器 		 		   
+  15              	
+  16              		
+  17              	.section .text
+  18              	
+  19              	vectors_table:
+  20              	vectors:        
+  21 0000 00500020 	        .word STACKINIT         
+  22 0004 B9000000 	        .word _start + 1        
+  23 0008 7F010000 	        .word _nmi_handler + 1  
+  24 000c 81010000 	        .word _hard_fault  + 1  
+  25 0010 83010000 	        .word _memory_fault + 1 
+  26 0014 85010000 	        .word _bus_fault + 1    
+  27 0018 87010000 	        .word _usage_fault + 1   
+  28 001c 00000000 		.word 0
+  29 0020 00000000 		.word 0
+  30 0024 00000000 		.word 0
+  31 0028 00000000 		.word 0
+  32 002c 00000000 		.word 0
+  33 0030 00000000 		.word 0
+  34 0034 00000000 		.word 0 
+  35 0038 00000000 		.word 0
+  36 003c 89010000 		.word _dingshiqi + 1
+  37 0040 00000000 		.word 0
+  38 0044 00000000 		.word 0
+  39 0048 00000000 		.word 0
+  40 004c 00000000 		.word 0
+  41 0050 00000000 		.word 0
+  42 0054 00000000 		.word 0
+  43 0058 00000000 		.word 0
+  44 005c 00000000 		.word 0
+  45 0060 00000000 		.word 0
+  46 0064 00000000 		.word 0
+  47 0068 00000000 		.word 0
+  48 006c 00000000 		.word 0
+  49 0070 00000000 		.word 0
+  50 0074 00000000 		.word 0
+  51 0078 00000000 		.word 0
+  52 007c 00000000 		.word 0
+  53 0080 00000000 		.word 0
+  54 0084 00000000 		.word 0
+  55 0088 00000000 		.word 0
+  56 008c 00000000 		.word 0
+  57 0090 00000000 		.word 0
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 0094 00000000 		.word 0
+  59 0098 00000000 		.word 0
+  60 009c 00000000 		.word 0
+  61 00a0 00000000 		.word 0
+  62 00a4 00000000 		.word 0
+  63 00a8 00000000 		.word 0
+  64 00ac 00000000 		.word 0
+  65 00b0 00000000 		.word 0
+  66 00b4 8B010000 		.word _tim3dingshiqi +1 
+  67              	
+  68              	_start:
+  69              	chushihua:
+  70 00b8 4FF00000 		mov r0, #0
+  71 00bc 4FF00001 		mov r1, #0
+  72 00c0 4FF00002 		mov r2, #0
+  73 00c4 4FF00003 		mov r3, #0
+  74 00c8 4FF00004 		mov r4, #0
+  75 00cc 4FF00005 		mov r5, #0
+  76 00d0 4FF00006 		mov r6, #0
+  77 00d4 4FF00007 		mov r7, #0
+  78 00d8 4FF00008 		mov r8, #0
+  79              	shizhong:
+  80 00dc 2E48     		ldr r0, = rcckz
+  81 00de 2F49     		ldr r1, = 0x14D83
+  82 00e0 0160     		str r1, [r0]
+  83              	gsszbz: @高速时钟标志位
+  84 00e2 0168     		ldr r1, [r0]
+  85 00e4 2E4A     		ldr r2, = 0x34D83
+  86 00e6 8A42     		cmp r2, r1 
+  87 00e8 FBD1     		bne	gsszbz
+  88              	
+  89              		@FLASH缓冲 缓冲开启 
+  90 00ea 2E48     		ldr r0, = flashacr
+  91 00ec 4FF03201 		mov r1, # 0x00000032
+  92 00f0 0160     		str r1, [r0]
+  93              		@设置
+  94 00f2 2D48     		ldr r0, = rccpz
+  95 00f4 2D49     		ldr r1, = 0x1D8400
+  96 00f6 0160     		str r1, [r0]
+  97              		
+  98 00f8 2748     		ldr r0, = rcckz
+  99 00fa 2D49     		ldr r1, = 0x1033D03
+ 100 00fc 0160     		str r1, [r0]
+ 101              	chaxun:
+ 102 00fe 0168     		ldr r1, [r0]
+ 103 0100 2C4A     		ldr r2, = 0x03033D03
+ 104 0102 9142     		cmp r1, r2
+ 105 0104 FBD1     		bne chaxun
+ 106              	
+ 107 0106 2848     		ldr r0, = rccpz
+ 108 0108 2B49     		ldr r1, = 0x1D8402
+ 109 010a 0160     		str r1, [r0]
+ 110              	
+ 111              		
+ 112              		
+ 113              	systick:
+ 114              	
+ARM GAS  led-stm32.s 			page 3
+
+
+ 115 010c 2B49     		ldr r1, = syskz
+ 116 010e 2C48     		ldr r0, = syscz
+ 117 0110 2C4A     		ldr r2, = syssz
+ 118              		
+ 119 0112 4FF00003 		mov r3, #0
+ 120 0116 0B60     		str r3, [r1]
+ 121              	
+ 122 0118 2B4B     		ldr r3, = 0x2328
+ 123 011a 0360     		str r3, [r0]
+ 124 011c 1360     		str r3, [r2]
+ 125              	
+ 126 011e 4FF00303 		mov r3, # 0x03
+ 127 0122 0B60     		str r3, [r1]
+ 128              	
+ 129              	timdingshiqi:
+ 130              	
+ 131 0124 2948     		ldr r0, = 0xE000E100
+ 132 0126 2A49     		ldr r1, = 0x20000000
+ 133 0128 0160     		str r1, [r0]
+ 134              		
+ 135 012a 2A48     		ldr r0, = 0x4002101C
+ 136 012c 4FF00201 		mov r1, # 0x02 
+ 137 0130 0160     		str r1, [r0] @ 开TIM3时钟
+ 138              	
+ 139 0132 2948     		ldr r0, = 0x4000042C @TIM ARR自动重载寄存器
+ 140 0134 2949     		ldr r1, = 0x1388
+ 141 0136 0160     		str r1, [r0]
+ 142              	
+ 143 0138 2948     		ldr r0, = 0x40000428 @psc预分频器
+ 144 013a 2A49     		ldr r1, = 0x1C1F
+ 145 013c 0160     		str r1, [r0]
+ 146              	
+ 147 013e 2A48     		ldr r0, = 0x4000040C @tim dier 允许更新中断
+ 148 0140 4FF04101 		mov r1, # 0x41
+ 149 0144 0160     		str r1, [r0] 
+ 150              	
+ 151 0146 2948     		ldr r0, = 0x40000400 @使能定时器3
+ 152 0148 4FF08101 		mov r1, #0x81
+ 153 014c 0160     		str r1, [r0]
+ 154              	
+ 155              			
+ 156              		
+ 157              	
+ 158              	
+ 159              	ledled:
+ 160              	
+ 161 014e 284E     	        ldr r6, = RCC_APB2ENR
+ 162 0150 4FF01000 	        mov r0, 0x10
+ 163 0154 3060     	        str r0, [r6]
+ 164              	
+ 165              	
+ 166 0156 274E     	        ldr r6, = GPIOC_CRH
+ 167 0158 2748     	        ldr r0, = 0x44434444
+ 168 015a 3060     	        str r0, [r6]
+ 169              	
+ 170 015c 4FF00002 	        mov r2, 0            
+ 171 0160 4FF48053 	        mov r3, 0x1000        
+ARM GAS  led-stm32.s 			page 4
+
+
+ 172 0164 254E     	        ldr r6, = GPIOC_ODR  
+ 173              	main: 
+ 174              	                     
+ 175 0166 3360     		str r3, [r6]
+ 176 0168 00F004F8 		bl yanshi
+ 177 016c 3260     		str r2, [r6]
+ 178 016e 00F001F8 		bl yanshi
+ 179 0172 F8E7     		b main
+ 180              	
+ 181              	yanshi:	
+ 182 0174 022D     		cmp r5, #2
+ 183 0176 FDD1     		bne yanshi
+ 184 0178 4FF00005 		mov r5, # 0
+ 185 017c 7047     		bx lr
+ 186              		
+ 187              	
+ 188              	_nmi_handler:
+ 189 017e 7047     		bx lr
+ 190              	_hard_fault:
+ 191 0180 7047     		bx lr
+ 192              	_memory_fault:
+ 193 0182 7047     		bx lr
+ 194              	_bus_fault:
+ 195 0184 7047     		bx lr
+ 196              	_usage_fault:
+ 197 0186 7047     		bx lr
+ 198              	_dingshiqi:		
+ 199              		
+ 200 0188 7047     		bx lr 
+ 201              	_tim3dingshiqi:
+ 202 018a 0135     		adds r5, 1
+ 203 018c 1C48     		ldr r0, = 0x40000410
+ 204 018e 4FF00001 		mov r1, #0
+ 205 0192 0160     		str r1, [r0]
+ 206 0194 7047     		bx lr	
+ 207              	         
+ 208 0196 00000010 	
+ 208      0240834D 
+ 208      0100834D 
+ 208      03000020 
+ 208      02400410 
+ARM GAS  led-stm32.s 			page 5
+
+
+DEFINED SYMBOLS
+         led-stm32.s:5      *ABS*:20005000 STACKINIT
+         led-stm32.s:6      *ABS*:40011004 GPIOC_CRH
+         led-stm32.s:7      *ABS*:4001100c GPIOC_ODR
+         led-stm32.s:8      *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:9      *ABS*:e000e010 syskz
+         led-stm32.s:10     *ABS*:e000e014 syscz
+         led-stm32.s:11     *ABS*:e000e018 syssz
+         led-stm32.s:12     *ABS*:40021000 rcckz
+         led-stm32.s:13     *ABS*:40021004 rccpz
+         led-stm32.s:14     *ABS*:40022000 flashacr
+         led-stm32.s:19     .text:00000000 vectors_table
+         led-stm32.s:20     .text:00000000 vectors
+         led-stm32.s:68     .text:000000b8 _start
+         led-stm32.s:188    .text:0000017e _nmi_handler
+         led-stm32.s:190    .text:00000180 _hard_fault
+         led-stm32.s:192    .text:00000182 _memory_fault
+         led-stm32.s:194    .text:00000184 _bus_fault
+         led-stm32.s:196    .text:00000186 _usage_fault
+         led-stm32.s:198    .text:00000188 _dingshiqi
+         led-stm32.s:201    .text:0000018a _tim3dingshiqi
+         led-stm32.s:69     .text:000000b8 chushihua
+                            .text:00000000 $d
+         led-stm32.s:70     .text:000000b8 $t
+         led-stm32.s:79     .text:000000dc shizhong
+         led-stm32.s:83     .text:000000e2 gsszbz
+         led-stm32.s:101    .text:000000fe chaxun
+         led-stm32.s:113    .text:0000010c systick
+         led-stm32.s:129    .text:00000124 timdingshiqi
+         led-stm32.s:159    .text:0000014e ledled
+         led-stm32.s:173    .text:00000166 main
+         led-stm32.s:181    .text:00000174 yanshi
+         led-stm32.s:208    .text:00000196 $d
+
+NO UNDEFINED SYMBOLS

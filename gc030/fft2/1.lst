@@ -1,0 +1,302 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm
+   2              		@fft 8点
+   3              		 .thumb                 
+   4              	         .syntax unified
+   5              	.section .data	
+   6              	       	.equ STACKINIT,                 0x20001000
+   7 0000 CF0D0000 	shurushi:	  .int 3535,3535,6464,10607,3535,-10607,-13535,-3535
+   7      CF0D0000 
+   7      40190000 
+   7      6F290000 
+   7      CF0D0000 
+   8              	.section .text
+   9              	vectors:        
+  10 0000 00100020 	        .word STACKINIT         
+  11 0004 3D000000 	        .word _start + 1        
+  12 0008 A7010000 	        .word _nmi_handler + 1  
+  13 000c A9010000 	        .word _hard_fault  + 1  
+  14 0010 00000000 	        .word 0 
+  15 0014 00000000 	        .word 0    
+  16 0018 00000000 	        .word 0
+  17 001c 00000000 		.word 0
+  18 0020 00000000 		.word 0
+  19 0024 00000000 		.word 0
+  20 0028 00000000 		.word 0
+  21 002c AB010000 		.word _svc_handler +1
+  22 0030 00000000 		.word 0 
+  23 0034 00000000 		.word 0
+  24 0038 AD010000 		.word _pendsv_handler +1
+  25              		
+  26              	_start:
+  27              	shizhong:
+  28 003c 5C48     		ldr r0, = 0x40021000 @ rcc
+  29 003e 5D4A     		ldr r2, = 0x40022000   @FLASH访问控制
+  30 0040 3221     		movs r1, # 0x32
+  31 0042 1160     		str r1, [r2]           @FLASH缓冲 缓冲开启
+  32 0044 5A48     		ldr r0, = 0x40021000 @ rcc
+  33 0046 5C49     		ldr r1, = 0x100002
+  34 0048 4160     		str r1, [r0, # 0x04]
+  35 004a 5C49     		ldr r1, = 0x1000001
+  36 004c 0160     		str r1, [r0]
+  37              	dengrc:
+  38 004e 0168     		ldr r1, [r0]
+  39 0050 8907     		lsls r1, # 30
+  40 0052 FCD5     		bpl dengrc
+  41              	dengpll:
+  42 0054 0168     		ldr r1, [r0]
+  43 0056 8901     		lsls r1, # 6
+  44 0058 FCD5     		bpl dengpll
+  45              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  46 005a 0121     		movs r1, # 0x01
+  47 005c 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  48              	dengdai14mshizhongwending:
+  49 005e 416B     		ldr r1, [r0, # 0x34]
+  50 0060 8907     		lsls r1, r1, # 30     @ 左移30位
+  51 0062 FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+  52              	
+  53              	neicunqingling:
+ARM GAS  1.s 			page 2
+
+
+  54 0064 5648     		ldr r0, = 0x20000000
+  55 0066 0021     		movs r1, # 0
+  56 0068 564B     		ldr r3, = 0x1000
+  57              	neicunqinglingxunhuan:
+  58 006a 043B     		subs r3, # 4
+  59 006c C150     		str r1, [r0, r3]
+  60 006e FCD1     		bne neicunqinglingxunhuan
+  61              		
+  62              	
+  63              	_fftjisuan:
+  64 0070 EC46     		mov r12, sp     
+  65              		@一
+  66 0072 5548     		ldr r0, = shurushi	@实
+  67 0074 0168     		ldr r1, [r0]                @0
+  68 0076 0269     		ldr r2, [r0, # 0x10]	    @4
+  69 0078 8C18     		adds r4, r1, r2
+  70 007a 8D1A     		subs r5, r1, r2
+  71 007c 8168     		ldr r1, [r0, # 0x08]	    @2
+  72 007e 8269     		ldr r2, [r0, # 0x18]	    @6
+  73 0080 8E18     		adds r6, r1, r2
+  74 0082 8F1A     		subs r7, r1, r2
+  75 0084 F0B4     		push {r4-r7}	
+  76              		
+  77 0086 4168     		ldr r1, [r0, # 0x04]	   @1
+  78 0088 4269     		ldr r2, [r0, # 0x14]	   @5
+  79 008a 8C18     		adds r4, r1, r2
+  80 008c 8D1A     		subs r5, r1, r2
+  81 008e C168     		ldr r1, [r0, # 0x0c]       @3
+  82 0090 C269     		ldr r2, [r0, # 0x1c]	   @7
+  83 0092 8E18     		adds r6, r1, r2
+  84 0094 8F1A     		subs r7, r1, r2
+  85              		
+  86              		@二			@r4=1,r5=5,r6=3,r7=7
+  87              	
+  88              	        
+  89              					@r4=0,r5=4,r6=2,r7=6
+  90 0096 A019     		adds r0, r4, r6
+  91 0098 A11B     		subs r1, r4, r6
+  92 009a 0022     		movs r2, # 0
+  93 009c 0023     		movs r3, # 0
+  94              	        			@si
+  95 009e 4B4E     		ldr r6,= -1
+  96 00a0 7E43     		muls r6, r7, r6
+  97 00a2 2C46     		mov r4, r5          @实
+  98 00a4 20B4     		push {r5}
+  99 00a6 0025     		movs r5, # 0
+ 100 00a8 AF1B     		subs r7, r5, r6
+ 101 00aa 20BC     		pop {r5}
+ 102 00ac EB46     		mov r11, sp
+ 103 00ae F0B4     		push {r4-r7}
+ 104 00b0 FFB4     		push {r0-r7} 
+ 105 00b2 EA46     	       mov r10, sp 			@r0=1r,r1=3r,r2=1i,r3=3i
+ 106              					@r4=5r,r5=7r,r6=5i,r7=7i 
+ 107 00b4 DD46     		mov sp, r11
+ 108 00b6 F0BC     		pop {r4-r7}		@r4=0,r5=4,r6=2,r7=6
+ 109 00b8 A019     		adds r0, r4, r6
+ 110 00ba A11B     		subs r1, r4, r6
+ARM GAS  1.s 			page 3
+
+
+ 111 00bc 0022     		movs r2, # 0
+ 112 00be 0023     		movs r3, # 0
+ 113 00c0 424E     		ldr r6, = -1
+ 114 00c2 7E43     		muls r6, r7, r6
+ 115 00c4 2C46     		mov r4, r5          @实
+ 116 00c6 20B4     		push {r5}
+ 117 00c8 0025     		movs r5, # 0
+ 118 00ca AF1B     		subs r7, r5, r6
+ 119 00cc 20BC     		pop {r5}
+ 120 00ce FFB4     		push {r0-r7}      	@r0=0r,r1=2r,r2=0i,r3=2i
+ 121              					@r4=4r,r5=6r,r6=4i,r7=6i
+ 122              	
+ 123              		
+ 124 00d0 0FBC     		pop {r0-r3}
+ 125 00d2 E846     		mov r8, sp
+ 126 00d4 D546     		mov sp, r10
+ 127 00d6 F0BC     		pop {r4-r7}
+ 128 00d8 E946     		mov r9, sp
+ 129              	        			@r0=0r,r1=2r,r2=0i,r3=2i
+ 130 00da D546     		mov sp, r10		@r4=1r,r5=3r,r6=1i,r7=3i
+ 131 00dc 55B4     		push {r0,r2,r4,r6}
+ 132 00de AAB4     		push {r1,r3,r5,r7}
+ 133 00e0 EA46     		mov r10, sp
+ 134              	
+ 135              		
+ 136 00e2 C546     		mov sp, r8
+ 137 00e4 F0BC     		pop {r4-r7}
+ 138 00e6 CD46     		mov sp, r9
+ 139 00e8 0FBC     		pop {r0-r3}
+ 140              					@r0=4r,r1=6r,r2=4i,r3=6i
+ 141              					@r4=5r,r5=7r,r6=5i,r7=7i
+ 142 00ea D546     		mov sp, r10
+ 143 00ec 55B4     		push {r0,r2,r4,r6}
+ 144 00ee AAB4     		push {r1,r3,r5,r7}
+ 145              		
+ 146              		@三
+ 147 00f0 F0BC     		pop {r4-r7}		@r4=7r,r5=7i,r6=6r,r7=6i
+ 148 00f2 EB46     		mov r11, sp
+ 149 00f4 0022     		movs r2, # 0
+ 150 00f6 073A     		subs r2, r2, # 7
+ 151              		
+ 152 00f8 2046     		mov r0, r4
+ 153 00fa 5043     		muls r0, r0, r2
+ 154 00fc 2946     		mov r1, r5
+ 155 00fe 5143     		muls r1, r1, r2
+ 156 0100 401A     		subs r0, r0, r1         @ac-bd=dr
+ 157 0102 8046     	 	mov r8, r0
+ 158 0104 2046     		mov r0, r4
+ 159 0106 5043     		muls r0, r0, r2         @ad
+ 160 0108 2946     		mov r1, r5
+ 161 010a 5143     		muls r1, r1, r2         @bc
+ 162 010c 0918     		adds r1, r1, r0         @ad+br=di
+ 163 010e 4046     		mov r0, r8
+ 164 0110 0A22     		movs r2, # 10
+ 165 0112 5643     		muls r6, r6, r2
+ 166 0114 5743     		muls r7, r7, r2
+ 167 0116 3218     		adds r2, r6, r0
+ARM GAS  1.s 			page 4
+
+
+ 168 0118 7B18     		adds r3, r7, r1
+ 169 011a 361A     		subs r6, r6, r0
+ 170 011c 7F1A     		subs r7, r7, r1
+ 171 011e CCB4     		push {r2,r3,r6,r7}
+ 172 0120 EA46     		mov r10, sp
+ 173              	
+ 174              	       	
+ 175              	
+ 176 0122 DD46     		mov sp, r11
+ 177 0124 F0BC     		pop {r4-r7}		@r4=5r,r5=5i,r6=4r,r7=4i
+ 178 0126 EB46     		mov r11, sp
+ 179 0128 0022     		movs r2, # 0
+ 180 012a 1346     		mov r3, r2
+ 181 012c 0A3B     		subs r3, r3, # 10
+ 182 012e 2046     		mov r0, r4
+ 183 0130 5043     		muls r0, r0, r2		@ac
+ 184 0132 2946     		mov r1, r5
+ 185 0134 5943     		muls r1, r1, r3		@bd
+ 186 0136 401A     		subs r0, r0, r1		@ac-bd=dr
+ 187 0138 2046     		mov r0, r4
+ 188 013a 5843     		muls r0, r0, r3		@ad
+ 189 013c 2946     		mov r1, r5
+ 190 013e 5143     		muls r1, r1, r2		@bc
+ 191 0140 4118     		adds r1, r0, r1		@ad+br=di
+ 192 0142 0A22     		movs r2, # 10
+ 193 0144 5643     		muls r6, r6, r2
+ 194 0146 5643     		muls r6, r6, r2
+ 195 0148 3218     		adds r2, r6, r0
+ 196 014a 7B18     		adds r3, r7, r1
+ 197 014c 361A     		subs r6, r6, r0
+ 198 014e 7F1A     		subs r7, r7, r1
+ 199 0150 D546     		mov sp, r10
+ 200 0152 CCB4     		push {r2,r3,r6,r7}
+ 201 0154 EA46     		mov r10, sp
+ 202              		
+ 203 0156 DD46     	        mov sp, r11
+ 204 0158 F0BC     		pop {r4-r7}		@r4=2r,r5=2i,r6=3r,r7=3i
+ 205 015a EB46     		mov r11, sp
+ 206 015c 0722     		movs r2, # 7
+ 207 015e 0023     		movs r3, # 0
+ 208 0160 9B1A     		subs r3, r3, r2
+ 209 0162 3046     		mov r0, r6
+ 210 0164 5043     		muls r0, r0, r2         @ac
+ 211 0166 3946     		mov r1, r7
+ 212 0168 5943     		muls r1, r1, r3         @bd
+ 213 016a 401A     		subs r0, r0, r1         @ac-bd=dr
+ 214 016c 3046     		mov r0, r6
+ 215 016e 5843     		muls r0, r0, r3         @ad
+ 216 0170 3946     		mov r1, r7
+ 217 0172 5143     		muls r1, r1, r2         @bc
+ 218 0174 4118     		adds r1, r0, r1         @ad+br=di
+ 219 0176 0A22     		movs r2, # 10
+ 220 0178 5443     		muls r4, r4, r2
+ 221 017a 5543     		muls r5, r5, r2
+ 222 017c 2218     		adds r2, r4, r0
+ 223 017e 6B18     		adds r3, r5, r1
+ 224 0180 261A     		subs r6, r4, r0
+ARM GAS  1.s 			page 5
+
+
+ 225 0182 671A     		subs r7, r4, r1
+ 226 0184 D546     		mov sp, r10
+ 227 0186 CCB4     		push {r2,r3,r6,r7}
+ 228 0188 EA46     		mov r10, sp
+ 229              		
+ 230 018a DD46     		mov sp, r11
+ 231 018c F0BC     		pop {r4-r7}		@r4=0r,r5=0i,r6=1r,r7=1i
+ 232 018e 0A22     		movs r2, # 10
+ 233 0190 5443     		muls r4, r4, r2
+ 234 0192 5543     		muls r5, r5, r2
+ 235 0194 5643     		muls r6, r6, r2
+ 236 0196 5743     		muls r7, r7, r2
+ 237 0198 A019     		adds r0, r4, r6
+ 238 019a E919     		adds r1, r5, r7
+ 239 019c A21B     		subs r2, r4, r6
+ 240 019e EB1B     		subs r3, r5, r7
+ 241 01a0 D546     		mov sp, r10
+ 242 01a2 0FB4     		push {r0-r3}
+ 243              	_tingting:
+ 244 01a4 FEE7     		b _tingting
+ 245              			
+ 246              	_nmi_handler:
+ 247 01a6 7047     		bx lr
+ 248              	_hard_fault:
+ 249 01a8 7047     		bx lr
+ 250              	_svc_handler:
+ 251 01aa 7047     		bx lr
+ 252              	_pendsv_handler:
+ 253 01ac 70470000 		bx lr
+ 253      00100240 
+ 253      00200240 
+ 253      02001000 
+ 253      01000001 
+ARM GAS  1.s 			page 6
+
+
+DEFINED SYMBOLS
+                 1.s:6      *ABS*:0000000020001000 STACKINIT
+                 1.s:7      .data:0000000000000000 shurushi
+                 1.s:9      .text:0000000000000000 vectors
+                 1.s:26     .text:000000000000003c _start
+                 1.s:246    .text:00000000000001a6 _nmi_handler
+                 1.s:248    .text:00000000000001a8 _hard_fault
+                 1.s:250    .text:00000000000001aa _svc_handler
+                 1.s:252    .text:00000000000001ac _pendsv_handler
+                 1.s:27     .text:000000000000003c shizhong
+                            .text:0000000000000000 $d
+                 1.s:28     .text:000000000000003c $t
+                 1.s:37     .text:000000000000004e dengrc
+                 1.s:41     .text:0000000000000054 dengpll
+                 1.s:48     .text:000000000000005e dengdai14mshizhongwending
+                 1.s:53     .text:0000000000000064 neicunqingling
+                 1.s:57     .text:000000000000006a neicunqinglingxunhuan
+                 1.s:63     .text:0000000000000070 _fftjisuan
+                 1.s:243    .text:00000000000001a4 _tingting
+                 1.s:253    .text:00000000000001ae $d
+                 1.s:253    .text:00000000000001b0 $d
+
+NO UNDEFINED SYMBOLS

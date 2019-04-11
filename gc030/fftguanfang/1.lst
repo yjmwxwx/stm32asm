@@ -1,0 +1,686 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data	
+   5              	       	.equ STACKINIT,                 0x20001000
+   6              	
+   7              		.equ shumaguanma,	0x20000000
+   8              		.equ temp,		0x200000fc
+   9              		.equ fftshuchu,		0x20000100
+  10 0000 00000000 	fftshuru:	.long 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+  10      01000000 
+  10      02000000 
+  10      03000000 
+  10      04000000 
+  11              	
+  12              	.section .text
+  13              	vectors:        
+  14 0000 00100020 	        .word STACKINIT         
+  15 0004 AD000000 	        .word _start + 1        
+  16 0008 0B030000 	        .word _nmi_handler + 1  
+  17 000c 0D030000 	        .word _hard_fault  + 1  
+  18 0010 00000000 	        .word 0 
+  19 0014 00000000 	        .word 0    
+  20 0018 00000000 	        .word 0
+  21 001c 00000000 		.word 0
+  22 0020 00000000 		.word 0
+  23 0024 00000000 		.word 0
+  24 0028 00000000 		.word 0
+  25 002c 0F030000 		.word _svc_handler +1
+  26 0030 00000000 		.word 0 
+  27 0034 00000000 		.word 0
+  28 0038 11030000 		.word _pendsv_handler +1
+  29 003c 00000000 		.word 0 @_systick +1               @ 15   
+  30 0040 00000000 		.word 0     @ _wwdg +1          @ 0
+  31 0044 00000000 		.word 0     @_pvd +1            @ 1
+  32 0048 00000000 		.word 0     @_rtc +1            @ 2
+  33 004c 00000000 		.word 0     @_flash +1          @ 3
+  34 0050 00000000 		.word 0     @ _rcc + 1          @ 4
+  35 0054 00000000 		.word 0      @_exti0_1  +1      @ 5
+  36 0058 00000000 		.word 0      @ _exti2_3 +1      @ 6
+  37 005c 00000000 		.word 0       @_exti4_15 +1     @ 7
+  38 0060 00000000 		.word 0                         @ 8
+  39 0064 00000000 		.word 0 	@_dma1_1  +1    @ 9
+  40 0068 00000000 		.word 0    @_dma1_2_3 +1        @ 10
+  41 006c 00000000 		.word 0       @_dma1_4_5 +1     @ 11
+  42 0070 00000000 		.word 0 @_adc1 +1          @ 12
+  43 0074 00000000 		.word 0       @_tim1_brk_up +1  @ 13
+  44 0078 00000000 		.word 0        @ _tim1_cc +1    @ 14
+  45 007c 00000000 		.word 0         @_tim2 +1       @ 15
+  46 0080 00000000 		.word 0          @_tim3 +1      @ 16
+  47 0084 00000000 		.word 0                         @ 17
+  48 0088 00000000 		.word 0		                @ 18
+  49              		.word @_tim14 +1    @ 19
+  50 008c 00000000 		.word 0                         @ 20
+  51 0090 00000000 		.word 0         @_tim16 +1      @ 21
+  52 0094 00000000 		.word 0         @_tim17 +1      @ 22
+  53 0098 00000000 		.word 0          @_i2c   +1     @ 23
+ARM GAS  1.s 			page 2
+
+
+  54 009c 00000000 		.word 0                         @ 24
+  55 00a0 00000000 		.word 0           @_spi   +1    @ 25
+  56 00a4 00000000 		.word 0                         @ 26
+  57 00a8 00000000 		.word 0         @_usart1 +1     @ 27
+  58              		
+  59              	_start:
+  60              	shizhong:
+  61 00ac 9948     		ldr r0, = 0x40021000 @ rcc
+  62 00ae 9A4A     		ldr r2, = 0x40022000   @FLASH访问控制
+  63 00b0 3221     		movs r1, # 0x32
+  64 00b2 1160     		str r1, [r2]           @FLASH缓冲 缓冲开启
+  65 00b4 9748     		ldr r0, = 0x40021000 @ rcc
+  66 00b6 9949     		ldr r1, = 0x100002
+  67 00b8 4160     		str r1, [r0, # 0x04]
+  68 00ba 9949     		ldr r1, = 0x1000001
+  69 00bc 0160     		str r1, [r0]
+  70              	dengrc:
+  71 00be 0168     		ldr r1, [r0]
+  72 00c0 8907     		lsls r1, # 30
+  73 00c2 FCD5     		bpl dengrc
+  74              	dengpll:
+  75 00c4 0168     		ldr r1, [r0]
+  76 00c6 8901     		lsls r1, # 6
+  77 00c8 FCD5     		bpl dengpll
+  78              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  79 00ca 0121     		movs r1, # 0x01
+  80 00cc 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  81              	dengdai14mshizhongwending:
+  82 00ce 416B     		ldr r1, [r0, # 0x34]
+  83 00d0 8907     		lsls r1, r1, # 30     @ 左移30位
+  84 00d2 FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+  85              	
+  86              	neicunqingling:
+  87 00d4 9348     		ldr r0, = 0x20000000
+  88 00d6 0021     		movs r1, # 0
+  89 00d8 934B     		ldr r3, = 0x1000
+  90              	neicunqinglingxunhuan:
+  91 00da 043B     		subs r3, # 4
+  92 00dc C150     		str r1, [r0, r3]
+  93 00de FCD1     		bne neicunqinglingxunhuan
+  94              	
+  95              	
+  96              	stage_rfft_f32:			
+  97              	
+  98 00e0 F0B5     			PUSH	{R4-R7,LR}
+  99              	
+ 100 00e2 0788     			LDRH	R7, [R0]
+ 101              	
+ 102 00e4 4569     			LDR	R5, [R0,#0x14]
+ 103              	
+ 104 00e6 8FB0     			SUB	SP, SP,	#0x3C
+ 105              	
+ 106 00e8 781E     			SUBS	R0, R7,	#1
+ 107              	
+ 108 00ea 0C90     			STR	R0, [SP,#0x30]
+ 109              	
+ 110 00ec 1446     			MOV	R4, R2
+ARM GAS  1.s 			page 3
+
+
+ 111              	
+ 112 00ee 4A68     			LDR	R2, [R1,#4]
+ 113              	
+ 114 00f0 0868     			LDR	R0, [R1]
+ 115              	
+ 116 00f2 0E46     			MOV	R6, R1
+ 117              	
+ 118 00f4 0146     			MOV	R1, R0
+ 119              	
+ 120 00f6 0292     			STR	R2, [SP,#8]
+ 121              	
+ 122 00f8 0835     			ADDS	R5, #8
+ 123              	
+ 124 00fa 0492     			STR	R2, [SP,#0x10]
+ 125              	
+ 126 00fc 00F005F9 			BL	__aeabi_fadd
+ 127              	
+ 128 0100 0190     			STR	R0, [SP,#4]
+ 129              	
+ 130 0102 0499     			LDR	R1, [SP,#0x10]
+ 131              	
+ 132 0104 0298     			LDR	R0, [SP,#8]
+ 133              	
+ 134 0106 00F000F9 			BL	__aeabi_fadd
+ 135              	
+ 136 010a 0146     			MOV	R1, R0
+ 137              	
+ 138 010c 0090     			STR	R0, [SP]
+ 139              	
+ 140 010e 0198     			LDR	R0, [SP,#4]
+ 141              	
+ 142 0110 00F0FBF8 			BL	__aeabi_fadd
+ 143              	
+ 144 0114 0021     			MOVS	R1, #0
+ 145              	
+ 146 0116 C943     			MVNS	R1, R1
+ 147              	
+ 148 0118 00F0F7F8 			BL	__ARM_scalbnf
+ 149              	
+ 150 011c 01C4     			STMIA	R4!, {R0}
+ 151              	
+ 152 011e 0099     			LDR	R1, [SP]
+ 153              	
+ 154 0120 0198     			LDR	R0, [SP,#4]
+ 155              	
+ 156 0122 00F0F2F8 			BL	__aeabi_fsub
+ 157              	
+ 158 0126 0021     			MOVS	R1, #0
+ 159              	
+ 160 0128 C943     			MVNS	R1, R1
+ 161              	
+ 162 012a 00F0EEF8 			BL	__ARM_scalbnf
+ 163              	
+ 164 012e 01C4     			STMIA	R4!, {R0}
+ 165              	
+ 166 0130 F800     			LSLS	R0, R7,	#3
+ 167              	
+ARM GAS  1.s 			page 4
+
+
+ 168 0132 0838     			SUBS	R0, #8
+ 169              	
+ 170 0134 8719     			ADDS	R7, R0,	R6
+ 171              	
+ 172 0136 0836     			ADDS	R6, #8
+ 173              	
+ 174              	
+ 175              	
+ 176              	loc_60:					
+ 177 0138 7868     			LDR	R0, [R7,#4]
+ 178              	
+ 179 013a 0290     			STR	R0, [SP,#8]
+ 180              	
+ 181 013c 3868     			LDR	R0, [R7]
+ 182              	
+ 183 013e 0390     			STR	R0, [SP,#0xC]
+ 184              	
+ 185 0140 3068     			LDR	R0, [R6]
+ 186              	
+ 187 0142 0590     			STR	R0, [SP,#0x14]
+ 188              	
+ 189 0144 7068     			LDR	R0, [R6,#4]
+ 190              	
+ 191 0146 0490     			STR	R0, [SP,#0x10]
+ 192              	
+ 193 0148 2868     			LDR	R0, [R5]
+ 194              	
+ 195 014a 0790     			STR	R0, [SP,#0x1C]
+ 196              	
+ 197 014c 6868     			LDR	R0, [R5,#4]
+ 198              	
+ 199 014e 0690     			STR	R0, [SP,#0x18]
+ 200              	
+ 201 0150 0835     			ADDS	R5, #8
+ 202              	
+ 203 0152 0599     			LDR	R1, [SP,#0x14]
+ 204              	
+ 205 0154 0398     			LDR	R0, [SP,#0xC]
+ 206              	
+ 207 0156 00F0D8F8 			BL	__aeabi_fsub
+ 208              	
+ 209 015a 0190     			STR	R0, [SP,#4]
+ 210              	
+ 211 015c 0499     			LDR	R1, [SP,#0x10]
+ 212              	
+ 213 015e 0298     			LDR	R0, [SP,#8]
+ 214              	
+ 215 0160 00F0D3F8 			BL	__aeabi_fadd
+ 216              	
+ 217 0164 0090     			STR	R0, [SP]
+ 218              	
+ 219 0166 0199     			LDR	R1, [SP,#4]
+ 220              	
+ 221 0168 0798     			LDR	R0, [SP,#0x1C]
+ 222              	
+ 223 016a 00F0CEF8 			BL	__aeabi_fmul
+ 224              	
+ARM GAS  1.s 			page 5
+
+
+ 225 016e 0990     			STR	R0, [SP,#0x24]
+ 226              	
+ 227 0170 0199     			LDR	R1, [SP,#4]
+ 228              	
+ 229 0172 0698     			LDR	R0, [SP,#0x18]
+ 230              	
+ 231 0174 00F0C9F8 			BL	__aeabi_fmul
+ 232              	
+ 233 0178 0A90     			STR	R0, [SP,#0x28]
+ 234              	
+ 235 017a 0099     			LDR	R1, [SP]
+ 236              	
+ 237 017c 0798     			LDR	R0, [SP,#0x1C]
+ 238              	
+ 239 017e 00F0C4F8 			BL	__aeabi_fmul
+ 240              	
+ 241 0182 0190     			STR	R0, [SP,#4]
+ 242              	
+ 243 0184 0099     			LDR	R1, [SP]
+ 244              	
+ 245 0186 0698     			LDR	R0, [SP,#0x18]
+ 246              	
+ 247 0188 00F0BFF8 			BL	__aeabi_fmul
+ 248              	
+ 249 018c 0090     			STR	R0, [SP]
+ 250              	
+ 251 018e 0399     			LDR	R1, [SP,#0xC]
+ 252              	
+ 253 0190 0598     			LDR	R0, [SP,#0x14]
+ 254              	
+ 255 0192 00F0BAF8 			BL	__aeabi_fadd
+ 256              	
+ 257 0196 0999     			LDR	R1, [SP,#0x24]
+ 258              	
+ 259 0198 00F0B7F8 			BL	__aeabi_fadd
+ 260              	
+ 261 019c 0099     			LDR	R1, [SP]
+ 262              	
+ 263 019e 00F0B4F8 			BL	__aeabi_fadd
+ 264              	
+ 265 01a2 0021     			MOVS	R1, #0
+ 266              	
+ 267 01a4 C943     			MVNS	R1, R1
+ 268              	
+ 269 01a6 00F0B0F8 			BL	__ARM_scalbnf
+ 270              	
+ 271 01aa 01C4     			STMIA	R4!, {R0}
+ 272              	
+ 273 01ac 0299     			LDR	R1, [SP,#8]
+ 274              	
+ 275 01ae 0498     			LDR	R0, [SP,#0x10]
+ 276              	
+ 277 01b0 00F0ABF8 			BL	__aeabi_fsub
+ 278              	
+ 279 01b4 0A99     			LDR	R1, [SP,#0x28]
+ 280              	
+ 281 01b6 00F0A8F8 			BL	__aeabi_fadd
+ARM GAS  1.s 			page 6
+
+
+ 282              	
+ 283 01ba 0199     			LDR	R1, [SP,#4]
+ 284              	
+ 285 01bc 00F0A5F8 			BL	__aeabi_fsub
+ 286              	
+ 287 01c0 0021     			MOVS	R1, #0
+ 288              	
+ 289 01c2 C943     			MVNS	R1, R1
+ 290              	
+ 291 01c4 00F0A1F8 			BL	__ARM_scalbnf
+ 292              	
+ 293 01c8 01C4     			STMIA	R4!, {R0}
+ 294              	
+ 295 01ca 0C98     			LDR	R0, [SP,#0x30]
+ 296              	
+ 297 01cc 0836     			ADDS	R6, #8
+ 298              	
+ 299 01ce 0138     			SUBS	R0, R0,	#1
+ 300              	
+ 301 01d0 083F     			SUBS	R7, #8
+ 302              	
+ 303 01d2 0C90     			STR	R0, [SP,#0x30]
+ 304              	
+ 305 01d4 0028     			CMP	R0, #0
+ 306              	
+ 307 01d6 AFD1     			BNE	loc_60
+ 308              	
+ 309 01d8 0FB0     			ADD	SP, SP,	#0x3C
+ 310              	
+ 311 01da F0BD     			POP	{R4-R7,PC}
+ 312              	
+ 313              	
+ 314              	
+ 315              	merge_rfft_f32:				
+ 316              	
+ 317 01dc F0B5     			PUSH	{R4-R7,LR}
+ 318              	
+ 319 01de 0E46     			MOV	R6, R1
+ 320              	
+ 321 01e0 0788     			LDRH	R7, [R0]
+ 322              	
+ 323 01e2 4169     			LDR	R1, [R0,#0x14]
+ 324              	
+ 325 01e4 8FB0     			SUB	SP, SP,	#0x3C
+ 326              	
+ 327 01e6 3068     			LDR	R0, [R6]
+ 328              	
+ 329 01e8 0190     			STR	R0, [SP,#4]
+ 330              	
+ 331 01ea 7068     			LDR	R0, [R6,#4]
+ 332              	
+ 333 01ec 0831     			ADDS	R1, #8
+ 334              	
+ 335 01ee 0B91     			STR	R1, [SP,#0x2C]
+ 336              	
+ 337 01f0 0090     			STR	R0, [SP]
+ 338              	
+ARM GAS  1.s 			page 7
+
+
+ 339 01f2 0146     			MOV	R1, R0
+ 340              	
+ 341 01f4 1446     			MOV	R4, R2
+ 342              	
+ 343 01f6 7D1E     			SUBS	R5, R7,	#1
+ 344              	
+ 345 01f8 0198     			LDR	R0, [SP,#4]
+ 346              	
+ 347 01fa 00F086F8 			BL	__aeabi_fadd
+ 348              	
+ 349 01fe 0021     			MOVS	R1, #0
+ 350              	
+ 351 0200 C943     			MVNS	R1, R1
+ 352              	
+ 353 0202 00F082F8 			BL	__ARM_scalbnf
+ 354              	
+ 355 0206 01C4     			STMIA	R4!, {R0}
+ 356              	
+ 357 0208 0099     			LDR	R1, [SP]
+ 358              	
+ 359 020a 0198     			LDR	R0, [SP,#4]
+ 360              	
+ 361 020c 00F07DF8 			BL	__aeabi_fsub
+ 362              	
+ 363 0210 0021     			MOVS	R1, #0
+ 364              	
+ 365 0212 C943     			MVNS	R1, R1
+ 366              	
+ 367 0214 00F079F8 			BL	__ARM_scalbnf
+ 368              	
+ 369 0218 01C4     			STMIA	R4!, {R0}
+ 370              	
+ 371 021a F800     			LSLS	R0, R7,	#3
+ 372              	
+ 373 021c 0838     			SUBS	R0, #8
+ 374              	
+ 375 021e 8719     			ADDS	R7, R0,	R6
+ 376              	
+ 377 0220 0836     			ADDS	R6, #8
+ 378              	
+ 379 0222 002D     			CMP	R5, #0
+ 380              	
+ 381 0224 50D0     			BEQ	loc_1F0
+ 382              	
+ 383              	
+ 384              	
+ 385              	loc_14E:				
+ 386              	
+ 387 0226 7868     			LDR	R0, [R7,#4]
+ 388              	
+ 389 0228 0690     			STR	R0, [SP,#0x18]
+ 390              	
+ 391 022a 3868     			LDR	R0, [R7]
+ 392              	
+ 393 022c 0A90     			STR	R0, [SP,#0x28]
+ 394              	
+ 395 022e 3068     			LDR	R0, [R6]
+ARM GAS  1.s 			page 8
+
+
+ 396              	
+ 397 0230 0190     			STR	R0, [SP,#4]
+ 398              	
+ 399 0232 7068     			LDR	R0, [R6,#4]
+ 400              	
+ 401 0234 0090     			STR	R0, [SP]
+ 402              	
+ 403 0236 0B98     			LDR	R0, [SP,#0x2C]
+ 404              	
+ 405 0238 0068     			LDR	R0, [R0]
+ 406              	
+ 407 023a 0590     			STR	R0, [SP,#0x14]
+ 408              	
+ 409 023c 0B98     			LDR	R0, [SP,#0x2C]
+ 410              	
+ 411 023e 4168     			LDR	R1, [R0,#4]
+ 412              	
+ 413 0240 0830     			ADDS	R0, #8
+ 414              	
+ 415 0242 0491     			STR	R1, [SP,#0x10]
+ 416              	
+ 417 0244 0B90     			STR	R0, [SP,#0x2C]
+ 418              	
+ 419 0246 0A99     			LDR	R1, [SP,#0x28]
+ 420              	
+ 421 0248 0198     			LDR	R0, [SP,#4]
+ 422              	
+ 423 024a 00F05EF8 			BL	__aeabi_fsub
+ 424              	
+ 425 024e 0390     			STR	R0, [SP,#0xC]
+ 426              	
+ 427 0250 0699     			LDR	R1, [SP,#0x18]
+ 428              	
+ 429 0252 0098     			LDR	R0, [SP]
+ 430              	
+ 431 0254 00F059F8 			BL	__aeabi_fadd
+ 432              	
+ 433 0258 0290     			STR	R0, [SP,#8]
+ 434              	
+ 435 025a 0399     			LDR	R1, [SP,#0xC]
+ 436              	
+ 437 025c 0598     			LDR	R0, [SP,#0x14]
+ 438              	
+ 439 025e 00F054F8 			BL	__aeabi_fmul
+ 440              	
+ 441 0262 0990     			STR	R0, [SP,#0x24]
+ 442              	
+ 443 0264 0299     			LDR	R1, [SP,#8]
+ 444              	
+ 445 0266 0498     			LDR	R0, [SP,#0x10]
+ 446              	
+ 447 0268 00F04FF8 			BL	__aeabi_fmul
+ 448              	
+ 449 026c 0890     			STR	R0, [SP,#0x20]
+ 450              	
+ 451 026e 0399     			LDR	R1, [SP,#0xC]
+ 452              	
+ARM GAS  1.s 			page 9
+
+
+ 453 0270 0498     			LDR	R0, [SP,#0x10]
+ 454              	
+ 455 0272 00F04AF8 			BL	__aeabi_fmul
+ 456              	
+ 457 0276 0390     			STR	R0, [SP,#0xC]
+ 458              	
+ 459 0278 0299     			LDR	R1, [SP,#8]
+ 460              	
+ 461 027a 0598     			LDR	R0, [SP,#0x14]
+ 462              	
+ 463 027c 00F045F8 			BL	__aeabi_fmul
+ 464              	
+ 465 0280 0290     			STR	R0, [SP,#8]
+ 466              	
+ 467 0282 0A99     			LDR	R1, [SP,#0x28]
+ 468              	
+ 469 0284 0198     			LDR	R0, [SP,#4]
+ 470              	
+ 471 0286 00F040F8 			BL	__aeabi_fadd
+ 472              	
+ 473 028a 0999     			LDR	R1, [SP,#0x24]
+ 474              	
+ 475 028c 00F03DF8 			BL	__aeabi_fsub
+ 476              	
+ 477 0290 0899     			LDR	R1, [SP,#0x20]
+ 478              	
+ 479 0292 00F03AF8 			BL	__aeabi_fsub
+ 480              	
+ 481 0296 0021     			MOVS	R1, #0
+ 482              	
+ 483 0298 C943     			MVNS	R1, R1
+ 484              	
+ 485 029a 00F036F8 			BL	__ARM_scalbnf
+ 486              	
+ 487 029e 01C4     			STMIA	R4!, {R0}
+ 488              	
+ 489 02a0 0699     			LDR	R1, [SP,#0x18]
+ 490              	
+ 491 02a2 0098     			LDR	R0, [SP]
+ 492              	
+ 493 02a4 00F031F8 			BL	__aeabi_fsub
+ 494              	
+ 495 02a8 0399     			LDR	R1, [SP,#0xC]
+ 496              	
+ 497 02aa 00F02EF8 			BL	__aeabi_fadd
+ 498              	
+ 499 02ae 0299     			LDR	R1, [SP,#8]
+ 500              	
+ 501 02b0 00F02BF8 			BL	__aeabi_fsub
+ 502              	
+ 503 02b4 0021     			MOVS	R1, #0
+ 504              	
+ 505 02b6 C943     			MVNS	R1, R1
+ 506              	
+ 507 02b8 00F027F8 			BL	__ARM_scalbnf
+ 508              	
+ 509 02bc 01C4     			STMIA	R4!, {R0}
+ARM GAS  1.s 			page 10
+
+
+ 510              	
+ 511 02be 013D     			SUBS	R5, R5,	#1
+ 512              	
+ 513 02c0 0836     			ADDS	R6, #8
+ 514              	
+ 515 02c2 083F     			SUBS	R7, #8
+ 516              	
+ 517 02c4 002D     			CMP	R5, #0
+ 518              	
+ 519 02c6 AED1     			BNE	loc_14E
+ 520              	
+ 521              	
+ 522              	
+ 523              	loc_1F0:				
+ 524              	
+ 525 02c8 0FB0     			ADD	SP, SP,	#0x3C
+ 526              	
+ 527 02ca F0BD     			POP	{R4-R7,PC}
+ 528              	
+ 529              	
+ 530              	
+ 531              	
+ 532              	
+ 533              	arm_rfft_fast_f32:
+ 534              	
+ 535 02cc F8B5     			PUSH	{R3-R7,LR}
+ 536              	
+ 537 02ce 0446     			MOV	R4, R0
+ 538              	
+ 539 02d0 008A     			LDRH	R0, [R0,#0x10]
+ 540              	
+ 541 02d2 1D46     			MOV	R5, R3
+ 542              	
+ 543 02d4 4008     			LSRS	R0, R0,	#1
+ 544              	
+ 545 02d6 1646     			MOV	R6, R2
+ 546              	
+ 547 02d8 0F46     			MOV	R7, R1
+ 548              	
+ 549 02da 2080     			STRH	R0, [R4]
+ 550              	
+ 551 02dc 002B     			CMP	R3, #0
+ 552              	
+ 553 02de 09D0     			BEQ	loc_21C
+ 554              	
+ 555 02e0 2046     			MOV	R0, R4
+ 556              	
+ 557 02e2 FFF77BFF 			BL	merge_rfft_f32
+ 558              	
+ 559 02e6 0123     			MOVS	R3, #1
+ 560              	
+ 561 02e8 2A46     			MOV	R2, R5
+ 562              	
+ 563 02ea 3146     			MOV	R1, R6
+ 564              	
+ 565 02ec 2046     			MOV	R0, R4
+ 566              	
+ARM GAS  1.s 			page 11
+
+
+ 567 02ee 00F00CF8 			BL	arm_cfft_f32
+ 568              	
+ 569 02f2 F8BD     			POP	{R3-R7,PC}
+ 570              	
+ 571              	
+ 572              	
+ 573              	
+ 574              	
+ 575              	loc_21C:			
+ 576              	
+ 577 02f4 0123     			MOVS	R3, #1
+ 578              	
+ 579 02f6 2A46     			MOV	R2, R5
+ 580              	
+ 581 02f8 2046     			MOV	R0, R4
+ 582              	
+ 583 02fa 00F006F8 			BL	arm_cfft_f32
+ 584              	
+ 585 02fe 3246     			MOV	R2, R6
+ 586              	
+ 587 0300 3946     			MOV	R1, R7
+ 588              	
+ 589 0302 2046     			MOV	R0, R4
+ 590              	
+ 591 0304 FFF7ECFE 			BL	stage_rfft_f32
+ 592              	
+ 593 0308 F8BD     			POP	{R3-R7,PC}
+ 594              	__aeabi_fadd:
+ 595              	__ARM_scalbnf:
+ 596              	__aeabi_fsub:
+ 597              	__aeabi_fmul:	
+ 598              	_nmi_handler:
+ 599              	arm_cfft_f32:	
+ 600 030a 7047     		bx lr
+ 601              	_hard_fault:
+ 602 030c 7047     		bx lr
+ 603              	_svc_handler:
+ 604 030e 7047     		bx lr
+ 605              	_pendsv_handler:
+ 606 0310 70470000 		bx lr
+ 606      00100240 
+ 606      00200240 
+ 606      02001000 
+ 606      01000001 
+ARM GAS  1.s 			page 12
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:0000000020001000 STACKINIT
+                 1.s:7      *ABS*:0000000020000000 shumaguanma
+                 1.s:8      *ABS*:00000000200000fc temp
+                 1.s:9      *ABS*:0000000020000100 fftshuchu
+                 1.s:10     .data:0000000000000000 fftshuru
+                 1.s:13     .text:0000000000000000 vectors
+                 1.s:59     .text:00000000000000ac _start
+                 1.s:598    .text:000000000000030a _nmi_handler
+                 1.s:601    .text:000000000000030c _hard_fault
+                 1.s:603    .text:000000000000030e _svc_handler
+                 1.s:605    .text:0000000000000310 _pendsv_handler
+                 1.s:60     .text:00000000000000ac shizhong
+                            .text:0000000000000000 $d
+                 1.s:61     .text:00000000000000ac $t
+                 1.s:70     .text:00000000000000be dengrc
+                 1.s:74     .text:00000000000000c4 dengpll
+                 1.s:81     .text:00000000000000ce dengdai14mshizhongwending
+                 1.s:86     .text:00000000000000d4 neicunqingling
+                 1.s:90     .text:00000000000000da neicunqinglingxunhuan
+                 1.s:96     .text:00000000000000e0 stage_rfft_f32
+                 1.s:594    .text:000000000000030a __aeabi_fadd
+                 1.s:595    .text:000000000000030a __ARM_scalbnf
+                 1.s:596    .text:000000000000030a __aeabi_fsub
+                 1.s:176    .text:0000000000000138 loc_60
+                 1.s:597    .text:000000000000030a __aeabi_fmul
+                 1.s:315    .text:00000000000001dc merge_rfft_f32
+                 1.s:523    .text:00000000000002c8 loc_1F0
+                 1.s:385    .text:0000000000000226 loc_14E
+                 1.s:533    .text:00000000000002cc arm_rfft_fast_f32
+                 1.s:575    .text:00000000000002f4 loc_21C
+                 1.s:599    .text:000000000000030a arm_cfft_f32
+                 1.s:606    .text:0000000000000312 $d
+                 1.s:606    .text:0000000000000314 $d
+
+NO UNDEFINED SYMBOLS

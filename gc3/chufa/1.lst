@@ -1,0 +1,98 @@
+ARM GAS  1.s 			page 1
+
+
+   1              	@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data	
+   5              	        	.equ STACKINIT,          0x20000300
+   6              	
+   7              	.section .text
+   8              	vectors:        
+   9 0000 00030020 	        .word STACKINIT         
+  10 0004 1D000000 	        .word _start + 1        
+  11 0008 65000000 	        .word _nmi_handler + 1  
+  12 000c 67000000 	        .word _hard_fault  + 1  
+  13 0010 69000000 	        .word _memory_fault + 1 
+  14 0014 6B000000 	        .word _bus_fault + 1    
+  15 0018 6D000000 	        .word _usage_fault + 1
+  16              	_start:
+  17              	chufa:
+  18 001c 0821     		movs r1, # 0x8
+  19 001e 8A46     		mov r10, r1
+  20 0020 00F017F8 		bl jianceweishu
+  21 0024 E046     		mov r8, r12
+  22 0026 0221     		movs r1, # 0x02
+  23 0028 8B46     		mov r11, r1
+  24 002a 00F012F8 		bl jianceweishu
+  25 002e E146     		mov r9, r12
+  26 0030 4846     		mov r0, r9
+  27 0032 4246     		mov r2, r8
+  28 0034 121A     		subs r2, r2, r0
+  29 0036 5846     		mov r0, r11
+  30              	chufa1:
+  31 0038 5146     		mov r1, r10
+  32 003a D140     		lsrs r1, r2
+  33 003c 091A     		subs r1, r1, r0
+  34 003e 01D5     		bpl shang1
+  35 0040 013A     		subs r2, r2, # 1
+  36 0042 F9E7     		b chufa1
+  37              	shang1:
+  38 0044 0124     		movs r4, # 1
+  39 0046 9440     		lsls r4, r2
+  40 0048 2025     		movs r5, # 32
+  41 004a AD1A     		subs r5, r5, r2
+  42 004c 4146     		mov r1, r8
+  43 004e A940     		lsls r1, r5
+  44              		
+  45              	tingzhu:
+  46 0050 FEE7     		b tingzhu
+  47              		
+  48              	jianceweishu:
+  49 0052 FFB5     		push {r0-r7,lr}
+  50 0054 0020     		movs r0, # 0
+  51 0056 2022     		movs r2, # 32
+  52              	jianceweishu1:
+  53 0058 0130     		adds r0, r0, # 1
+  54 005a 4900     		lsls r1, # 1
+  55 005c FCD5     		bpl jianceweishu1
+  56 005e 121A     		subs r2, r2, r0
+  57 0060 9446     		mov r12, r2
+ARM GAS  1.s 			page 2
+
+
+  58 0062 FFBD     		pop {r0-r7,pc}
+  59              		
+  60              	_nmi_handler:
+  61 0064 7047     		bx lr
+  62              	_hard_fault:
+  63 0066 7047     		bx lr
+  64              	_memory_fault:
+  65 0068 7047     		bx lr
+  66              	_bus_fault:
+  67 006a 7047     		bx lr
+  68              	_usage_fault:
+  69 006c 7047     	 	bx lr
+  70              		
+ARM GAS  1.s 			page 3
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:20000300 STACKINIT
+                 1.s:8      .text:00000000 vectors
+                 1.s:16     .text:0000001c _start
+                 1.s:60     .text:00000064 _nmi_handler
+                 1.s:62     .text:00000066 _hard_fault
+                 1.s:64     .text:00000068 _memory_fault
+                 1.s:66     .text:0000006a _bus_fault
+                 1.s:68     .text:0000006c _usage_fault
+                 1.s:17     .text:0000001c chufa
+                            .text:00000000 $d
+                 1.s:18     .text:0000001c $t
+                 1.s:48     .text:00000052 jianceweishu
+                 1.s:30     .text:00000038 chufa1
+                 1.s:37     .text:00000044 shang1
+                 1.s:45     .text:00000050 tingzhu
+                 1.s:52     .text:00000058 jianceweishu1
+
+NO UNDEFINED SYMBOLS

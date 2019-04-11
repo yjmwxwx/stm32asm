@@ -1,0 +1,50 @@
+ARM GAS  1.s 			page 1
+
+
+   1              			.thumb
+   2              		         .syntax unified
+   3              	.section .data
+   4              	.equ STACKINIT,        	        0x20001000
+   5              	.section .text
+   6              	vectors:
+   7 0000 00100020 		.word STACKINIT
+   8 0004 09000000 		.word _start + 1
+   9              	_start:
+  10 0008 0220     		movs r0, # 2
+  11 000a 0221     		movs r1, # 2
+  12 000c 0222     		movs r2, # 2
+  13 000e 0223     		movs r3, # 2
+  14 0010 00F003F8 		bl __shiyan
+  15 0014 0125     		movs r5, # 1
+  16 0016 0125     		movs r5, # 1
+  17              	ting:
+  18 0018 FEE7     		b ting
+  19              	__shiyan:
+  20 001a 30B4     		push {r4-r5}
+  21 001c 7446     		mov r4, lr
+  22 001e 013C     		subs r4, r4, # 1
+  23 0020 2578     		ldrb r5, [r4]
+  24 0022 0134     		adds r4, r4, # 1
+  25 0024 AB42     		cmp r3, r5
+  26 0026 00D2     		bcs __fanhui
+  27 0028 1D46     		mov r5, r3
+  28              	__fanhui:
+  29 002a 635D     		ldrb r3, [r4, r5]
+  30 002c 5B00     		lsls r3, r3, # 1
+  31 002e E318     		adds r3, r4, r3
+  32 0030 30BC     		pop {r4,r5}
+  33 0032 1847     		bx r3
+ARM GAS  1.s 			page 2
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:0000000020001000 STACKINIT
+                 1.s:6      .text:0000000000000000 vectors
+                 1.s:9      .text:0000000000000008 _start
+                            .text:0000000000000000 $d
+                 1.s:10     .text:0000000000000008 $t
+                 1.s:19     .text:000000000000001a __shiyan
+                 1.s:17     .text:0000000000000018 ting
+                 1.s:28     .text:000000000000002a __fanhui
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,87 @@
+// output of ./demo/fft/gen-walsh-demo.cc:
+// Description:
+//% Generate code for short-length Walsh transforms.
+
+arg 1: 3 == ldn  [Generate code for 2**ldn Walsh (wak) transform.]  default=3
+arg 2: 1 == difq  [Whether to generate code for DIF algorithm, (else DIT)]  default=1
+arg 3: 3 == sq  [What to generate: 1==>plain,  2==>skip variant,  3==>both]  default=3
+
+template <typename Type>
+inline void
+short_walsh_wak_dif_8(Type *f)
+{
+ Type t0, t1, t2, t3, t4, t5, t6, t7;
+ t0 = f[0];
+ t1 = f[1];
+ t2 = f[2];
+ t3 = f[3];
+ t4 = f[4];
+ t5 = f[5];
+ t6 = f[6];
+ t7 = f[7];
+ sumdiff( t0, t4 );
+ sumdiff( t1, t5 );
+ sumdiff( t2, t6 );
+ sumdiff( t3, t7 );
+ sumdiff( t0, t2 );
+ sumdiff( t1, t3 );
+ sumdiff( t4, t6 );
+ sumdiff( t5, t7 );
+ sumdiff( t0, t1 );
+ sumdiff( t2, t3 );
+ sumdiff( t4, t5 );
+ sumdiff( t6, t7 );
+ f[0] = t0;
+ f[1] = t1;
+ f[2] = t2;
+ f[3] = t3;
+ f[4] = t4;
+ f[5] = t5;
+ f[6] = t6;
+ f[7] = t7;
+}
+// -------------------------
+
+
+template <typename Type>
+inline void
+short_walsh_wak_dif_8(Type *f, ulong s)
+{
+ Type t0, t1, t2, t3, t4, t5, t6, t7;
+ {
+ ulong x = 0;
+ t0 = f[x];  x += s;
+ t1 = f[x];  x += s;
+ t2 = f[x];  x += s;
+ t3 = f[x];  x += s;
+ t4 = f[x];  x += s;
+ t5 = f[x];  x += s;
+ t6 = f[x];  x += s;
+ t7 = f[x];
+ }
+ sumdiff( t0, t4 );
+ sumdiff( t1, t5 );
+ sumdiff( t2, t6 );
+ sumdiff( t3, t7 );
+ sumdiff( t0, t2 );
+ sumdiff( t1, t3 );
+ sumdiff( t4, t6 );
+ sumdiff( t5, t7 );
+ sumdiff( t0, t1 );
+ sumdiff( t2, t3 );
+ sumdiff( t4, t5 );
+ sumdiff( t6, t7 );
+ {
+ ulong x = 0;
+ f[x] = t0;  x += s;
+ f[x] = t1;  x += s;
+ f[x] = t2;  x += s;
+ f[x] = t3;  x += s;
+ f[x] = t4;  x += s;
+ f[x] = t5;  x += s;
+ f[x] = t6;  x += s;
+ f[x] = t7;
+ }
+}
+// -------------------------
+

@@ -1,0 +1,92 @@
+#include <stdio.h>
+void main() {
+  float shurur [] = {0.3535,0.3535,0.6464,1.0607,0.3535,-1.0607,-1.3535,-0.3535};
+  float shurui [] = {0,0,0,0,0,0,0,0};
+  float shuchur[8];
+  float shuchui[8];
+  float b0r,b0i,b1r,b1i,b2r,b2i,b3r,b3i,b4r,b4i,b5r,b5i,b6r,b6i,b7r,b7i;
+  float d0r,d0i,d1r,d1i,d2r,d2i,d3r,d3i,d4r,d4i,d5r,d5i,d6r,d6i,d7r,d7i;
+  float c5r,c5i,c7r,c7i;
+
+      /*一*/
+       b0r=shurur[0]+shurur[4];
+       b0i=shurui[0]+shurui[4];
+       b4r=shurur[0]-shurur[4];
+       b4i=shurui[0]-shurui[4];
+       b2r=shurur[2]+shurur[6];
+       b2i=shurui[2]+shurui[6];
+       b6r=shurur[2]-shurur[6];
+       b6i=shurui[2]-shurui[6];
+       b1r=shurur[1]+shurur[5];
+       b1i=shurui[1]+shurui[5];
+       b5r=shurur[1]-shurur[5];
+       b5i=shurui[1]-shurui[5];
+       b3r=shurur[3]+shurur[7];
+       b3i=shurui[3]+shurui[7];
+       b7r=shurur[3]-shurur[7];
+       b7i=shurui[3]-shurui[7];
+
+       /*二*/
+       d0r=b0r+b2r;
+       d0i=b0i+b2i;
+       d2r=b0r-b2r;
+       d2i=b0i-b2i;
+       
+       d6i=b6r;
+       d4i=b4i+d6i;
+       d4r=b4r;
+       d6r=b4r;
+
+       d1r=b1r+b3r;
+       d1i=b1i+b3i;
+       d3r=b1r-b3r;
+       d3i=b1i-b3i;
+
+       d5r=b5r;
+       d5i=b7r;
+       d7r=b5r;
+       d7i=d7r;
+   
+       
+       /*三*/
+       shuchur[0]=d0r+d1r;
+       shuchui[0]=d0i-d1i;
+
+       shuchur[1]=d4r;
+       d5i=1.414*d5r;
+       shuchui[1]=d4i+d5i;
+
+       shuchur[2]=d2r;
+       shuchui[2]=d2i+d3r;
+
+
+       shuchur[3]=d6r;
+       d7i=-1.414*d7r;
+       shuchui[3]=d6i+d7i;
+       shuchur[3]=d6r;
+       
+       d5i=d5r*1.414;
+       shuchur[5]=d4r;
+       shuchui[5]=d4i-d5i;
+
+       shuchur[4]=d0r-d1r;
+       shuchui[4]=d0i-d1i;
+
+
+       shuchur[6]=d2r;
+       shuchui[6]=d3r;
+
+       shuchur[7]=d6r;
+       shuchui[7]=d6i-d7i;
+       
+       printf("%f   %f\n",shuchur[0],shuchui[0]);
+       printf("%f   %f\n",shuchur[1],shuchui[1]);
+       printf("%f   %f\n",shuchur[2],shuchui[2]);
+       printf("%f   %f\n",shuchur[3],shuchui[3]);
+       printf("%f   %f\n",shuchur[4],shuchui[4]);
+       printf("%f   %f\n",shuchur[5],shuchui[5]);
+       printf("%f   %f\n",shuchur[6],shuchui[6]);
+       printf("%f   %f\n",shuchur[7],shuchui[7]);
+
+
+}

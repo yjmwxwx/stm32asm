@@ -1,0 +1,405 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4 0000 88BEC494 	shumaguanmabiao: .byte 0x88,0xbe,0xc4,0x94,0xb2,0x91,0x81,0xbc,0x80,0x90
+   4      B29181BC 
+   4      8090
+   5              		
+   6              	        	.equ STACKINIT,          0x20005000
+   7              			.equ systickbiaozhi,     0x20000300
+   8              	.section .text
+   9              	xiangliangbiao:
+  10 0000 00500020 		.word STACKINIT
+  11 0004 0D010000 		.word _start + 1
+  12 0008 7B020000 		.word _nmi_handler + 1
+  13 000c 7D020000 		.word _hard_fault  + 1
+  14 0010 7F020000 		.word _memory_fault + 1
+  15 0014 81020000 		.word _bus_fault + 1
+  16 0018 83020000 		.word _usage_fault + 1
+  17 001c 00000000 		.word 0
+  18 0020 00000000 		.word 0
+  19 0024 00000000 		.word 0
+  20 0028 00000000 		.word 0
+  21 002c 00000000 		.word 0
+  22 0030 00000000 		.word 0
+  23 0034 00000000 		.word 0
+  24 0038 00000000 		.word 0
+  25 003c 85020000 		.word systickdingshiqi +1
+  26 0040 00000000 		.word	0 @WWDG  	0
+  27 0044 00000000 		.word	0 @PVD  	1
+  28 0048 00000000 		.word	0 @TAMPER	2
+  29 004c 00000000 		.word	0 @RTC		3
+  30 0050 00000000 		.word	0 @FLASH	4
+  31 0054 00000000 		.word	0 @RCC		5
+  32 0058 00000000 		.word	0 @EXTI0	6
+  33 005c 00000000 		.word	0 @EXTI1	7
+  34 0060 00000000 		.word	0 @EXTI2	8
+  35 0064 00000000 		.word	0 @EXTI3	9
+  36 0068 00000000 		.word	0 @EXTI4	10
+  37 006c 00000000 		.word	0 @DMA11	11
+  38 0070 00000000 		.word	0 @DMA12	12
+  39 0074 00000000 		.word	0 @DMA13	13
+  40 0078 00000000 		.word	0 @DMA14	14
+  41 007c 00000000 		.word	0 @DMA15	15
+  42 0080 00000000 		.word	0 @DMA16	16
+  43 0084 00000000 		.word	0 @DMA17	17
+  44 0088 00000000 		.word	0 @ADC1_2 	18
+  45 008c 00000000 		.word	0 @USB_HP_CAN1_TX 19
+  46 0090 00000000 		.word	0 @USB_LP_CAN1_RX0 20
+  47 0094 00000000 		.word	0 @CAN1_RX1	21
+  48 0098 00000000 		.word	0 @CAN1_SCE	22
+  49 009c 00000000 		.word	0 @EXTI9_5	23
+  50 00a0 00000000 		.word	0 @TIM1_BRK	24
+  51 00a4 00000000 		.word	0 @TIM1_UP	25
+  52 00a8 00000000 		.word	0 @TIM1_TRG_COM	26
+  53 00ac 00000000 		.word	0 @TIM1_CC	27
+  54 00b0 A3020000 		.word	tim2dingshiqi +1  @TIM2 28
+  55 00b4 00000000 		.word	0 @TIM3		29
+ARM GAS  1.s 			page 2
+
+
+  56 00b8 00000000 		.word	0 @TIM4		30
+  57 00bc 00000000 		.word	0 @I2C1_EV	31
+  58 00c0 00000000 		.word	0 @I2C1_ER	32
+  59 00c4 00000000 		.word	0 @I2C2_EV	33
+  60 00c8 00000000 		.word	0 @I2C2_ER	34
+  61 00cc 00000000 		.word	0 @SPI1		35
+  62 00d0 00000000 		.word	0 @SPI2		36
+  63 00d4 00000000 		.word	0 @USART1	37
+  64 00d8 00000000 		.word	0 @USART2	38
+  65 00dc 00000000 		.word	0 @USART3	39
+  66 00e0 00000000 		.word	0 @EXTI15_10	40
+  67 00e4 00000000 		.word	0 @RTCAlarm_IRQ	41
+  68 00e8 00000000 		.word	0 @USBWakeUp	42
+  69 00ec 00000000 		.word	0	
+  70 00f0 00000000 		.word	0	
+  71 00f4 00000000 		.word	0
+  72 00f8 00000000 		.word	0
+  73 00fc 00000000 		.word	0
+  74 0100 00000000 		.word	0
+  75 0104 00000000 		.word	0
+  76 0108 00000000 		.word	0 @BootRAM   
+  77              	_start:
+  78 010c 6C48     		ldr r0, = 0x40010004
+  79 010e 4FF00071 		ldr r1, = 0x02000000
+  80 0112 0160     		str r1, [r0]
+  81              	
+  82 0114 4160     		str r1, [r0, # 0x04]
+  83 0116 6B48     		ldr r0, = 0x40021000
+  84 0118 6B49     		ldr r1, = 0x14D83
+  85 011a 0160     		str r1, [r0]
+  86              	gsszbz: 
+  87 011c 0268     		ldr r2, [r0]
+  88 011e 4FF40031 		ldr r1, = 0x20000
+  89 0122 1142     		tst r1, r2           @HSE高速时钟标志位           
+  90 0124 00D1     		bne rccchushihua
+  91 0126 F9E7     		b gsszbz
+  92              	rccchushihua: 
+  93 0128 6848     		ldr r0, = 0x40022000
+  94 012a 4FF03201 		mov r1, # 0x00000032
+  95 012e 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  96 0130 6748     		ldr r0, = 0x40021004
+  97 0132 6849     		ldr r1, = 0x1D8400
+  98 0134 0160     		str r1, [r0]
+  99 0136 6348     		ldr r0, = 0x40021000
+ 100 0138 6749     		ldr r1, = 0x1033D03
+ 101 013a 0160     		str r1, [r0]
+ 102              	chaxun:
+ 103 013c 0268     		ldr r2, [r0]
+ 104 013e 4FF00071 		ldr r1, = 0x2000000
+ 105 0142 1142     		tst r1, r2
+ 106 0144 00D1     		bne rccgg               @等待PLL稳定
+ 107 0146 F9E7     		b chaxun
+ 108              	rccgg:
+ 109 0148 6148     		ldr r0, = 0x40021004
+ 110 014a 6449     		ldr r1, = 0x1D8402
+ 111 014c 0160     		str r1, [r0]            @ PLL作为系统时钟
+ 112              	
+ARM GAS  1.s 			page 3
+
+
+ 113 014e 5C48     		ldr r0, = 0x40010004
+ 114 0150 4FF00071 		ldr r1, = 0x02000000
+ 115 0154 0160     		str r1, [r0]
+ 116              	
+ 117              	neicunqingling:                  @ 无聊把内存清0
+ 118 0156 4FF00050 		ldr r0, = 0x20000000
+ 119 015a 44F6FF72 		ldr r2, = 0x4fff         @ 区域是0X4FFF大的地方
+ 120 015e 4FF00001 		mov r1, # 0              @ 写0
+ 121              	qingling_xunhuan:                
+ 122 0162 40F8041B 		str r1, [r0], 4         
+ 123 0166 013A     		subs r2, # 1
+ 124 0168 FBD1     		bne qingling_xunhuan     @ 循环清0
+ 125              	
+ 126              	jicunqiqingling:
+ 127 016a 4FF00000 		mov r0, # 0
+ 128 016e 4FF00001 		mov r1, # 0
+ 129 0172 4FF00002 		mov r2, # 0
+ 130 0176 4FF00003 		mov r3, # 0
+ 131 017a 4FF00004 		mov r4, # 0
+ 132 017e 4FF00005 		mov r5, # 0
+ 133 0182 4FF00006 		mov r6, # 0
+ 134 0186 4FF00007 		mov r7, # 0
+ 135 018a 4FF00008 		mov r8, # 0
+ 136 018e 4FF00009 		mov r9, # 0
+ 137 0192 4FF0000A 		mov r10, # 0
+ 138 0196 4FF0000B 		mov r11, # 0
+ 139 019a 4FF0000C 		mov r12, # 0
+ 140              		
+ 141              		
+ 142              	systick:
+ 143              		@0xe000e010 SYSTICK控制状态寄存器
+ 144              		@0=定时器使能
+ 145              		@1=（1倒数到0发出异常请，0无动作）
+ 146              		@2=（0外部始终1内核时钟）
+ 147              		@16= 如果赏赐读取本寄存器后SYSTICK已经数到0则该位为1如果读取该位则清0
+ 148              		@0xe000e014 重载值寄存器 数到0将要被重载的值
+ 149              		@0xe000e018 当前值，写清0
+ 150              		@0e000e01c
+ 151              		@0-23 10MS的时间内倒计数的格数
+ 152              		@ 30=(1教准不是准确的10MS)（0教准是准确的10MS）
+ 153 019e 5048     		ldr r0, = 0xe000e010
+ 154 01a0 4FF00001 		mov r1, # 0               
+ 155 01a4 0160     		str r1, [r0]            @ 关掉SYSTICK
+ 156 01a6 6FF07F41 		ldr r1, = 0xffffff      @ 重载数
+ 157 01aa 4160     		str r1, [r0, # 4]       @ 写进重载数
+ 158 01ac 8160     		str r1, [r0, # 8]       @ 清0当前数
+ 159 01ae 4FF00001 		mov r1, # 0
+ 160 01b2 0160     		str r1, [r0]            @ 关定时器
+ 161 01b4 4B48     		ldr r0, = 0xe000ed23  @systick优先级
+ 162 01b6 4FF0F001 		mov r1, # 240
+ 163 01ba 0160     		str r1, [r0]
+ 164              	waisheshizhong:
+ 165              	
+ 166              	
+ 167              		@APB2_ENR=0X40021018 0(AFIO)1(保留)2(PA)3(PB)4(PC)5(PD)6(PE)78(保留)
+ 168              		@9(ADC1)10(ADC2)11(TIM1)12(SPI1)13(保留)14（USART1）15(保留)
+ 169 01bc 4A48     		        ldr r0, = 0x40021018 @ APB2_ENR
+ARM GAS  1.s 			page 4
+
+
+ 170 01be 3C21     		        ldr r1, = 0x3c
+ 171 01c0 0160     		        str r1, [r0]
+ 172              		@APB1_ENR=0X4002101C
+ 173              		@0=TIM2,1=TIM3,2=TIM4,3=TIM5,4=TIM6,5=TIM7,11=WWDG
+ 174              		@14=SP12,15=SP13,17=UART3,19=UART4,20=UART5
+ 175              		@21=I2C,22=I2C2,23=USB,25=CAN,27=BKPT,28=PWR,29=DACEN
+ 176 01c2 4A48     			ldr r0, = 0X4002101C @ APB1_ENR
+ 177 01c4 0121     			ldr r1, = 0x01
+ 178 01c6 0160     			str r1, [r0]
+ 179              		
+ 180              	zhongduankongzhi:
+ 181              		@SETENA0=0XE000E100,SETENA1=0XE000E104 @中断使能
+ 182              		@CLRENA0=0XE000E180,CLRENA1=0XE000E184 @中断除能
+ 183              		@SETPEND0=0XE000E200,SETPPEND1=0XE000E204 @中断悬起
+ 184              		@CLRPEND0=0XE000E280,CLRPEND1=0XE000E284  @中断解悬
+ 185              		@ACTIVE0=0XE000E300,ACTIVE1=0XE000E304   @ 中断活动状态
+ 186              		@0XE000E400-0XE000E43C 中断优先级阵列每个占8位
+ 187              		@0XE000ED00=CPUID，0XE000ED04=中断控制及状态寄存器
+ 188              		@0xe000ed08=向量表偏移，0xe000ed0c=应用程序中断及复位
+ 189              		@0xe000ed10=系统控制，0XE000ED14=配置与控制
+ 190              		@0xe000ed18-0xe000ed23=系统异常优先级阵列
+ 191 01c8 4948     		ldr r0, = 0xe000e100 @ 中断使能
+ 192 01ca 4FF08051 		ldr r1, = 0x10000000
+ 193 01ce 0160     		str r1, [r0]
+ 194              		
+ 195              		
+ 196              		
+ 197              	timdingshiqi:
+ 198              		@tim1=0x40012c00
+ 199              		@+0=CR1 控制寄存器
+ 200              		@+4=CR2 控制寄存器2
+ 201              		@+8=SMCR 从模式控制寄存器
+ 202              		@+c=DIER 中断使能寄存器
+ 203              		@+10=SR 状态寄存器
+ 204              		@+14=EGR 事件产生寄存器
+ 205              		@+18=CCMR1 捕获/比较模式寄存器1
+ 206              		@+1C=CCMR2 捕获/比较模式寄存器2
+ 207              		@+20=CCER 捕获/比较使能寄存器
+ 208              		@+24=CNT 计数器
+ 209              		@+28=PSC 预分频器
+ 210              		@+2C=ARR 重载寄存器
+ 211              		@+30=RCR 重复计数寄存器
+ 212              		@+34=CCR1 捕获/比较寄存器1
+ 213              		@+38=CCR2 捕获/比较寄存器2
+ 214              		@+3C=CCR3 捕获/比较寄存器3
+ 215              		@+40=CCR4 捕获/比较寄存器4
+ 216              		@+44=BDTR 刹车/死区寄存器
+ 217              		@+48=DCR DMA控制器
+ 218              		@+4C=DMAR 连续模式的DMA地址
+ 219              		@TIM2=0x40000000
+ 220              	@18=CCMR1,18=OCMR1,1C=CCMR2,1C=OCMR2
+ 221              	@CNT与CCR比较占空，ARR与PSC决定频率。主频除以PSC=计数频率
+ 222 01d0 4FF08040 		ldr r0, = 0x40000000 @ tim2
+ 223 01d4 4FF4E151 		ldr r1, = 7200
+ 224 01d8 8162     		str r1, [r0, # 0x28] @ psc
+ 225 01da 42F21071 		ldr r1, = 10000
+ 226 01de C162     		str r1, [r0, # 0x2c] @ arr
+ARM GAS  1.s 			page 5
+
+
+ 227 01e0 4FF00101 		mov r1, # 1
+ 228 01e4 C160     		str r1, [r0, # 0x0c] @DIER
+ 229 01e6 8121     		ldr r1, = 0x81
+ 230 01e8 0160     		str r1, [r0]
+ 231              		
+ 232              	IOshezhi:
+ 233              		
+ 234 01ea 4248     		ldr r0, = 0x40010c00
+ 235              		@PA=0x40010800 PB=0x40010c00 PC=0x40011000 
+ 236              		@PD=0x40011400 PE=0x40011800 PF=0x40011c00 
+ 237              		@ IO 1(通用推挽10M)2(通用推挽2M)3(通用推挽50M)
+ 238              		@4(浮空输入)5(通用开漏输出10M)6(通用开漏输出2M)
+ 239              		@7(通用开漏输出50M)8(上拉下拉输入)9(复用功能推挽输出10M)
+ 240              		@A(复用功能推挽输出2M)B(复用功能推挽输出50M)C(保留)
+ 241              		@D(复用功能开溜输出10M)E(复用功能开漏输出2M)F(复用功能开漏输出50M)
+ 242              		@ 偏移0X8=IDR 输入数据寄存器
+ 243              		@偏移0XC=ODR 输出数据寄存器
+ 244              		@偏移0X10=BSRR IO开
+ 245              		@偏移0X14=BRR  IO关
+ 246 01ec 4FF05531 		ldr r1, = 0x55555555
+ 247 01f0 4160     		str r1, [r0, # 0x04]
+ 248              	
+ 249 01f2 3B48     		ldr r0, = 0xe000e010
+ 250 01f4 4FF00701 		mov r1, # 7
+ 251 01f8 0160     		str r1, [r0]
+ 252              		
+ 253              	zhuchengxu:
+ 254 01fa 4FF00103 		mov r3, # 0x01
+ 255              	jiancedingshiqibiaozhi:	
+ 256 01fe 3E4E     		ldr r6, = systickbiaozhi
+ 257 0200 3768     		ldr r7, [r6]         @ 取出计时标志位
+ 258 0202 012F     		cmp r7, # 1          @ 查询是不是到了时间
+ 259 0204 09D1     		bne shumaguan        @ 没到条砖数码管显视
+ 260 0206 4FF00007 		mov r7, # 0         
+ 261 020a 3760     		str r7, [r6]         @ 清除标志
+ 262 020c 0BF1010B 		add r11, r11, # 1    @ 每次标志R11加1 
+ 263 0210 BBF1640F 		cmp r11, # 100       @ 如果R11= 100 
+ 264 0214 01D1     		bne shumaguan        @ 不等于100调转shumaguan
+ 265 0216 4FF0000B 		mov r11, # 0         @ 等于100 R11清0
+ 266              	shumaguan:
+ 267              		
+ 268 021a 4FF00A0A 		mov r10, # 10        @ 被除数
+ 269 021e BBFBFAF8 		udiv r8, r11, r10    @ 取出十位数的个数
+ 270 0222 08FB0AF6 		mul  r6, r8, r10     @ 还原没有个位的十进制数
+ 271 0226 ABEB0607 		sub r7, r11, r6      @ 求出个位数
+ 272 022a 3448     		ldr r0, = shumaguanmabiao  @ 数码管码表
+ 273 022c 10F80810 		ldrb r1, [r0, r8]    @ 取出十位对应的码
+ 274 0230 C25D     		ldrb r2, [r0, r7]    @ 取出个位对应的码
+ 275 0232 4FF00050 		ldr r0, = 0x20000000 @ 放结果的内存位置
+ 276 0236 4170     		strb r1, [r0, # 1]   @ 储存数码管码
+ 277 0238 8270     		strb r2, [r0, # 2]
+ 278 023a 0370     		strb r3, [r0]
+ 279 023c 00F005F8 		bl xie595            @ 调用74HC595函数
+ 280 0240 4FEA4303 		lsl r3, # 1
+ 281 0244 802B     		cmp r3, # 0x80
+ 282 0246 D8D8     		bhi zhuchengxu
+ 283 0248 D9E7     		b jiancedingshiqibiaozhi
+ARM GAS  1.s 			page 6
+
+
+ 284              	
+ 285              		
+ 286              	xie595:
+ 287              		@74HC595 11=输入锁存 12=输出锁存 14=数据
+ 288 024a 2DE9FF5F 		push {r0-r12,lr}
+ 289 024e EC46     		mov r12, sp          @把SP指针保存到R12
+ 290 0250 2B48     		ldr r0, = 0x422181b0 @ 位带地址  
+ 291 0252 4FF00101 		mov r1, # 1          @ 1
+ 292 0256 4FF00002 		mov r2, # 0          @ 0
+ 293 025a 4FF00853 		ldr r3, = 0x22000000 @ 0x20000000的位带
+ 294 025e 4FF01804 		mov r4, # 24         @ 写两个8位
+ 295              	xunhuan595:
+ 296 0262 8260     		str r2, [r0, # 0x08] @ 595_11 输入锁存
+ 297 0264 53F8045B 		ldr r5, [r3], # 4    @ 取出一位的数据
+ 298 0268 0560     		str r5, [r0]         @14脚输出数据
+ 299 026a 8160     		str r1, [r0, # 0x08] @ 锁存
+ 300 026c 013C     		subs r4, # 1         
+ 301 026e F8D1     		bne xunhuan595       @循环16次
+ 302 0270 4260     		str r2, [r0, # 0x04] @ 12输出锁存
+ 303 0272 4160     		str r1, [r0, # 0x04] 
+ 304 0274 E546     		mov sp, r12          @ 恢复指针
+ 305 0276 BDE8FF9F 		pop {r0-r12,pc}      @ 弹出各寄存器返回
+ 306              	_nmi_handler:
+ 307 027a 7047     		bx lr
+ 308              	_hard_fault:
+ 309 027c 7047     		bx lr
+ 310              	_memory_fault:
+ 311 027e 7047     		bx lr
+ 312              	_bus_fault:
+ 313 0280 7047     		bx lr
+ 314              	_usage_fault:
+ 315 0282 7047     	 	bx lr
+ 316              	systickdingshiqi:              @ SYSTICK定时期中断服务函数
+ 317 0284 2DE9FF5F 		push {r0-r12,lr}
+ 318 0288 EC46     		mov r12, sp
+ 319 028a 1E48     		ldr r0, = 0xe00ed04
+ 320 028c 4FF00071 		ldr r1, = 0x2000000 
+ 321 0290 0160     		str r1, [r0]         @ 挂起SYSTICK
+ 322 0292 194A     		ldr r2, = systickbiaozhi @ 计数到标志
+ 323 0294 1168     		ldr r1, [r2]             @ 取出标志
+ 324 0296 41F00101 		orr r1, # 1            
+ 325 029a 1160     		str r1, [r2]             @ 储存标志
+ 326 029c E546     		mov sp, r12              @恢复指针
+ 327 029e BDE8FF9F 		pop {r0-r12,pc}
+ 328              	tim2dingshiqi:
+ 329 02a2 2DE9FF5F 		push {r0-r12,lr}
+ 330 02a6 EC46     		mov r12, sp
+ 331 02a8 1748     		ldr r0, = 0x20000400
+ 332 02aa 4FF0FF31 		ldr r1, = 0xffffffff
+ 333 02ae 0160     		str r1, [r0]
+ 334 02b0 1648     		ldr r0, = 0x40000010
+ 335 02b2 4FF00001 		mov r1, # 0
+ 336 02b6 0160     		str r1, [r0]  @清除中断事件
+ 337 02b8 E546     		mov sp, r12
+ 338 02ba BDE8FF9F 		pop {r0-r12,pc}
+ 339 02be 00000400 		
+ 339      01400010 
+ARM GAS  1.s 			page 7
+
+
+ 339      0240834D 
+ 339      01000020 
+ 339      02400410 
+ARM GAS  1.s 			page 8
+
+
+DEFINED SYMBOLS
+                 1.s:4      .data:00000000 shumaguanmabiao
+                 1.s:6      *ABS*:20005000 STACKINIT
+                 1.s:7      *ABS*:20000300 systickbiaozhi
+                 1.s:9      .text:00000000 xiangliangbiao
+                 1.s:77     .text:0000010c _start
+                 1.s:306    .text:0000027a _nmi_handler
+                 1.s:308    .text:0000027c _hard_fault
+                 1.s:310    .text:0000027e _memory_fault
+                 1.s:312    .text:00000280 _bus_fault
+                 1.s:314    .text:00000282 _usage_fault
+                 1.s:316    .text:00000284 systickdingshiqi
+                 1.s:328    .text:000002a2 tim2dingshiqi
+                            .text:00000000 $d
+                 1.s:78     .text:0000010c $t
+                 1.s:86     .text:0000011c gsszbz
+                 1.s:92     .text:00000128 rccchushihua
+                 1.s:102    .text:0000013c chaxun
+                 1.s:108    .text:00000148 rccgg
+                 1.s:117    .text:00000156 neicunqingling
+                 1.s:121    .text:00000162 qingling_xunhuan
+                 1.s:126    .text:0000016a jicunqiqingling
+                 1.s:142    .text:0000019e systick
+                 1.s:164    .text:000001bc waisheshizhong
+                 1.s:180    .text:000001c8 zhongduankongzhi
+                 1.s:197    .text:000001d0 timdingshiqi
+                 1.s:232    .text:000001ea IOshezhi
+                 1.s:253    .text:000001fa zhuchengxu
+                 1.s:255    .text:000001fe jiancedingshiqibiaozhi
+                 1.s:266    .text:0000021a shumaguan
+                 1.s:286    .text:0000024a xie595
+                 1.s:295    .text:00000262 xunhuan595
+                 1.s:339    .text:000002be $d
+                 1.s:339    .text:000002c0 $d
+
+NO UNDEFINED SYMBOLS

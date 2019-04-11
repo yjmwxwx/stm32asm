@@ -1,0 +1,152 @@
+<html>
+<head>
+  <title>Программирование - Быстрое преобразование Фурье</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/styles2.css">
+</head>
+<body>
+ <div id=hdr>
+  <div id=psi></div>
+  <div id=l1></div><div id=l2></div><div id=l3></div><div id=l4></div>
+  <div id=capt2>Основной цикл алгоритма</div>
+ </div>
+<div id=body>
+  <div id=mi><a href="fft3.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft5.htm">[следующая глава]</a></div>
+<div id=text>
+
+<p>
+
+Напомним основные формулы:
+
+<p>
+
+<img align="absmiddle" src="image158.gif">&nbsp;&nbsp;&nbsp;&nbsp;(16)
+
+<p>
+
+На рисунке проиллюстрирован второй этап вычисления ДПФ. Линиями сверху
+вниз показано использование элементов для вычисления значений новых элментов.
+Очень удобно то, что два элемента на определенных позициях в массиве дают два
+элемента на тех же местах. Только принадлежать они будут уже другим, более
+длинным массивам, размещенным на месте прежних, более коротких. Это позволяет
+обойтись одним массивом данных для исходных данных, результата и хранения
+промежуточных результатов для всех <nobr>T</nobr> итераций.
+
+<p>
+
+<img align="absmiddle" src="image160.gif">
+<br>рис. 4
+
+<p>
+
+Итак, вот действия, которые нужно выполнить после первичной перестановки
+элементов.
+
+<p>
+
+<pre>
+#define T 4
+#define Nmax (2 << T)
+complex Q, Temp, j(0,1);
+static complex x[Nmax];
+static double pi2 = 2 * 3.1415926535897932384626433832795;
+int N, Nd2, k, mpNd2, m;
+ 
+for(N = 2, Nd2 = 1; N <= Nmax; Nd2 = N, N += N)
+{
+    for(k = 0; k < Nd2; k++)
+    {
+         W = exp(-j*pi2*k/N);
+         for(m = k; m < Nmax; m += N)
+         {
+             mpNd2 = m + Nd2;
+             Temp = W * x[mpNd2];
+             x[mpNd2] = x[m] - Temp;
+             x[m] = x[m] + Temp;
+         }
+    }
+} 
+</pre>
+
+<p>
+
+Переменная <nobr>Nmax</nobr> содержит полную длину массива данных и окончательное
+количество элементов ДПФ. В таблице показано соответствие между выражениями в
+формуле (16) и переменными в программе.
+
+<p>
+
+<table border=1 cellspacing=0 cellpadding=5>
+ <tr> <td>В алгоритме</td> <td>В формуле</td>  </tr>
+ <tr> <td><nobr>N</nobr></td>    <td><nobr>N</nobr></td>   </tr>
+ <tr> <td><nobr>Nd2</nobr></td>  <td><nobr>N/2</nobr></td> </tr>
+ <tr> <td><nobr>k</nobr></td>    <td><nobr>k</nobr></td>   </tr>
+ <tr> <td><nobr>m</nobr></td>    <td><nobr>k с поправкой на номер последовательности</nobr></td>      </tr>
+ <tr> <td><nobr>mpNd2</nobr></td><td><nobr>k+N/2 с поправкой на номер последовательности</nobr></td>  </tr>
+ <tr> <td><nobr>pi2</nobr></td>  <td><nobr>2</nobr>&pi;</td>        </tr>
+ <tr> <td><nobr>j</nobr></td>    <td><nobr>j (мнимая единица)</nobr></td>                             </tr>
+ <tr> <td><nobr>x[k] (в начале цикла)</nobr></td>            <td><nobr>X<sub>{N/2}[even]k</sub></nobr></td></tr>
+ <tr> <td><nobr>x[mpNd2] (в начале цикла</nobr><nobr>)</nobr></td> <td><nobr>X<sub>{N/2}[odd]k</sub></nobr></td></tr>
+ <tr> <td><nobr>x[k] (в конце цикла)</nobr></td>             <td><nobr>X<sub>{N}k</sub></nobr></td></tr>
+ <tr> <td><nobr>x[mpNd2] (в конце цикла</nobr><nobr>)</nobr></td>  <td><nobr>X<sub>{N}N/2+k</sub></nobr></td></tr>
+ <tr> <td><nobr>W</nobr></td>    <td><sub><img src="image059.gif"></sub></td>        </tr>
+</table>
+
+<p>
+
+Внешний цикл - это основные итерации. На каждой из них <nobr>2Nmax/N</nobr> ДПФ
+(длиной по <nobr>N/2</nobr> элементов каждое) преобразуются в <nobr>Nmax/N</nobr> ДПФ 
+(длиной по <nobr>N</nobr> элементов каждое). 
+
+<p>
+
+Следующий цикл по <nobr>k</nobr> представляет собой цикл синхронного вычисления
+элементов с индексами <nobr>k</nobr> и <nobr>k + N/2</nobr> во всех результирующих ДПФ.
+
+<p>
+
+Самый внутренний цикл перебирает <nobr>Nmax/N</nobr> штук ДПФ одно за другим.
+
+<p>
+
+Именно так, а не иначе: сначала вычисляются элементы с номерами <nobr>0</nobr> и
+<nobr>N/2</nobr>, во всех ДПФ в количестве <nobr>Nmax/N</nobr> штук, потом с номерами
+<nobr>1</nobr> и <nobr>N/2 + 1</nobr> и так далее. На рис.4 показана последовательность
+вычислений для <nobr>N = 8</nobr>. Такая последовательность обеспечивает однократное
+вычисление <img align="absmiddle" src="image059.gif">.
+
+<p>
+
+Обратите внимание, что <nobr>x[mpNd2]</nobr> вычисляется раньше, чем <nobr>x[k]</nobr>,
+чтобы значение <nobr>x[k]</nobr> не было модифицировано прежде, чем будет
+использовано.
+
+<p>
+
+Алгоритм обратного дискретного преобразования Фурье отличается только тем, что
+вместо <nobr>-j</nobr> надо использовать <nobr>+j</nobr> и после всех вычислений поделить
+каждое <nobr>x[k]</nobr> на <nobr>Nmax</nobr>.
+
+<p>
+
+Для справки: произведение, сумма и экспонента для комплексных чисел вычисляются
+по формулам:
+
+<p>
+
+<nobr>(x,y)(x',y')=(xx'-yy')(xy'+x'y)
+<br>(x,y)+(x',y')=(x+x')(y+y')
+<br>e<sup>-jv</sup>=(cos v, - sinv)</nobr>
+
+<p>
+
+где <nobr>v</nobr> - действительное число.
+
+  <div id=mi>
+   <hr size=1 noshade color=black>
+   <a href="fft3.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft5.htm">[следующая глава]</a>
+   <hr size=1 noshade color=black>
+  </div>
+ </div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	
+   2              	
+   3              	@@@ Directives
+   4              	        .thumb                 
+   5              	        .syntax unified
+   6              	
+   7              	.section .data
+   8              	
+   9 0000 1F001FF8 	yjm:	 .short 0x001f, 0xf81f, 0xffe0, 0x07ff, 0xf800
+   9      E0FFFF07 
+   9      00F8
+  10              	
+  11 000a 4A4E5A   	wxwx:	 .ascii "JNZ" 
+  12              	
+  13              	
+  14              	
+  15              	
+  16              	        .equ GPIOD_CRL,   0x40011400
+  17              	        .equ GPIOD_ODR,   0x4001140C
+  18              	        .equ RCC_APB2ENR, 0x40021018
+  19              	        .equ STACKINIT,   0x20005000        
+  20              	        .equ LEDDELAY,    800000
+  21              	        
+  22              	.section .text
+  23              	        .org 0
+  24              	
+  25              	@@@ Vectors
+  26              	vectors:        
+  27 0000 00500020 	        .word STACKINIT         @ stack pointer value when stack is empty
+  28 0004 1D000000 	        .word _start + 1        @ reset vector (manually adjust to odd for thumb)
+  29 0008 4F000000 	        .word _nmi_handler + 1  @ 
+  30 000c 4F000000 	        .word _hard_fault  + 1  @ 
+  31 0010 4F000000 	        .word _memory_fault + 1 @ 
+  32 0014 4F000000 	        .word _bus_fault + 1    @ 
+  33 0018 4F000000 	        .word _usage_fault + 1  @ 
+  34              	
+  35              	_start:
+  36              	
+  37              	
+  38 001c 0C4D     		ldr r5, = wxwx
+  39              	
+  40              	        @@ Enable the Port C peripheral clock by setting bit 4
+  41 001e 0D4E     	        ldr r6, = RCC_APB2ENR
+  42 0020 4FF02000 	        mov r0, 0x20
+  43 0024 3060     	        str r0, [r6]
+  44              	        
+  45              	
+  46 0026 0C4E     	        ldr r6, = GPIOD_CRL
+  47 0028 0C48     	        ldr r0, = 0x44444344
+  48 002a 3060     	        str r0, [r6]
+  49              	
+  50              	
+  51 002c 4FF00002 	        mov r2, 0              @ value to turn on LED
+  52 0030 4FF00403 	        mov r3, 0x04
+  53 0034 0A4E     	        ldr r6, = GPIOD_ODR    @  point to Port C output data register
+  54              	
+  55              	        
+ARM GAS  led-stm32.s 			page 2
+
+
+  56              	loop:
+  57 0036 3260     	        str r2, [r6]           @ clear Port C, pin 12, turning on LED
+  58 0038 0A49     	        ldr r1, = LEDDELAY
+  59              	delay1:
+  60 003a 0139     	        subs r1, 1
+  61 003c 7FF4FDAF 	        bne delay1
+  62              	        
+  63 0040 3360     	        str r3, [r6] 
+  64 0042 0849     	        ldr r1, = LEDDELAY
+  65              	delay2:
+  66 0044 0139     	        subs r1, 1
+  67 0046 7FF4FDAF 	        bne delay2
+  68 004a FFF7F4BF 	        b loop                 @ continue forever
+  69              	
+  70              	_dummy:                        @ if any int gets triggered, just hang in a loop
+  71              	_nmi_handler:
+  72              	_hard_fault:
+  73              	_memory_fault:
+  74              	_bus_fault:
+  75              	_usage_fault:
+  76 004e 70470A00 		bx lr 
+  76      00001810 
+  76      02400014 
+  76      01404443 
+  76      44440C14 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:9      .data:00000000 yjm
+         led-stm32.s:11     .data:0000000a wxwx
+         led-stm32.s:16     *ABS*:40011400 GPIOD_CRL
+         led-stm32.s:17     *ABS*:4001140c GPIOD_ODR
+         led-stm32.s:18     *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:19     *ABS*:20005000 STACKINIT
+         led-stm32.s:20     *ABS*:000c3500 LEDDELAY
+         led-stm32.s:26     .text:00000000 vectors
+         led-stm32.s:35     .text:0000001c _start
+         led-stm32.s:71     .text:0000004e _nmi_handler
+         led-stm32.s:72     .text:0000004e _hard_fault
+         led-stm32.s:73     .text:0000004e _memory_fault
+         led-stm32.s:74     .text:0000004e _bus_fault
+         led-stm32.s:75     .text:0000004e _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:38     .text:0000001c $t
+         led-stm32.s:56     .text:00000036 loop
+         led-stm32.s:59     .text:0000003a delay1
+         led-stm32.s:65     .text:00000044 delay2
+         led-stm32.s:70     .text:0000004e _dummy
+         led-stm32.s:76     .text:00000050 $d
+
+NO UNDEFINED SYMBOLS

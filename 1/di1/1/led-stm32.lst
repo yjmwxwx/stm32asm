@@ -1,0 +1,114 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	@@@ led-stm32.asm
+   2              	@@@ written by Frank Sergeant
+   3              	@@@    frank@pygmy.utoh.org
+   4              	@@@    http://pygmy.utoh.org/riscy
+   5              	@@@ This program is in the public domain.  See http://pygmy.utoh.org/riscy/cortex/ 
+   6              	@@@ for notes about the program and how to assemble, link, and burn to flash.
+   7              	
+   8              	@@@ Blink the LED on the Olimex STM32-P103 ARM Cortex M3 board.
+   9              	
+  10              	@@@ Directives
+  11              	        .thumb                  @ (same as saying '.code 16')
+  12              	        .syntax unified
+  13              	
+  14              	@@@ Equates
+  15              	        .equ GPIOC_CRH,   0x40011004
+  16              	        .equ GPIOC_ODR,   0x4001100C
+  17              	        .equ RCC_APB2ENR, 0x40021018
+  18              	        .equ STACKINIT,   0x20005000
+  19              	        
+  20              	        .equ LEDDELAY,    800000
+  21              	        
+  22              	.section .text
+  23              	        .org 0
+  24              	
+  25              	@@@ Vectors
+  26              	vectors:        
+  27 0000 00500020 	        .word STACKINIT         @ stack pointer value when stack is empty
+  28 0004 1D000000 	        .word _start + 1        @ reset vector (manually adjust to odd for thumb)
+  29 0008 47000000 	        .word _nmi_handler + 1  @ 
+  30 000c 47000000 	        .word _hard_fault  + 1  @ 
+  31 0010 47000000 	        .word _memory_fault + 1 @ 
+  32 0014 47000000 	        .word _bus_fault + 1    @ 
+  33 0018 47000000 	        .word _usage_fault + 1  @ 
+  34              	
+  35              	_start:
+  36              	
+  37              	        @@ Enable the Port C peripheral clock by setting bit 4
+  38 001c 0C4E     	        ldr r6, = RCC_APB2ENR
+  39 001e 4FF01000 	        mov r0, 0x10
+  40 0022 3060     	        str r0, [r6]
+  41              	        
+  42              	        @@ Set the config and mode bits for Port C bit 12 so it will
+  43              	        @@ be a push-pull output (up to 50 MHz) by setting bits 19-16
+  44              	        @@ to '0011'.
+  45              	
+  46 0024 0B4E     	        ldr r6, = GPIOC_CRH
+  47 0026 0C48     	        ldr r0, = 0x44434444
+  48 0028 3060     	        str r0, [r6]
+  49              	
+  50              	        @@ Load R2 and R3 with the "on" and "off" constants
+  51 002a 4FF00002 	        mov r2, 0              @ value to turn on LED
+  52 002e 4FF48053 	        mov r3, 0x1000         @ value to turn off LED
+  53              	
+  54 0032 0A4E     	        ldr r6, = GPIOC_ODR    @  point to Port C output data register
+  55              	        
+  56              	loop:
+  57 0034 3260     	        str r2, [r6]           @ clear Port C, pin 12, turning on LED
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 0036 0A49     	        ldr r1, = LEDDELAY
+  59              	delay1:
+  60 0038 0139     	        subs r1, 1
+  61 003a FDD1     	        bne delay1
+  62              	        
+  63 003c 3360     	        str r3, [r6]           @ set Port C, pin 12, turning off LED
+  64 003e 0849     	        ldr r1, = LEDDELAY
+  65              	delay2:
+  66 0040 0139     	        subs r1, 1
+  67 0042 FDD1     	        bne delay2
+  68              	
+  69 0044 F6E7     	        b loop                 @ continue forever
+  70              	
+  71              	_dummy:                        @ if any int gets triggered, just hang in a loop
+  72              	_nmi_handler:
+  73              	_hard_fault:
+  74              	_memory_fault:
+  75              	_bus_fault:
+  76              	_usage_fault:
+  77 0046 00F10100 	        add r0, 1
+  78 004a 01F10101 	        add r1, 1
+  79 004e FAE71810 	        b _dummy    
+  79      02400410 
+  79      01404444 
+  79      43440C10 
+  79      01400035 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:15     *ABS*:40011004 GPIOC_CRH
+         led-stm32.s:16     *ABS*:4001100c GPIOC_ODR
+         led-stm32.s:17     *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:18     *ABS*:20005000 STACKINIT
+         led-stm32.s:20     *ABS*:000c3500 LEDDELAY
+         led-stm32.s:26     .text:00000000 vectors
+         led-stm32.s:35     .text:0000001c _start
+         led-stm32.s:72     .text:00000046 _nmi_handler
+         led-stm32.s:73     .text:00000046 _hard_fault
+         led-stm32.s:74     .text:00000046 _memory_fault
+         led-stm32.s:75     .text:00000046 _bus_fault
+         led-stm32.s:76     .text:00000046 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:38     .text:0000001c $t
+         led-stm32.s:56     .text:00000034 loop
+         led-stm32.s:59     .text:00000038 delay1
+         led-stm32.s:65     .text:00000040 delay2
+         led-stm32.s:71     .text:00000046 _dummy
+         led-stm32.s:79     .text:00000050 $d
+
+NO UNDEFINED SYMBOLS

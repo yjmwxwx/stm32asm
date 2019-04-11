@@ -1,0 +1,125 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	
+   2              	        .thumb               
+   3              	        .syntax unified
+   4              	
+   5              	.section .data
+   6              	
+   7 0000 1F001FF8 	yjm:	 .short 0x001F,0XF81F,0XFFE0,0X07FF,0xF800
+   7      E0FFFF07 
+   7      00F8
+   8              	
+   9              	
+  10              	        .equ GPIOC_CRH,   0x40011400
+  11              	        .equ GPIOC_ODR,   0x4001140C
+  12              	        .equ RCC_APB2ENR, 0x40021018
+  13              	        .equ STACKINIT,   0x20005000
+  14              	
+  15              	        .equ LEDDELAY,    800000
+  16              	
+  17              	
+  18              	
+  19              	.section .text
+  20              	        .org 0
+  21              	
+  22              	
+  23              	vectors:
+  24 0000 00500020 	        .word STACKINIT        
+  25 0004 1D000000 	        .word _start + 1      
+  26 0008 51000000 	        .word _nmi_handler + 1  
+  27 000c 51000000 	        .word _hard_fault  + 1  
+  28 0010 51000000 	        .word _memory_fault + 1 
+  29 0014 51000000 	        .word _bus_fault + 1    
+  30 0018 51000000 	        .word _usage_fault + 1  
+  31              	
+  32              	
+  33              	_start:
+  34              	
+  35 001c 0F4F     		ldr r7, = yjm
+  36              	
+  37              	        @@ Enable the Port C peripheral clock by setting bit 4
+  38 001e 104E     	        ldr r6, = RCC_APB2ENR
+  39 0020 4FF02000 	        mov r0, 0x20
+  40 0024 3060     	        str r0, [r6]
+  41              	
+  42              	
+  43              	
+  44              	        @@ Set the config and mode bits for Port C bit 12 so it will
+  45              	        @@ be a push-pull output (up to 50 MHz) by setting bits 19-16
+  46              	        @@ to '0011'.
+  47              	
+  48 0026 0F4E     	        ldr r6, = GPIOC_CRH
+  49 0028 0F48     	        ldr r0, = 0x44444344
+  50 002a 3060     	        str r0, [r6]
+  51              	
+  52              	        @@ Load R2 and R3 with the "on" and "off" constants
+  53 002c 4FF00002 	        mov r2, 0              @ value to turn on LED
+  54 0030 4FF00403 	        mov r3, 0x4        @ value to turn off LED
+  55              	
+ARM GAS  led-stm32.s 			page 2
+
+
+  56 0034 0D4E     	        ldr r6, = GPIOC_ODR    @  point to Port C output data register
+  57              	
+  58              	
+  59              	
+  60              	loop:
+  61 0036 3260     	        str r2, [r6]           @ clear Port C, pin 12, turning on LED
+  62 0038 0D49     	        ldr r1, = LEDDELAY
+  63              	delay1:
+  64              	
+  65 003a 0139     	        subs r1, 1
+  66 003c 7FF4FDAF 	        bne delay1
+  67              	
+  68 0040 3360     	        str r3, [r6]           @ set Port C, pin 12, turning off LED
+  69 0042 0B49     	        ldr r1, = LEDDELAY
+  70              		
+  71 0044 3D88     		ldrh r5, [r7]
+  72              		
+  73              	delay2:
+  74 0046 0139     	        subs r1, 1
+  75 0048 7FF4FDAF 	        bne delay2
+  76              	
+  77 004c FFF7F3BF 	        b loop                 @ continue forever
+  78              	
+  79              	_dummy:                        @ if any int gets triggered, just hang in a loop
+  80              	_nmi_handler:
+  81              	_hard_fault:
+  82              	_memory_fault:
+  83              	_bus_fault:
+  84              	_usage_fault:
+  85 0050 00F10100 	        add r0, 1
+  86 0054 01F10101 	        add r1, 1
+  87 0058 FFF7FABF 	        b _dummy
+  87      00000000 
+  87      18100240 
+  87      00140140 
+  87      44434444 
+ARM GAS  led-stm32.s 			page 3
+
+
+DEFINED SYMBOLS
+         led-stm32.s:7      .data:00000000 yjm
+         led-stm32.s:10     *ABS*:40011400 GPIOC_CRH
+         led-stm32.s:11     *ABS*:4001140c GPIOC_ODR
+         led-stm32.s:12     *ABS*:40021018 RCC_APB2ENR
+         led-stm32.s:13     *ABS*:20005000 STACKINIT
+         led-stm32.s:15     *ABS*:000c3500 LEDDELAY
+         led-stm32.s:23     .text:00000000 vectors
+         led-stm32.s:33     .text:0000001c _start
+         led-stm32.s:80     .text:00000050 _nmi_handler
+         led-stm32.s:81     .text:00000050 _hard_fault
+         led-stm32.s:82     .text:00000050 _memory_fault
+         led-stm32.s:83     .text:00000050 _bus_fault
+         led-stm32.s:84     .text:00000050 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:35     .text:0000001c $t
+         led-stm32.s:60     .text:00000036 loop
+         led-stm32.s:63     .text:0000003a delay1
+         led-stm32.s:73     .text:00000046 delay2
+         led-stm32.s:79     .text:00000050 _dummy
+         led-stm32.s:87     .text:0000005c $d
+
+NO UNDEFINED SYMBOLS

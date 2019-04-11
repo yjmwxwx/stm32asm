@@ -1,0 +1,367 @@
+---------------------------
+HC08 code
+-------------------------------------
+;CORDIC demonstration program
+;Written by Samuel Ginsberg
+;January 2002
+TOPRAM
+TOPROM
+TOPVECTORS
+EQU
+EQU
+EQU
+$0080
+$F600
+$FFDE
+;Top of RAM area
+;Top of Flash area
+;Top of Interrupt Vector table
+$Include 'jl3regs.inc'
+;===================================================================org TOPRAM
+operand1 ds 2
+operand2 ds 2
+Avar ds 2
+Xvar ds 2
+Yvar ds 2
+dA ds 2
+dX ds 2
+dY ds 2
+loopcnt ds 1
+flags ds 1
+Angle ds 2
+;these 16 bit operands are used by the addition routine
+;cordic angle variable
+;cordic x coordinate variable
+;cordic y coordinate variable
+;cordic angle modif ier variable
+;cordic x coordinate modifier variable
+;cordic y coordinate modifier variable
+;cordic iteration counter
+;variable containing various flags
+;only used in demonstration, not part of CORDIC
+;bits within the flags byte
+clockwise equ 0
+;rotation direction flag
+;The following two flags are only used in the demonstration and are not part of CORDIC
+even_quad equ 1
+;set if we are outputting from an even numbered quadrant
+neg_cycle_sin equ 2
+;set if we are outputting a negative half cycle
+;===================================================================
+org TOPROM
+Main:
+;This is the point where code starts executing after a reset.
+;Insert your code to use the cordic algorithm here.
+;===================================================================
+cordic:
+;This is the main CORDIC algorithm. The angle to be transformed is input
+;via the 16 bit variable Avar. The angle is specified in radians and multiplied
+;by 2048 before input. The maximum input range is -pi/2<A<pi/2.
+;The sine output appears in the 16 bit variable Yvar, which is scaled up by a
+;factor of 2048.
+;The cosine output appears in the 16 bit variable Xvar, which is scaled up
+;by a factor of 2048.
+;Note that Avar,Xvar and Yvar are packed in memory with the more significant byte in ;the lower
+address.
+mov #$00,loopcnt
+;start at iteration zero
+mov #$00,Yvar
+;initialize Yvar variable
+mov #$00,(Yvar+1)
+mov #$04,Xvar
+;initialize Xvar variable
+mov #$DC,(Xvar+1)
+iterate:
+ldhx Xvar
+;dX=Xvar shifted right by i places
+lda loopcnt
+jsr shiftright
+sthx dX
+ldhx Yvar
+lda loopcnt
+jsr shiftright
+sthx dY ;dY=Yvar shifted right by i places
+lda loopcnt
+jsr lookup
+sthx dA ;dA=lookup (1/2^loopcnt)
+bset clockwise,flags
+brclr 7,Avar,update_pos ;if Avar>=0 increase angle
+bclr clockwise,flags
+;else decrease angle
+update_pos:
+ldhx Xvar
+;Xvar=Xvar-dY if clockwise=1. Xvar=Xvar+dy if clockwise=0
+sthx operand1
+ldhx dY
+brclr clockwise,flags,clockwise1
+jsr negate
+clockwise1:
+sthx operand2
+jsr addition
+ldhx operand1
+sthx Xvar
+ldhx Yvar
+sthx operand1
+ldhx dX
+;Yvar=Yvar+dX if clockwise=1. Yvar=Yvar-dx if clockwise=0brset clockwise,flags,clockwise2
+jsr negate
+clockwise2:
+sthx operand2
+jsr addition
+ldhx operand1
+sthx Yvar
+ldhx Avar
+;Avar=Avar-dA if clockwise=1. Avar=Avar+dA if clockwise=0
+sthx operand1
+ldhx dA
+brclr clockwise,flags,clockwise3
+jsr negate
+clockwise3:
+sthx operand2
+jsr addition
+ldhx operand1
+sthx Avar
+bra next_iteration
+next_iteration:
+inc loopcnt
+lda #$0B
+cmp loopcnt
+bne iterate
+rts
+;next iteration of the loop
+;===================================================================
+output:
+;This function outputs data calculated by the CORDIC algorithm
+;Data is input to DAC1 via the variable Xvar
+;Data is input to DAC2 via the variable Yvar
+;Implementation depends on the DAC being used and its configuration.
+rts
+;===================================================================
+lookup:
+;This routine looks a 16 bit number up from the lookup table.
+;The lookup table index comes in via the accumulator and the looked
+;up value comes out via H:X.
+lsla
+;needed because each lookup entry is 2 bytes
+tax
+clrh
+lda lookup_atan,X
+;retrieve upper byte from lookup table
+psha
+;H reg used for addressing so not accessible
+aix #1
+;move to next position in table
+ldx lookup_atan,X
+;retrieve lower byte from lookup table
+pulh
+rts
+;===================================================================
+negate:
+;This routine calculates the 2's compliment negative of a 16 bit number.
+;The input comes in via H:X and output is returned via H:X
+pshh
+pula
+coma
+;Acc now holds 1's complimented high byte
+comx
+;X reg holds 1's complimented low byte
+psha
+pulh
+;H reg holds 1's complimented high byte
+aix #1
+;Add 1 to H:X to form 2's compliment from 1's compliment
+rts
+;===================================================================
+addition:
+;This routine adds two 16 bit numbers. The overflow bit is discarded,
+;as this routine is meant for two's compliment numbers.
+;The inputs are in the variables operand1 and operand2 and the output is
+;in operand1. Operand1 and operand2 are packed in memory with the more
+;significant byte in the lower address.
+lda (operand1+1)
+add (operand2+1)
+sta (operand1+1)lda operand1
+adc operand2
+sta operand1
+rts
+;===================================================================
+lookup_atan:
+;This is the arctangent lookup table. Each entry is 16 bits wide. There
+;are 12 entries to give 12 bit resolution.
+db $06,$48,$03,$B5,$01,$F5,$00,$FE,$00,$7F,$00,$3F
+db $00,$1F,$00,$0F,$00,$07,$00,$03,$00,$01,$00,$00
+;===================================================================
+No_irq:
+;This interrupt handler catches interrupts that happened when no
+;interrupt should have occurred. For this reason the processor is halted
+;and user intervention is required. This routine is only called under severe
+;fault conditions.
+stop
+rti
+; Stop the processor and wait for a reset.
+; return
+;===================================================================
+org
+TOPVECTORS
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+dw
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+No_irq
+main
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+;
+ADC Conversion Complete interrupt
+Keyboard interrupt
+Unused
+Unused
+Unused
+Unused
+Unused
+Unused
+Unused
+Unused
+TIM1 Overflow interrupt
+TIM1 Channel 1 interrupt
+TIM1 Channel 0 interrupt
+Unused
+interrupt line
+Software interrupt
+Reset Vector
+;===================================================================
+main:
+;This example of a main function puts a full sine wave into a 12 bit DAC.
+mov
+mov
+mov
+mov
+mov
+mov
+mov
+mov
+mov
+mov
+#$03,CONFIG1 ;Disable the watchdog timer, enable the stop instruction
+#$FF,DDRB
+;ports output for DAC connection
+#$FC,DDRD
+#$00,flags
+;start status flags in known state
+#$00,Angle
+;start angle in known state
+#$00,(Angle+1)
+#$00,Xvar
+#$00,(Xvar+1)
+#$00,Yvar
+#$00,(Yvar+1)
+;This section of code generates a full sine wave from four quarter waves. The
+;CORDIC system is used to generate sinusiods between 0deg and 90deg. The angle
+;that is put into the algorithm is ramped up and then down to get each half cycle.
+;Every second half cycle is inverted to create negative half cycles.
+;There are 12868 points per cycle.
+loop:
+ldhx Angle
+brset even_quad,flags,dec_angle
+aix #1
+sthx Avar
+lda #$0C
+cmp Avar
+bne load_angle
+lda #$90
+cmp (Avar+1)
+bne load_angle
+;decide whether to ramp the angle up or down
+;ramp angle up
+;unless at the peak of the waveform
+;which is at (pi/2)*2048=3216decimal=$0C90
+;if we are at the peak then at the next
+;point we must start ramping the angle down.bset even_quad,flags
+bra load_angle
+dec_angle:
+aix #-1
+;ramp the angle down
+sthx Avar
+clra
+cmp Avar
+;unless the angle is zero, in which case
+bne load_angle
+;prepare to start ramping the angle up.
+cmp (Avar+1)
+;in addition when we reach zero we must
+bne load_angle
+;change from a positive half cycle to a
+bclr even_quad,flags
+;negative half, or visa versa
+brset neg_cycle_sin,flags,negative_half
+bset neg_cycle_sin,flags
+bra load_angle
+negative_half:
+bclr neg_cycle_sin,flags
+load_angle:
+sthx Angle
+;load the updated angle into the angle
+sthx Avar
+;variable and feed it into CORDIC
+jsr cordic
+mov #$07,operand2
+;add a DC offset to the output because our
+mov #$FF,(operand2+1)
+;DAC is unipolar.
+ldhx Yvar
+brclr neg_cycle_sin,flags,no_bias_negative_sin
+;if the current half cycle
+aix #-1
+;is negative then we need
+jsr negate
+;to invert it to produce a
+no_bias_negative_sin:
+;full wave.
+sthx operand1
+jsr addition
+ldhx operand1
+sthx Yvar
+jsr output
+jmp loop

@@ -1,0 +1,129 @@
+	@ stm32f030f4p6 asm
+	 .thumb
+	.syntax unified
+	.section .data
+	.equ STACKINIT,         0x20001000
+	.equ jishu,		0x20000000
+	.equ dangqiandeflash, 	0x20000004
+	.equ yaoxiedeflash,	0x20000008
+.section .text
+xiangliangbiao:        
+        .word STACKINIT         
+        .word _start + 1        
+        .word _nmi_handler + 1  
+        .word _hard_fault  + 1  
+        .word 0 
+        .word 0    
+        .word 0
+	.word 0
+	.word 0
+	.word 0
+	.word 0
+	.word _svc_handler +1
+	.word 0 
+	.word 0
+	.word _pendsv_handler +1
+	.word _systickzhongduan + 1
+_start:
+	ldr r0, = 0x40022000
+	ldr r1, = 0x45670123
+	str r1, [r0, # 0x04]
+	ldr r1, = 0xcdef89ab
+	str r1, [r0, # 0x04]
+
+	ldr r0, = 0x8000800
+	ldr r1, = 0x8000c00
+	movs r2, # 0
+	mov r3, r2
+_zhaozuidade:
+	ldr r4, [r0, r2]
+	
+	ldr r2, = yaoxiedeflash
+	ldr r0, = jishu
+	ldr r1, = 0x8000800
+	movs r3, # 0
+	str r3, [r0]
+	str r1, [r2]
+	
+_systick:			@ systick定时器初始化
+	
+	ldr r0, = 0xe000e010
+	ldr r1, = 10000
+	str r1, [r0, # 4]
+	str r1, [r0, # 8]
+	movs r1, # 0x07
+	str r1, [r0]
+	ldr r2, = yaoxiedeflash
+	ldr r0, = jishu
+	ldr r1, = 0x8000800
+	movs r3, # 0
+	str r3, [r0]
+	str r1, [r2]
+tingting:
+	b tingting
+
+	
+_nmi_handler:
+	bx lr
+_hard_fault:
+	bx lr
+_svc_handler:
+	bx lr
+_pendsv_handler:
+	bx lr
+_systickzhongduan:
+	ldr r0, = 0xe0000d04
+	ldr r1, = 0x02000000
+	str r1, [r0]                 @ 清除SYSTICK中断
+	cpsid i
+	 ldr r0, = 0x40022000
+	ldr r1, = jishu
+	ldr r2, [r1]
+	adds r2, r2, # 1
+	str r2, [r1]
+	ldr r7, = yaoxiedeflash
+	ldr r6, = 0x8000c00
+	ldr r3, [r7]
+	adds r3, r3, # 4
+	cmp r3, r6
+	bne _meichaochu
+	ldr r4, = 0x8000800
+	mov r3, r4
+_caflashmang:
+	ldr r2, [r0, # 0x0c]
+	lsls r2, r2, # 31
+	bmi _caflashmang
+	movs r1, # 2
+	str r1, [r0, # 0x10]
+	str r4, [r0, # 0x14]
+	movs r1, # 0x42
+	str r1, [r0, # 0x10]
+	
+_meichaochu:	
+	str r3, [r7]
+	mov r7, r3
+	mov r3, r2
+	
+
+_flashmang1:
+	ldr r2, [r0, # 0x0c]
+	lsls r2, r2, # 31
+	bmi _flashmang1
+	
+	movs r1, # 1
+	str r1, [r0, # 0x10]
+	strh r3, [r7]
+	lsrs r3, r3, # 16
+	
+_flashmang2:
+	ldr r2, [r0, # 0x0c]
+	lsls r2, r2, # 31
+	bmi _flashmang2
+	
+	strh r3, [r7, # 0x02]
+_flashmang3:
+	ldr r2, [r0, # 0x0c]
+	lsls r2, r2, # 31
+	bmi _flashmang3
+	cpsie i
+	bx lr

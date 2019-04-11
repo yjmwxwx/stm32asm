@@ -1,0 +1,298 @@
+ARM GAS  yjm.s 			page 1
+
+
+   1              	@@@
+   2              	        .thumb                 
+   3              	        .syntax unified
+   4              	
+   5              	.section .data
+   6              	
+   7 ???? 1F001FF8 	yjm:	 .short 0x001f, 0xf81f, 0xffe0, 0x07ff, 0xf800
+   7      E0FFFF07 
+   7      00F8
+   8 ???? 00000008 	wxwx:	 .byte 0x00,0x00,0x00,0x08,0x08,0x18,0x14,0x14,0x24,0x3C,0x22,0x42,0x42,0xE7,0x00,0x00		
+   8      08181414 
+   8      243C2242 
+   8      42E70000 
+   9              	 
+  10              	
+  11              	
+  12              	
+  13              	
+  14              	        .equ STACKINIT, 	0x20005000
+  15              		.equ gpioddi,   	0x40011400
+  16              	        .equ gpiododr,   	0x4001140C
+  17              	        .equ RCC_APB2ENR,	0x40021018 @rccAPB2ENR
+  18              		.equ syskz,		0xE000E010 @ 控制寄存器
+  19              		.equ syscz,		0xE000E014 @systick定时器重载
+  20              		.equ syssz,		0xE000E018 @systick计数值查询
+  21              		.equ rcckz,		0x40021000 @rcc时钟控制寄存器
+  22              		.equ rccpz,		0x40021004 @时钟配置寄存器
+  23              		.equ flashacr,		0x40022000 @flash闪存访问寄存器
+  24              		.equ ledliang,		0x04
+  25              		.equ yanshishu,		200
+  26              		.equ lcdpianyi,	        240
+  27              	
+  28              		.equ lcdpy,		0x20000010
+  29              		
+  30              	.section .text
+  31              	
+  32              	vectors_table:
+  33              	vectors:        
+  34 ???? 00500020 	        .word STACKINIT         
+  35 ???? 00000000 	        .word _start + 1        
+  36 ???? 00000000 	        .word _nmi_handler + 1  
+  37 ???? 00000000 	        .word _hard_fault  + 1  
+  38 ???? 00000000 	        .word _memory_fault + 1 
+  39 ???? 00000000 	        .word _bus_fault + 1    
+  40 ???? 00000000 	        .word _usage_fault + 1   
+  41 ???? 00000000 		.word 0
+  42 ???? 00000000 		.word 0
+  43 ???? 00000000 		.word 0
+  44 ???? 00000000 		.word 0
+  45 ???? 00000000 		.word 0
+  46 ???? 00000000 		.word 0
+  47 ???? 00000000 		.word 0 
+  48 ???? 00000000 		.word 0
+  49 ???? 00000000 		.word _dingshiqi + 1
+  50              	_start:
+  51              		@@AFIO-MAPR 开SWD模式
+  52:yjm.s         **** 	ldr r0, = 0x40010004
+ARM GAS  yjm.s 			page 2
+
+
+  53:yjm.s         **** 	ldr r1, = 0x02000000
+  54:yjm.s         **** 	str r1, [r0]
+  55              	
+  56              	shizhong:
+  57:yjm.s         **** 	ldr r0, = rcckz
+  58:yjm.s         **** 	ldr r1, = 0x14D83
+  59:yjm.s         **** 	str r1, [r0]
+  60              	gsszbz: @高速时钟标志位
+  61:yjm.s         **** 	ldr r2, [r0]
+  62:yjm.s         **** 	ldr r1, = 0x20000
+  63:yjm.s         **** 	tst r1, r2
+  64:yjm.s         **** 	bne rccchushihua
+  65:yjm.s         **** 	b gsszbz
+  66              	rccchushihua: 
+  67              	
+  68              		@FLASH缓冲 缓冲开启 
+  69:yjm.s         **** 	ldr r0, = flashacr
+  70:yjm.s         **** 	mov r1, # 0x00000032
+  71:yjm.s         **** 	str r1, [r0]
+  72              		@设置
+  73:yjm.s         **** 	ldr r0, = rccpz
+  74:yjm.s         **** 	ldr r1, = 0x1D8400
+  75:yjm.s         **** 	str r1, [r0]
+  76              		
+  77:yjm.s         **** 	ldr r0, = rcckz
+  78:yjm.s         **** 	ldr r1, = 0x1033D03
+  79:yjm.s         **** 	str r1, [r0]
+  80              	chaxun:
+  81:yjm.s         **** 	ldr r2, [r0]
+  82:yjm.s         **** 	ldr r1, = 0x2000000
+  83:yjm.s         **** 	tst r1, r2
+  84:yjm.s         **** 	bne rccgg
+  85:yjm.s         **** 	b chaxun
+  86              	rccgg:
+  87              	
+  88:yjm.s         **** 	ldr r0, = rccpz
+  89:yjm.s         **** 	ldr r1, = 0x1D8402
+  90:yjm.s         **** 	str r1, [r0]
+  91              		
+  92              	systick:
+  93              	
+  94:yjm.s         **** 	ldr r1, = syskz
+  95:yjm.s         **** 	ldr r0, = syscz
+  96:yjm.s         **** 	ldr r2, = syssz
+  97              		
+  98:yjm.s         **** 	mov r3, #0
+  99:yjm.s         **** 	str r3, [r1]
+ 100              	
+ 101:yjm.s         **** 	ldr r3, = 0x2328
+ 102:yjm.s         **** 	str r3, [r0]
+ 103:yjm.s         **** 	str r3, [r2]
+ 104              	
+ 105:yjm.s         **** 	mov r3, # 0x03
+ 106:yjm.s         **** 	str r3, [r1]
+ 107              	
+ 108              	ledled:
+ 109              	
+ARM GAS  yjm.s 			page 3
+
+
+ 110:yjm.s         ****         ldr r0, = RCC_APB2ENR
+ 111:yjm.s         ****         mov r1, 0x39
+ 112:yjm.s         ****         str r1, [r0]
+ 113              	
+ 114:yjm.s         ****         ldr r0, = gpioddi
+ 115:yjm.s         ****         ldr r1, = 0x44444344
+ 116:yjm.s         ****         str r1, [r0]
+ 117              	
+ 118              	ledhanshu:
+ 119:yjm.s         **** 	ldr r0, = gpiododr
+ 120:yjm.s         **** 	ldr r1, = ledliang
+ 121:yjm.s         **** 	str r1, [r0]
+ 122              		
+ 123:yjm.s         **** 	bl yanshi 
+ 124              	
+ 125:yjm.s         **** 	ldr r0, = gpiododr
+ 126:yjm.s         **** 	mov r1, # 0
+ 127:yjm.s         **** 	str r1, [r0]
+ 128:yjm.s         **** 	bl yanshi
+ 129              	
+ 130:yjm.s         **** 	b ledhanshu
+ 131              	
+ 132              	
+ 133              	
+ 134              	yanshi:
+ 135:yjm.s         **** 	ldr r0, = yanshishu
+ 136:yjm.s         **** 	cmp r5, r0
+ 137:yjm.s         **** 	bne yanshi
+ 138:yjm.s         **** 	mov r5, 0
+ 139:yjm.s         **** 	bx lr
+ 140              	
+ 141              		
+ 142              	
+ 143              	_nmi_handler:
+ 144:yjm.s         **** 	bx lr
+ 145              	_hard_fault:
+ 146:yjm.s         **** 	bx lr
+ 147              	_memory_fault:
+ 148:yjm.s         **** 	bx lr
+ 149              	_bus_fault:
+ 150:yjm.s         **** 	bx lr
+ 151              	_usage_fault:
+ 152:yjm.s         **** 	bx lr
+ 153              	_dingshiqi:
+ 154:yjm.s         **** 	adds r5, 1	
+ 155:yjm.s         **** 	bx lr
+ 156              	         
+ 157 ???? 04000140 	
+ 157      00000002 
+ 157      00100240 
+ 157      834D0100 
+ 157      00000200 
+ARM GAS  yjm.s 			page 4
+
+
+DEFINED SYMBOLS
+               yjm.o:0      .text:00000000 L0F0
+               yjm.s:0      .text:00000000 L0F1
+               yjm.s:7      .data:00000000 yjm
+               yjm.s:8      .data:00000000 wxwx
+               yjm.s:14     *ABS*:20005000 STACKINIT
+               yjm.s:15     *ABS*:40011400 gpioddi
+               yjm.s:16     *ABS*:4001140c gpiododr
+               yjm.s:17     *ABS*:40021018 RCC_APB2ENR
+               yjm.s:18     *ABS*:e000e010 syskz
+               yjm.s:19     *ABS*:e000e014 syscz
+               yjm.s:20     *ABS*:e000e018 syssz
+               yjm.s:21     *ABS*:40021000 rcckz
+               yjm.s:22     *ABS*:40021004 rccpz
+               yjm.s:23     *ABS*:40022000 flashacr
+               yjm.s:24     *ABS*:00000004 ledliang
+               yjm.s:25     *ABS*:000000c8 yanshishu
+               yjm.s:26     *ABS*:000000f0 lcdpianyi
+               yjm.s:28     *ABS*:20000010 lcdpy
+               yjm.s:32     .text:00000000 vectors_table
+               yjm.s:33     .text:00000000 vectors
+               yjm.s:50     .text:00000000 _start
+               yjm.s:143    .text:00000000 _nmi_handler
+               yjm.s:145    .text:00000000 _hard_fault
+               yjm.s:147    .text:00000000 _memory_fault
+               yjm.s:149    .text:00000000 _bus_fault
+               yjm.s:151    .text:00000000 _usage_fault
+               yjm.s:153    .text:00000000 _dingshiqi
+               yjm.s:52     .text:00000000 L0L0
+                            .text:00000000 $d
+               yjm.s:52     .text:00000000 $t
+               yjm.s:53     .text:00000000 L0L1
+               yjm.s:54     .text:00000000 L0L2
+               yjm.s:56     .text:00000000 shizhong
+               yjm.s:57     .text:00000000 L0L3
+               yjm.s:58     .text:00000000 L0L4
+               yjm.s:59     .text:00000000 L0L5
+               yjm.s:60     .text:00000000 gsszbz
+               yjm.s:61     .text:00000000 L0L6
+               yjm.s:62     .text:00000000 L0L7
+               yjm.s:63     .text:00000000 L0L8
+               yjm.s:64     .text:00000000 L0L9
+               yjm.s:66     .text:00000000 rccchushihua
+               yjm.s:65     .text:00000000 L0L10
+               yjm.s:69     .text:00000000 L0L11
+               yjm.s:70     .text:00000000 L0L12
+               yjm.s:71     .text:00000000 L0L13
+               yjm.s:73     .text:00000000 L0L14
+               yjm.s:74     .text:00000000 L0L15
+               yjm.s:75     .text:00000000 L0L16
+               yjm.s:77     .text:00000000 L0L17
+               yjm.s:78     .text:00000000 L0L18
+               yjm.s:79     .text:00000000 L0L19
+               yjm.s:80     .text:00000000 chaxun
+               yjm.s:81     .text:00000000 L0L20
+               yjm.s:82     .text:00000000 L0L21
+               yjm.s:83     .text:00000000 L0L22
+ARM GAS  yjm.s 			page 5
+
+
+               yjm.s:84     .text:00000000 L0L23
+               yjm.s:86     .text:00000000 rccgg
+               yjm.s:85     .text:00000000 L0L24
+               yjm.s:88     .text:00000000 L0L25
+               yjm.s:89     .text:00000000 L0L26
+               yjm.s:90     .text:00000000 L0L27
+               yjm.s:92     .text:00000000 systick
+               yjm.s:94     .text:00000000 L0L28
+               yjm.s:95     .text:00000000 L0L29
+               yjm.s:96     .text:00000000 L0L30
+               yjm.s:98     .text:00000000 L0L31
+               yjm.s:99     .text:00000000 L0L32
+               yjm.s:101    .text:00000000 L0L33
+               yjm.s:102    .text:00000000 L0L34
+               yjm.s:103    .text:00000000 L0L35
+               yjm.s:105    .text:00000000 L0L36
+               yjm.s:106    .text:00000000 L0L37
+               yjm.s:108    .text:00000000 ledled
+               yjm.s:110    .text:00000000 L0L38
+               yjm.s:111    .text:00000000 L0L39
+               yjm.s:112    .text:00000000 L0L40
+               yjm.s:114    .text:00000000 L0L41
+               yjm.s:115    .text:00000000 L0L42
+               yjm.s:116    .text:00000000 L0L43
+               yjm.s:118    .text:00000000 ledhanshu
+               yjm.s:119    .text:00000000 L0L44
+               yjm.s:120    .text:00000000 L0L45
+               yjm.s:121    .text:00000000 L0L46
+               yjm.s:123    .text:00000000 L0L47
+               yjm.s:134    .text:00000000 yanshi
+               yjm.s:125    .text:00000000 L0L48
+               yjm.s:126    .text:00000000 L0L49
+               yjm.s:127    .text:00000000 L0L50
+               yjm.s:128    .text:00000000 L0L51
+               yjm.s:130    .text:00000000 L0L52
+               yjm.s:135    .text:00000000 L0L53
+               yjm.s:136    .text:00000000 L0L54
+               yjm.s:137    .text:00000000 L0L55
+               yjm.s:138    .text:00000000 L0L56
+               yjm.s:139    .text:00000000 L0L57
+               yjm.s:144    .text:00000000 L0L58
+               yjm.s:146    .text:00000000 L0L59
+               yjm.s:148    .text:00000000 L0L60
+               yjm.s:150    .text:00000000 L0L61
+               yjm.s:152    .text:00000000 L0L62
+               yjm.s:154    .text:00000000 L0L63
+               yjm.s:155    .text:00000000 L0L64
+               yjm.s:157    .text:00000000 $d
+               yjm.s:157    .text:00000000 $$lit_1
+               yjm.s:157    .text:00000050 $t
+               yjm.s:30     .data:00000000 $d
+                             .bss:00000000 $d
+                            .stab:00000330 $d
+                         .stabstr:00000013 $d
+                  .ARM.attributes:00000021 $d
+
+NO UNDEFINED SYMBOLS
+ARM GAS  yjm.s 			page 6
+
+

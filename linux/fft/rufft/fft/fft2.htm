@@ -1,0 +1,418 @@
+<html>
+<head>
+  <title>Программирование - Быстрое преобразование Фурье</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/styles2.css">
+</head>
+<body>
+ <div id=hdr>
+  <div id=psi></div>
+  <div id=l1></div><div id=l2></div><div id=l3></div><div id=l4></div>
+  <div id=capt2>Вывод основных формул</div>
+ </div>
+<div id=body>
+  <div id=mi><a href="fft1.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft3.htm">[следующая глава]</a></div>
+<div id=text>
+
+<p>
+
+Алгоритм быстрого преобразования Фурье (БПФ) - это оптимизированный по скорости
+способ вычисления ДПФ. Основная идея заключается в двух пунктах.
+
+<ol>
+<li>Необходимо разделить сумму (1) из <nobr>N</nobr>
+слагаемых на две суммы по <nobr>N/2</nobr> слагаемых, и вычислить их по отдельности.
+Для вычисления каждой из подсумм, надо их тоже разделить на две и т.д. 
+<li>Необходимо повторно использовать уже вычисленные слагаемые.
+</ol>
+
+<p>
+
+Применяют либо "прореживание по времени" (когда в первую сумму попадают слагаемые
+с четными номерами, а во вторую - с нечетными), либо "прореживание по частоте"
+(когда в первую сумму попадают первые <nobr>N/2</nobr> слагаемых, а во вторую
+- остальные). Оба варианта равноценны. В силу специфики алгоритма приходится
+применять только <nobr>N</nobr>, являющиеся степенями <nobr>2</nobr>. Рассмотрим случай
+прореживания по времени. 
+
+<hr><p>
+
+<nobr><b>Теорема 3</b></nobr>.
+
+<p>
+
+Определим еще две последовательности:
+<nobr>{x<sub>[even]</sub>}</nobr> и <nobr>{x<sub>[odd]</sub>}</nobr>
+через последовательность
+<nobr>{x}</nobr> следующим образом:
+
+<p>
+
+<nobr>x<sub>[even]n</sub> = x<sub>2n</sub>, 
+<br>x<sub>[odd]n</sub> = x<sub>2n+1</sub>, </nobr>&nbsp;&nbsp;&nbsp;&nbsp;(6)<nobr>
+<br>n = 0, 1,..., N/2-1</nobr>
+
+<p>
+
+Пусть к этим последовательностям применены ДПФ и получены результаты в виде
+двух новых последовательностей <nobr>{X<sub>[even]</sub>}</nobr> и 
+<nobr>{X<sub>[odd]</sub>}</nobr> по <nobr>N/2</nobr> элементов в каждой. 
+
+<p>
+
+Утверждается, что элементы последовательности <nobr>{X}</nobr> можно выразить
+через элементы последовательностей <nobr>{X<sub>[even]</sub>}</nobr> и 
+<nobr>{X<sub>[odd]</sub>}</nobr> по формуле:
+
+<p>
+
+<img align="absmiddle" src="image041.gif">&nbsp;&nbsp;&nbsp;&nbsp;(7).
+
+<p>
+
+<nobr><b>Доказательство</b></nobr>:
+
+<p>
+
+Начинаем от формулы (2), в которую подставляем равенства из (6):
+
+<p>
+
+<img align="absmiddle" src="image043.gif">&nbsp;&nbsp;&nbsp;&nbsp;(8)
+
+<p>
+
+Теперь обратим внимание на то, что:
+
+<p>
+
+<img align="absmiddle" src="image045.gif"">&nbsp;&nbsp;&nbsp;&nbsp;(9)
+
+<p>
+
+Подставляя (9) в (8) получаем:
+
+<p>
+
+<img align="absmiddle" src="image047.gif">&nbsp;&nbsp;&nbsp;&nbsp;(10)
+
+<p>
+
+Сравним с формулами для <nobr>X<sub>[even]k</sub></nobr> и 
+<nobr>X<sub>[odd]k</sub></nobr> при <nobr>k = 0,1,…,N/2-1</nobr>:
+
+<p>
+
+<img align="absmiddle" src="image053.gif"">&nbsp;&nbsp;&nbsp;&nbsp;(11)
+
+<p>
+
+Подставляя (11) в (10) получим первую часть формулы (7): 
+
+<p>
+
+<img align="absmiddle" src="image055.gif">
+
+<p>
+
+Это будет верно при <nobr>k&nbsp;=&nbsp;0,1,…,N/2-1</nobr>.
+
+<p>
+
+Согласно теореме 1:
+
+<p>
+
+<img align="absmiddle" src="image057.gif"">&nbsp;&nbsp;&nbsp;&nbsp;(12)
+
+<p>
+
+Подставим (12) в (10), и заменим <sub><img src="image059.gif"></sub>
+по теореме 2:
+
+<p>
+
+<img align="absmiddle" src="image061.gif">&nbsp;&nbsp;&nbsp;&nbsp;(13)
+
+<p>
+
+Для <nobr>k = N/2,…,N-1</nobr> по формуле (2):
+
+<p>
+
+<img align="absmiddle" src="image063.gif"">&nbsp;&nbsp;&nbsp;&nbsp;(14)
+
+<p>
+
+Подставляем (14) в (13):
+
+<p>
+
+<img align="absmiddle" src="image065.gif">
+
+<p>
+
+Эта формула верна для <nobr>k = N/2,…,N-1</nobr> и, соответственно,
+(<nobr>k&nbsp;-&nbsp;N/2)</nobr>&nbsp;=&nbsp;<nobr>0,1,…,N/2-1</nobr> и представляет
+собой вторую и последнюю часть утверждения (7), которое надо было доказать.
+
+<hr><p>
+
+Формула (7) позволяет сократить число умножений вдвое (не считая умножений
+при вычислении <nobr>X<sub>[even]k</sub></nobr> и <nobr>X&nbsp;<sub>[odd]k</sub></nobr>), 
+если вычислять <nobr>X<sub>k</sub></nobr> не последовательно от <nobr>0</nobr> до <nobr>N - 1</nobr>,
+а попарно:
+<nobr>X<sub>0</sub></nobr> и <nobr>X<sub>N/2</sub></nobr>,
+<nobr>X<sub>1</sub></nobr> и <nobr>X<sub>N/2+1</sub></nobr>,...,
+<nobr>X<sub>N/2-1</sub></nobr> и <nobr>X<sub>N</sub></nobr>. Пары образуются по принципу:
+<nobr>X<sub>k</sub></nobr> и <nobr>X<sub>N/2+k</sub></nobr>. 
+
+<hr><p>
+
+<nobr><b>Теорема 4</b></nobr>.
+
+<p>
+
+ДПФ можно вычислить также по формуле:
+
+<p>
+
+<img align="absmiddle" src="image087.gif">&nbsp;&nbsp;&nbsp;&nbsp;(15)
+
+<p>
+
+<nobr><b>Доказательство</b></nobr>:
+
+<p>
+
+Согласно второй части формулы (7), получим:
+
+<p>
+
+<img align="absmiddle" src="image089.gif"> 
+
+<p>
+
+Это доказывает второе равенство в утверждении теоремы, а первое уже доказано в
+теореме 3.
+
+<hr><p>
+
+Также по этой теореме видно, что отпадает необходимость хранить вычисленные
+<nobr>X<sub>[even]k</sub></nobr> и <nobr>X<sub>[odd]k</sub></nobr> после использования при
+вычислении очередной пары и одно вычисление
+<sub><img src="image059.gif"></sub> можно использовать для
+вычисления двух элементов последовательности <nobr>{X}</nobr>.
+
+<p>
+
+На этом шаге будет выполнено <nobr>N/2</nobr> умножений комплексных чисел. Если мы
+применим ту же схему для вычисления последовательностей
+<nobr>{X<sub>[even]</sub>}</nobr> и <nobr>{X<sub>[odd]</sub>}</nobr>,
+то каждая из них потребует <nobr>N/4</nobr> умножений, итого еще <nobr>N/2</nobr>.
+Продолжая далее в том же духе <nobr>log<sub>2</sub>N</nobr> раз, дойдем до сумм,
+состоящих всего из одного слагаемого, так что общее количество умножений
+окажется равно <nobr>(N/2)log<sub>2</sub>N</nobr>, что явно лучше,
+чем <nobr>N<sup>2</sup></nobr> умножений по формуле (2).
+
+<p>
+
+Рассмотрим БПФ для разных <nobr>N</nobr>. Для ясности добавим еще один нижний индекс,
+который будет указывать общее количество элементов последовательности, к
+которой этот элемент принадлежит. 
+То есть <nobr>X<sub>{R}k</sub></nobr> - это <nobr>k</nobr>-й элемент
+последовательности <nobr>{X<sub>{R}</sub>}</nobr> из <nobr>R</nobr> элементов. 
+<nobr>X<sub>{R}[even]k</sub></nobr> - это <nobr>k</nobr>-й элемент 
+последовательности <nobr>{X<sub>{R}[even]</sub>}</nobr> из <nobr>R</nobr> элементов,
+вычисленный по четным элементам последовательности <nobr>{X<sub>{2R}</sub>}</nobr>.
+<nobr>X<sub>{R}[odd]k</sub></nobr> - это <nobr>k</nobr>-й элемент
+последовательности <nobr>{X<sub>{R}[odd]</sub>}</nobr>, вычисленный
+по нечетным элементам последовательности <nobr>{X<sub>{2R}</sub>}</nobr>.
+
+<p>
+
+В вырожденном случае, когда слагаемое всего одно (<nobr>N = 1</nobr>) формула (1)
+упрощается до:
+
+<p>
+
+<img align="absmiddle" src="image118.gif">,
+
+<p>
+
+Поскольку в данном случае <nobr>k</nobr> может быть равно только <nobr>0</nobr>, то
+<nobr>X<sub>{1}0</sub> = x<sub>{1}0</sub></nobr>, то есть, ДПФ над одним числом
+дает это же самое число.
+
+<p>
+
+Для <nobr>N = 2</nobr> по теореме 4 получим:
+<p>(откуда берутся <nobr>X<sub>{2}[even]0</sub></nobr> и т.д. см. пояснение чуть ниже)
+
+<p>
+
+<img align="absmiddle" src="image122.gif">
+
+<p>
+
+Для <nobr>N = 4</nobr> по теореме 4 получим:
+
+<p>
+
+<img align="absmiddle" src="image124.gif">
+
+<p>
+
+Отсюда видно, что если элементы исходной последовательности были
+действительными, то при увеличении <nobr>N</nobr> элементы ДПФ становятся
+комплексными.
+
+<p>
+
+Поясним, откуда получились <nobr>X<sub>{2}[even]0</sub>,...</nobr>
+
+<p>
+
+Была исходная последовательность: 
+
+<p>
+    <center><table border="1"><tr>
+    <td>
+    <nobr>x<sub>0</sub>, x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub></nobr>
+    </td>
+    </tr></table></center>
+
+<p>
+
+    Она была разделена на две - четную (even) и нечетную (odd), в каждой по <nobr>2</nobr> элемента:
+
+<p>
+    
+    <center><table border="1"><tr><td>even</td><td>odd</td></tr><tr>
+    <td><nobr>x<sub>0</sub>, x<sub>2</sub></nobr></td>
+    <td><nobr>x<sub>1</sub>, x<sub>3</sub></nobr></td>
+    </tr></table></center>
+
+<p>
+
+    Эти последовательности тоже были поделены на последовательности по <nobr>1</nobr> элементу:
+
+<p>
+    
+    <center><table border="1"><tr><td>even</td><td>odd</td></tr><tr>
+    <td>
+        <table border="1"><tr><td>even</td><td>odd</td></tr><tr><td>
+        <nobr>x<sub>0</sub></nobr>
+        </td><td>
+        <nobr>x<sub>2</sub></nobr>
+        </td></tr></table>
+    </td>
+    <td>
+        <table border="1"><tr><td>even</td><td>odd</td></tr><tr><td>
+        <nobr>x<sub>1</sub></nobr>
+        </td><td>
+        <nobr>x<sub>3</sub></nobr>
+        </td></tr></table>
+    </td>
+    </tr></table></center>
+
+<p>
+
+    Как выше пояснялось, преобразование над одним числом дает то же самое число. То есть, получается то же самое,
+    но это уже как бы преобразованные последовательности по <nobr>1</nobr> элементу. Теперь применяется формула для 
+    <nobr>N = 2</nobr>, чтобы из последовательностей по <nobr>1</nobr> элементу сделать последовательности по 
+    <nobr>2</nobr> элемента, но уже прошедшие преобразование Фурье:
+
+<p>
+
+    <center><table border="1"><tr><td>even</td><td>odd</td></tr><tr>
+    <td>
+        <nobr>
+        x<sub>0</sub> + x<sub>2</sub>,
+        x<sub>0</sub> - x<sub>2</sub>
+        </nobr>
+    </td>
+    <td>
+        <nobr>
+        x<sub>1</sub> + x<sub>3</sub>,
+        x<sub>1</sub> - x<sub>3</sub>
+        </nobr>
+    </td>
+    </tr></table></center>
+
+<p>
+
+    Вот эти две последовательности и дают нам искомые переменные. Ниже они показаны в тех же ячейках таблицы:
+
+<p>
+
+    <center><table border="1"><tr><td>even</td><td>odd</td></tr><tr>
+    <td>
+        <nobr>
+        X<sub>{2}[even]0</sub>,
+        X<sub>{2}[even]1</sub>
+        </nobr>
+    </td>
+    <td>
+        <nobr>
+        X<sub>{2}[odd]0</sub>,
+        X<sub>{2}[odd]1</sub>
+        </nobr>
+    </td>
+    </tr></table></center>
+
+<p>
+
+Для <nobr>N = 8</nobr> по теореме 4 получим:
+
+<p>
+
+<img align="absmiddle" src="image126.gif">
+
+<p>
+    
+Принцип вычисления тот же самый: разбиение на последовательности по <nobr>4, 2, 1</nobr>
+элементу, а затем - преобразование обратно в последовательности по <nobr>1, 2, 4</nobr>
+элемента. На каждом этапе выполняются попарные сложения и вычитания, а меняются только <nobr>W</nobr>-коэффициенты.
+
+<p>
+
+Обратите внимание, что на предыдущем шаге мы использовали степени
+<nobr>W<sub>4</sub></nobr>, а на этом - степени
+<nobr>W<sub>8</sub></nobr>. Лишних вычислений можно было
+бы избежать, если учесть тот факт, что
+
+<p>
+
+<img align="absmiddle" src="image132.gif">
+
+   
+<p>
+
+Тогда формулы для <nobr>N=4</nobr> будут использовать те же <nobr>W</nobr>-множители, что
+и формулы для <nobr>N=8:</nobr>
+
+<p>
+
+<img align="absmiddle" src="image134.gif">
+
+<p>
+
+Подведем итог:
+
+<p>
+
+<b><nobr>В основе алгоритма БПФ лежат следующие формулы:</nobr></b>
+
+<p>
+
+<img align="absmiddle" src="image136.gif">&nbsp;&nbsp;&nbsp;&nbsp;(16)
+
+  <div id=mi>
+   <hr size=1 noshade color=black>
+   <a href="fft1.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fft3.htm">[следующая глава]</a>
+   <hr size=1 noshade color=black>
+  </div>
+ </div>
+</body>
+</html>

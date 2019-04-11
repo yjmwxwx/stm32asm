@@ -1,0 +1,540 @@
+ARM GAS  1.s 			page 1
+
+
+   1              	        .thumb                 
+   2              	        .syntax unified      
+   3              		.align 2
+   4              	        .global _start
+   5              	.section .data
+   6              		.equ duizhanding, 0x20001000
+   7              	.section .text
+   8              	vectors:        
+   9 0000 00100020 	        .word duizhanding        
+  10 0004 01000000 	        .word _start + 1        
+  11 0008 43030000 	        .word _nmi_handler + 1  
+  12 000c 45030000 	        .word _hard_fault  + 1  
+  13 0010 00000000 	        .word 0 
+  14 0014 00000000 	        .word 0    
+  15 0018 00000000 	        .word 0
+  16 001c 00000000 		.word 0
+  17 0020 00000000 		.word 0
+  18 0024 00000000 		.word 0
+  19 0028 00000000 		.word 0
+  20 002c 47030000 		.word _svc_handler +1
+  21 0030 00000000 		.word 0 
+  22 0034 00000000 		.word 0
+  23 0038 49030000 		.word _pendsv_handler +1
+  24 003c 4B030000 		.word _systickzhongduan +1
+  25              	_start:
+  26              	shizhong:
+  27 0040 C248     		ldr r0, = 0x40021000 @ rcc
+  28 0042 C34A     		ldr r2, = 0x40022000   @FLASH访问控制
+  29 0044 3221     		movs r1, # 0x32
+  30 0046 1160     		str r1, [r2]           @FLASH缓冲 缓冲开启
+  31 0048 C048     		ldr r0, = 0x40021000 @ rcc
+  32 004a C249     		ldr r1, = 0x100002
+  33 004c 4160     		str r1, [r0, # 0x04]
+  34 004e C249     		ldr r1, = 0x1000001
+  35 0050 0160     		str r1, [r0]
+  36              	dengrc:
+  37 0052 0168     		ldr r1, [r0]
+  38 0054 8907     		lsls r1, # 30
+  39 0056 FCD5     		bpl dengrc
+  40              	dengpll:
+  41 0058 0168     		ldr r1, [r0]
+  42 005a 8901     		lsls r1, # 6
+  43 005c FCD5     		bpl dengpll
+  44              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  45 005e 0121     		movs r1, # 0x01
+  46 0060 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  47              	dengdai14mshizhongwending:
+  48 0062 416B     		ldr r1, [r0, # 0x34]
+  49 0064 8907     		lsls r1, r1, # 30     @ 左移30位
+  50 0066 FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+  51              	
+  52              	neicunqingling:
+  53 0068 BC48     		ldr r0, = 0x20000000
+  54 006a 0021     		movs r1, # 0
+  55 006c BC4B     		ldr r3, = 0x1000
+  56              	neicunqinglingxunhuan:
+  57 006e 043B     		subs r3, # 4
+ARM GAS  1.s 			page 2
+
+
+  58 0070 C150     		str r1, [r0, r3]
+  59 0072 FCD1     		bne neicunqinglingxunhuan
+  60              	
+  61              	
+  62              		
+  63 0074 BB48     		ldr r0, = 0xe000e010
+  64 0076 BC49     		ldr r1, = 0xffffff
+  65 0078 4160     		str r1, [r0, # 0x04]
+  66 007a 8160     		str r1, [r0, # 0x08]
+  67 007c 0721     		movs r1, # 0x07
+  68 007e 0160     		str r1, [r0]
+  69              	
+  70 0080 0021     		movs r1, # 0
+  71 0082 8C46     		mov r12, r1
+  72              	xunhuan1:	
+  73 0084 B948     		ldr r0, = 0x20000500
+  74 0086 8546     		mov sp, r0
+  75              	mmldrldr:
+  76 0088 4169     		ldr r1, [r0, # 20]
+  77 008a 4169     		 ldr r1, [r0, # 20]
+  78 008c 4169     		 ldr r1, [r0, # 20]
+  79 008e 4169     		 ldr r1, [r0, # 20]
+  80 0090 4169     		 ldr r1, [r0, # 20]
+  81 0092 4169     		 ldr r1, [r0, # 20]
+  82 0094 4169     		 ldr r1, [r0, # 20]
+  83 0096 4169     		 ldr r1, [r0, # 20]
+  84              	
+  85 0098 4169     		        ldr r1, [r0, # 20]
+  86 009a 4169     		         ldr r1, [r0, # 20]
+  87 009c 4169     		         ldr r1, [r0, # 20]
+  88 009e 4169     		         ldr r1, [r0, # 20]
+  89 00a0 4169     		         ldr r1, [r0, # 20]
+  90 00a2 4169     		         ldr r1, [r0, # 20]
+  91 00a4 4169     		         ldr r1, [r0, # 20]
+  92 00a6 4169     		         ldr r1, [r0, # 20]
+  93              	
+  94              	
+  95 00a8 4169     		        ldr r1, [r0, # 20]
+  96 00aa 4169     		         ldr r1, [r0, # 20]
+  97 00ac 4169     		         ldr r1, [r0, # 20]
+  98 00ae 4169     		         ldr r1, [r0, # 20]
+  99 00b0 4169     		         ldr r1, [r0, # 20]
+ 100 00b2 4169     		         ldr r1, [r0, # 20]
+ 101 00b4 4169     		         ldr r1, [r0, # 20]
+ 102 00b6 4169     		         ldr r1, [r0, # 20]
+ 103              	
+ 104 00b8 4169     		        ldr r1, [r0, # 20]
+ 105 00ba 4169     		         ldr r1, [r0, # 20]
+ 106 00bc 4169     		         ldr r1, [r0, # 20]
+ 107 00be 4169     		         ldr r1, [r0, # 20]
+ 108 00c0 4169     		         ldr r1, [r0, # 20]
+ 109 00c2 4169     		         ldr r1, [r0, # 20]
+ 110 00c4 4169     		         ldr r1, [r0, # 20]
+ 111 00c6 4169     		         ldr r1, [r0, # 20]
+ 112              	
+ 113 00c8 4169     		        ldr r1, [r0, # 20]
+ 114 00ca 4169     		         ldr r1, [r0, # 20]
+ARM GAS  1.s 			page 3
+
+
+ 115 00cc 4169     		         ldr r1, [r0, # 20]
+ 116 00ce 4169     		         ldr r1, [r0, # 20]
+ 117 00d0 4169     		         ldr r1, [r0, # 20]
+ 118 00d2 4169     		         ldr r1, [r0, # 20]
+ 119 00d4 4169     		         ldr r1, [r0, # 20]
+ 120 00d6 4169     		         ldr r1, [r0, # 20]
+ 121              	
+ 122 00d8 4169     		        ldr r1, [r0, # 20]
+ 123 00da 4169     		         ldr r1, [r0, # 20]
+ 124 00dc 4169     		         ldr r1, [r0, # 20]
+ 125 00de 4169     		         ldr r1, [r0, # 20]
+ 126 00e0 4169     		         ldr r1, [r0, # 20]
+ 127 00e2 4169     		         ldr r1, [r0, # 20]
+ 128 00e4 4169     		         ldr r1, [r0, # 20]
+ 129 00e6 4169     		         ldr r1, [r0, # 20]
+ 130              	
+ 131 00e8 4169     		        ldr r1, [r0, # 20]
+ 132 00ea 4169     		         ldr r1, [r0, # 20]
+ 133 00ec 4169     		         ldr r1, [r0, # 20]
+ 134 00ee 4169     		         ldr r1, [r0, # 20]
+ 135 00f0 4169     		         ldr r1, [r0, # 20]
+ 136 00f2 4169     		         ldr r1, [r0, # 20]
+ 137 00f4 4169     		         ldr r1, [r0, # 20]
+ 138 00f6 4169     		         ldr r1, [r0, # 20]
+ 139              	
+ 140 00f8 4169     		        ldr r1, [r0, # 20]
+ 141 00fa 4169     		         ldr r1, [r0, # 20]
+ 142 00fc 4169     		         ldr r1, [r0, # 20]
+ 143 00fe 4169     		         ldr r1, [r0, # 20]
+ 144 0100 4169     		         ldr r1, [r0, # 20]
+ 145 0102 4169     		         ldr r1, [r0, # 20]
+ 146 0104 4169     		         ldr r1, [r0, # 20]
+ 147 0106 4169     		         ldr r1, [r0, # 20]
+ 148              	
+ 149 0108 4169     		        ldr r1, [r0, # 20]
+ 150 010a 4169     		         ldr r1, [r0, # 20]
+ 151 010c 4169     		         ldr r1, [r0, # 20]
+ 152 010e 4169     		         ldr r1, [r0, # 20]
+ 153 0110 4169     		         ldr r1, [r0, # 20]
+ 154 0112 4169     		         ldr r1, [r0, # 20]
+ 155 0114 4169     		         ldr r1, [r0, # 20]
+ 156 0116 4169     		         ldr r1, [r0, # 20]
+ 157              	
+ 158 0118 4169     		        ldr r1, [r0, # 20]
+ 159 011a 4169     		         ldr r1, [r0, # 20]
+ 160 011c 4169     		         ldr r1, [r0, # 20]
+ 161 011e 4169     		         ldr r1, [r0, # 20]
+ 162 0120 4169     		         ldr r1, [r0, # 20]
+ 163 0122 4169     		         ldr r1, [r0, # 20]
+ 164 0124 4169     		         ldr r1, [r0, # 20]
+ 165 0126 4169     		         ldr r1, [r0, # 20]
+ 166              	
+ 167 0128 4169     		        ldr r1, [r0, # 20]
+ 168 012a 4169     		         ldr r1, [r0, # 20]
+ 169 012c 4169     		         ldr r1, [r0, # 20]
+ 170 012e 4169     		         ldr r1, [r0, # 20]
+ 171 0130 4169     		         ldr r1, [r0, # 20]
+ARM GAS  1.s 			page 4
+
+
+ 172 0132 4169     		         ldr r1, [r0, # 20]
+ 173 0134 4169     		         ldr r1, [r0, # 20]
+ 174 0136 4169     		         ldr r1, [r0, # 20]
+ 175              	
+ 176 0138 4169     		        ldr r1, [r0, # 20]
+ 177 013a 4169     		         ldr r1, [r0, # 20]
+ 178 013c 4169     		         ldr r1, [r0, # 20]
+ 179 013e 4169     		         ldr r1, [r0, # 20]
+ 180 0140 4169     		         ldr r1, [r0, # 20]
+ 181 0142 4169     		         ldr r1, [r0, # 20]
+ 182 0144 4169     		         ldr r1, [r0, # 20]
+ 183 0146 4169     		         ldr r1, [r0, # 20]
+ 184              	
+ 185 0148 4169     		        ldr r1, [r0, # 20]
+ 186 014a 4169     		         ldr r1, [r0, # 20]
+ 187 014c 4169     		         ldr r1, [r0, # 20]
+ 188 014e 4169     		         ldr r1, [r0, # 20]
+ 189 0150 4169     		         ldr r1, [r0, # 20]
+ 190 0152 4169     		         ldr r1, [r0, # 20]
+ 191 0154 4169     		         ldr r1, [r0, # 20]
+ 192 0156 4169     		         ldr r1, [r0, # 20]
+ 193              	
+ 194 0158 4169     		        ldr r1, [r0, # 20]
+ 195 015a 4169     		         ldr r1, [r0, # 20]
+ 196 015c 4169     		         ldr r1, [r0, # 20]
+ 197 015e 4169     		         ldr r1, [r0, # 20]
+ 198 0160 4169     		         ldr r1, [r0, # 20]
+ 199 0162 4169     		         ldr r1, [r0, # 20]
+ 200 0164 4169     		         ldr r1, [r0, # 20]
+ 201 0166 4169     		         ldr r1, [r0, # 20]
+ 202              	
+ 203 0168 6146     		mov r1, r12
+ 204 016a 0131     		adds r1, r1, # 1
+ 205 016c 8C46     		mov r12, r1
+ 206 016e 89E7     		b xunhuan1
+ 207              		
+ 208              	mmvvv:
+ 209 0170 0046     		mov r0, r0
+ 210 0172 0046     		mov r0, r0
+ 211 0174 0046     		mov r0, r0
+ 212 0176 0046     		mov r0, r0
+ 213 0178 0046     		mov r0, r0
+ 214 017a 0046     		mov r0, r0
+ 215 017c 0046     		mov r0, r0
+ 216 017e 0046     		mov r0, r0
+ 217              	
+ 218 0180 0046     		        mov r0, r0
+ 219 0182 0046     		        mov r0, r0
+ 220 0184 0046     		        mov r0, r0
+ 221 0186 0046     		        mov r0, r0
+ 222 0188 0046     		        mov r0, r0
+ 223 018a 0046     		        mov r0, r0
+ 224 018c 0046     		        mov r0, r0
+ 225 018e 0046     		        mov r0, r0
+ 226              	
+ 227 0190 0046     		        mov r0, r0
+ 228 0192 0046     		        mov r0, r0
+ARM GAS  1.s 			page 5
+
+
+ 229 0194 0046     		        mov r0, r0
+ 230 0196 0046     		        mov r0, r0
+ 231 0198 0046     		        mov r0, r0
+ 232 019a 0046     		        mov r0, r0
+ 233 019c 0046     		        mov r0, r0
+ 234 019e 0046     		        mov r0, r0
+ 235 01a0 0046     		        mov r0, r0
+ 236 01a2 0046     		        mov r0, r0
+ 237 01a4 0046     		        mov r0, r0
+ 238 01a6 0046     		        mov r0, r0
+ 239 01a8 0046     		        mov r0, r0
+ 240 01aa 0046     		        mov r0, r0
+ 241 01ac 0046     		        mov r0, r0
+ 242 01ae 0046     		        mov r0, r0
+ 243 01b0 0046     		        mov r0, r0
+ 244 01b2 0046     		        mov r0, r0
+ 245 01b4 0046     		        mov r0, r0
+ 246 01b6 0046     		        mov r0, r0
+ 247 01b8 0046     		        mov r0, r0
+ 248 01ba 0046     		        mov r0, r0
+ 249 01bc 0046     		        mov r0, r0
+ 250 01be 0046     		        mov r0, r0
+ 251 01c0 0046     		        mov r0, r0
+ 252 01c2 0046     		        mov r0, r0
+ 253 01c4 0046     		        mov r0, r0
+ 254 01c6 0046     		        mov r0, r0
+ 255 01c8 0046     		        mov r0, r0
+ 256 01ca 0046     		        mov r0, r0
+ 257 01cc 0046     		        mov r0, r0
+ 258 01ce 0046     		        mov r0, r0
+ 259 01d0 0046     		        mov r0, r0
+ 260 01d2 0046     		        mov r0, r0
+ 261 01d4 0046     		        mov r0, r0
+ 262 01d6 0046     		        mov r0, r0
+ 263 01d8 0046     		        mov r0, r0
+ 264 01da 0046     		        mov r0, r0
+ 265 01dc 0046     		        mov r0, r0
+ 266 01de 0046     		        mov r0, r0
+ 267 01e0 0046     		        mov r0, r0
+ 268 01e2 0046     		        mov r0, r0
+ 269 01e4 0046     		        mov r0, r0
+ 270 01e6 0046     		        mov r0, r0
+ 271 01e8 0046     		        mov r0, r0
+ 272 01ea 0046     		        mov r0, r0
+ 273 01ec 0046     		        mov r0, r0
+ 274 01ee 0046     		        mov r0, r0
+ 275 01f0 0046     		        mov r0, r0
+ 276 01f2 0046     		        mov r0, r0
+ 277 01f4 0046     		        mov r0, r0
+ 278 01f6 0046     		        mov r0, r0
+ 279 01f8 0046     		        mov r0, r0
+ 280 01fa 0046     		        mov r0, r0
+ 281 01fc 0046     		        mov r0, r0
+ 282 01fe 0046     		        mov r0, r0
+ 283 0200 0046     		        mov r0, r0
+ 284 0202 0046     		        mov r0, r0
+ 285 0204 0046     		        mov r0, r0
+ARM GAS  1.s 			page 6
+
+
+ 286 0206 0046     		        mov r0, r0
+ 287 0208 0046     		        mov r0, r0
+ 288 020a 0046     		        mov r0, r0
+ 289 020c 0046     		        mov r0, r0
+ 290 020e 0046     		        mov r0, r0
+ 291 0210 0046     		        mov r0, r0
+ 292 0212 0046     		        mov r0, r0
+ 293 0214 0046     		        mov r0, r0
+ 294 0216 0046     		        mov r0, r0
+ 295 0218 0046     		        mov r0, r0
+ 296 021a 0046     		        mov r0, r0
+ 297 021c 0046     		        mov r0, r0
+ 298 021e 0046     		        mov r0, r0
+ 299 0220 0046     		        mov r0, r0
+ 300 0222 0046     		        mov r0, r0
+ 301 0224 0046     		        mov r0, r0
+ 302 0226 0046     		        mov r0, r0
+ 303 0228 0046     		        mov r0, r0
+ 304 022a 0046     		        mov r0, r0
+ 305 022c 0046     		        mov r0, r0
+ 306 022e 0046     		        mov r0, r0
+ 307 0230 0046     		        mov r0, r0
+ 308 0232 0046     		        mov r0, r0
+ 309 0234 0046     		        mov r0, r0
+ 310 0236 0046     		        mov r0, r0
+ 311 0238 0046     		        mov r0, r0
+ 312 023a 0046     		        mov r0, r0
+ 313 023c 0046     		        mov r0, r0
+ 314 023e 0046     		        mov r0, r0
+ 315 0240 0046     		        mov r0, r0
+ 316 0242 0046     		        mov r0, r0
+ 317 0244 0046     		        mov r0, r0
+ 318 0246 0046     		        mov r0, r0
+ 319 0248 0046     		        mov r0, r0
+ 320 024a 0046     		        mov r0, r0
+ 321 024c 0046     		        mov r0, r0
+ 322 024e 0046     		        mov r0, r0
+ 323              		
+ 324 0250 6146     		mov r1, r12
+ 325 0252 0131     		adds r1, r1, # 1
+ 326 0254 8C46     		mov r12, r1
+ 327 0256 15E7     		b xunhuan1
+ 328              		
+ 329              	xunhuan:
+ 330 0258 FFB4     		 push {r0-r7}
+ 331 025a FFB4     		 push {r0-r7}
+ 332 025c FFB4     		 push {r0-r7}
+ 333 025e FFB4     		 push {r0-r7}
+ 334 0260 FFB4     		 push {r0-r7}
+ 335 0262 FFB4     		 push {r0-r7}
+ 336 0264 FFB4     		 push {r0-r7}
+ 337 0266 FFB4     	         push {r0-r7}
+ 338              	
+ 339 0268 FFB4     		         push {r0-r7}
+ 340 026a FFB4     		         push {r0-r7}
+ 341 026c FFB4     		         push {r0-r7}
+ 342 026e FFB4     		         push {r0-r7}
+ARM GAS  1.s 			page 7
+
+
+ 343 0270 FFB4     		         push {r0-r7}
+ 344 0272 FFB4     		         push {r0-r7}
+ 345 0274 FFB4     		         push {r0-r7}
+ 346 0276 FFB4     		         push {r0-r7}
+ 347              	
+ 348 0278 FFB4     		         push {r0-r7}
+ 349 027a FFB4     		         push {r0-r7}
+ 350 027c FFB4     		         push {r0-r7}
+ 351 027e FFB4     		         push {r0-r7}
+ 352 0280 FFB4     		         push {r0-r7}
+ 353 0282 FFB4     		         push {r0-r7}
+ 354 0284 FFB4     		         push {r0-r7}
+ 355 0286 FFB4     		         push {r0-r7}
+ 356              	
+ 357 0288 FFB4     		         push {r0-r7}
+ 358 028a FFB4     		         push {r0-r7}
+ 359 028c FFB4     		         push {r0-r7}
+ 360 028e FFB4     		         push {r0-r7}
+ 361 0290 FFB4     		         push {r0-r7}
+ 362 0292 FFB4     		         push {r0-r7}
+ 363 0294 FFB4     		         push {r0-r7}
+ 364 0296 FFB4     		         push {r0-r7}
+ 365              	
+ 366 0298 FFB4     		         push {r0-r7}
+ 367 029a FFB4     		         push {r0-r7}
+ 368 029c FFB4     		         push {r0-r7}
+ 369 029e FFB4     		         push {r0-r7}
+ 370 02a0 FFB4     		         push {r0-r7}
+ 371 02a2 FFB4     		         push {r0-r7}
+ 372 02a4 FFB4     		         push {r0-r7}
+ 373 02a6 FFB4     		         push {r0-r7}
+ 374              	
+ 375 02a8 FFB4     		                push {r0-r7}
+ 376 02aa FFB4     		                 push {r0-r7}
+ 377 02ac FFB4     		                 push {r0-r7}
+ 378 02ae FFB4     		                 push {r0-r7}
+ 379 02b0 FFB4     		                 push {r0-r7}
+ 380 02b2 FFB4     		                 push {r0-r7}
+ 381 02b4 FFB4     		                 push {r0-r7}
+ 382 02b6 FFB4     		                 push {r0-r7}
+ 383              	
+ 384 02b8 FFB4     		                 push {r0-r7}
+ 385 02ba FFB4     		                 push {r0-r7}
+ 386 02bc FFB4     		                 push {r0-r7}
+ 387 02be FFB4     		                 push {r0-r7}
+ 388 02c0 FFB4     		                 push {r0-r7}
+ 389 02c2 FFB4     		                 push {r0-r7}
+ 390 02c4 FFB4     		                 push {r0-r7}
+ 391 02c6 FFB4     		                 push {r0-r7}
+ 392              		
+ 393 02c8 FFB4     		                push {r0-r7}
+ 394 02ca FFB4     		                 push {r0-r7}
+ 395 02cc FFB4     		                 push {r0-r7}
+ 396 02ce FFB4     		                 push {r0-r7}
+ 397 02d0 FFB4     		                 push {r0-r7}
+ 398 02d2 FFB4     		                 push {r0-r7}
+ 399 02d4 FFB4     		                 push {r0-r7}
+ARM GAS  1.s 			page 8
+
+
+ 400 02d6 FFB4     		                 push {r0-r7}
+ 401              	
+ 402 02d8 FFB4     		                 push {r0-r7}
+ 403 02da FFB4     		                 push {r0-r7}
+ 404 02dc FFB4     		                 push {r0-r7}
+ 405 02de FFB4     		                 push {r0-r7}
+ 406 02e0 FFB4     		                 push {r0-r7}
+ 407 02e2 FFB4     		                 push {r0-r7}
+ 408 02e4 FFB4     		                 push {r0-r7}
+ 409 02e6 FFB4     		                 push {r0-r7}
+ 410              		
+ 411 02e8 FFB4     		                push {r0-r7}
+ 412 02ea FFB4     		                 push {r0-r7}
+ 413 02ec FFB4     		                 push {r0-r7}
+ 414 02ee FFB4     		                 push {r0-r7}
+ 415 02f0 FFB4     		                 push {r0-r7}
+ 416 02f2 FFB4     		                 push {r0-r7}
+ 417 02f4 FFB4     		                 push {r0-r7}
+ 418 02f6 FFB4     		                 push {r0-r7}
+ 419              	
+ 420 02f8 FFB4     		                 push {r0-r7}
+ 421 02fa FFB4     		                 push {r0-r7}
+ 422 02fc FFB4     		                 push {r0-r7}
+ 423 02fe FFB4     		                 push {r0-r7}
+ 424 0300 FFB4     		                 push {r0-r7}
+ 425 0302 FFB4     		                 push {r0-r7}
+ 426 0304 FFB4     		                 push {r0-r7}
+ 427 0306 FFB4     		                 push {r0-r7}
+ 428              		
+ 429 0308 FFB4     		                push {r0-r7}
+ 430 030a FFB4     		                 push {r0-r7}
+ 431 030c FFB4     		                 push {r0-r7}
+ 432 030e FFB4     		                 push {r0-r7}
+ 433 0310 FFB4     		                 push {r0-r7}
+ 434 0312 FFB4     		                 push {r0-r7}
+ 435 0314 FFB4     		                 push {r0-r7}
+ 436 0316 FFB4     		                 push {r0-r7}
+ 437              	
+ 438 0318 FFB4     		                 push {r0-r7}
+ 439 031a FFB4     		                 push {r0-r7}
+ 440 031c FFB4     		                 push {r0-r7}
+ 441 031e FFB4     		                 push {r0-r7}
+ 442 0320 FFB4     		                 push {r0-r7}
+ 443 0322 FFB4     		                 push {r0-r7}
+ 444 0324 FFB4     		                 push {r0-r7}
+ 445 0326 FFB4     		                 push {r0-r7}
+ 446              		
+ 447 0328 FFB4     		                push {r0-r7}
+ 448 032a FFB4     		                 push {r0-r7}
+ 449 032c FFB4     		                 push {r0-r7}
+ 450 032e FFB4     		                 push {r0-r7}
+ 451 0330 FFB4     		                 push {r0-r7}
+ 452 0332 FFB4     		                 push {r0-r7}
+ 453 0334 FFB4     		                 push {r0-r7}
+ 454 0336 FFB4     		                 push {r0-r7}
+ 455              	
+ 456              		           
+ARM GAS  1.s 			page 9
+
+
+ 457              	
+ 458 0338 6146     		mov r1, r12
+ 459 033a 0131     		adds r1, r1, # 1
+ 460 033c 8C46     		mov r12, r1
+ 461 033e A1E6     		b xunhuan1
+ 462              		
+ 463              	
+ 464              	_tingting:
+ 465 0340 FEE7     		b _tingting
+ 466              	
+ 467              	_nmi_handler:
+ 468 0342 7047     		bx lr
+ 469              	_hard_fault:
+ 470 0344 7047     		bx lr
+ 471              	_svc_handler:
+ 472 0346 7047     		bx lr
+ 473              	_pendsv_handler:
+ 474 0348 7047     		bx lr
+ 475              	_systickzhongduan:
+ 476              	dd:
+ 477 034a FEE7     		b dd
+ 478              	
+ 479              		
+ 480 034c 00100240 		
+ 480      00200240 
+ 480      02001000 
+ 480      01000001 
+ 480      00000020 
+ARM GAS  1.s 			page 10
+
+
+DEFINED SYMBOLS
+                 1.s:25     .text:0000000000000040 _start
+                 1.s:6      *ABS*:0000000020001000 duizhanding
+                 1.s:8      .text:0000000000000000 vectors
+                 1.s:9      .text:0000000000000000 $d
+                 1.s:467    .text:0000000000000342 _nmi_handler
+                 1.s:469    .text:0000000000000344 _hard_fault
+                 1.s:471    .text:0000000000000346 _svc_handler
+                 1.s:473    .text:0000000000000348 _pendsv_handler
+                 1.s:475    .text:000000000000034a _systickzhongduan
+                 1.s:26     .text:0000000000000040 shizhong
+                 1.s:27     .text:0000000000000040 $t
+                 1.s:36     .text:0000000000000052 dengrc
+                 1.s:40     .text:0000000000000058 dengpll
+                 1.s:47     .text:0000000000000062 dengdai14mshizhongwending
+                 1.s:52     .text:0000000000000068 neicunqingling
+                 1.s:56     .text:000000000000006e neicunqinglingxunhuan
+                 1.s:72     .text:0000000000000084 xunhuan1
+                 1.s:75     .text:0000000000000088 mmldrldr
+                 1.s:208    .text:0000000000000170 mmvvv
+                 1.s:329    .text:0000000000000258 xunhuan
+                 1.s:464    .text:0000000000000340 _tingting
+                 1.s:476    .text:000000000000034a dd
+                 1.s:480    .text:000000000000034c $d
+
+NO UNDEFINED SYMBOLS

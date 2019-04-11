@@ -1,0 +1,199 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm
+   2              		@fft 8点
+   3              		 .thumb                 
+   4              	         .syntax unified
+   5              	.section .data	
+   6              	       	.equ STACKINIT,                 0x20001000
+   7 0000 00000000 	shuru:	.int 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+   7      01000000 
+   7      02000000 
+   7      03000000 
+   7      04000000 
+   8 0040 10000000 		.int 16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
+   8      11000000 
+   8      12000000 
+   8      13000000 
+   8      14000000 
+   9 0080 00000000 	hudie:	.int 0,64,32,96,16,80,48,112,8,72,40,104,24,88,56,120
+   9      40000000 
+   9      20000000 
+   9      60000000 
+   9      10000000 
+  10 00c0 04000000 		.int 4,68,36,100,20,84,52,116,12,76,44,108,28,92,60,124
+  10      44000000 
+  10      24000000 
+  10      64000000 
+  10      14000000 
+  11              		.section .text
+  12              	vectors:        
+  13 0000 00100020 	        .word STACKINIT         
+  14 0004 3D000000 	        .word _start + 1        
+  15 0008 F9000000 	        .word _nmi_handler + 1  
+  16 000c FB000000 	        .word _hard_fault  + 1  
+  17 0010 00000000 	        .word 0 
+  18 0014 00000000 	        .word 0    
+  19 0018 00000000 	        .word 0
+  20 001c 00000000 		.word 0
+  21 0020 00000000 		.word 0
+  22 0024 00000000 		.word 0
+  23 0028 00000000 		.word 0
+  24 002c FD000000 		.word _svc_handler +1
+  25 0030 00000000 		.word 0 
+  26 0034 00000000 		.word 0
+  27 0038 FF000000 		.word _pendsv_handler +1
+  28              		
+  29              	_start:
+  30 003c 304A     		ldr r2, = 0x20000500
+  31 003e 82F30988 		msr psp, r2
+  32 0042 0320     		movs r0, # 0x03
+  33 0044 80F31488 		msr control, r0
+  34 0048 2E4E     		ldr r6, = shuru
+  35 004a B346     		mov r11, r6
+  36              	_fenjie:
+  37 004c 00BE     		bkpt
+  38 004e 2C4A     		ldr r2, = 0x20000500
+  39 0050 1346     		mov r3, r2
+  40 0052 1C46     		mov r4, r3
+  41 0054 403C     		subs r4, r4, # 64
+ARM GAS  1.s 			page 2
+
+
+  42 0056 9846     		mov r8, r3
+  43 0058 A146     		mov r9, r4
+  44              		
+  45 005a DD46     		mov sp, r11
+  46 005c FFBC     		pop {r0-r7}
+  47 005e EB46     		mov r11, sp
+  48 0060 C546     		mov sp, r8
+  49 0062 55B4     		push {r0,r2,r4,r6}
+  50 0064 E846     		mov r8, sp
+  51 0066 CD46     		mov sp, r9
+  52 0068 AAB4     		push {r1,r3,r5,r7}
+  53              		
+  54 006a E946     		mov r9, sp
+  55 006c DD46     		mov sp, r11
+  56 006e FFBC     		pop {r0-r7}
+  57 0070 EB46     		mov r11, sp
+  58 0072 C546     	        mov sp, r8
+  59 0074 55B4     		push {r0,r2,r4,r6}
+  60 0076 E846     		mov r8, sp
+  61 0078 CD46     		mov sp, r9
+  62 007a AAB4     		push {r1,r3,r5,r7}
+  63 007c E946     		mov r9, sp
+  64              		
+  65 007e DD46     		mov sp, r11
+  66 0080 FFBC     		pop {r0-r7}
+  67 0082 EB46     		mov r11, sp
+  68 0084 C546     		mov sp, r8
+  69 0086 55B4     		push {r0,r2,r4,r6}
+  70 0088 E846     		mov r8, sp
+  71 008a CD46     		mov sp, r9
+  72 008c AAB4     		push {r1,r3,r5,r7}
+  73              		
+  74 008e E946     		mov r9, sp
+  75 0090 DD46     		mov sp, r11
+  76 0092 FFBC     		pop {r0-r7}
+  77 0094 EB46     		mov r11, sp
+  78 0096 C546     		mov sp, r8
+  79 0098 55B4     		push {r0,r2,r4,r6}
+  80 009a E846     		mov r8, sp
+  81 009c CD46     		mov sp, r9
+  82 009e AAB4     		push {r1,r3,r5,r7}
+  83              	
+  84 00a0 00BE     		bkpt
+  85              		
+  86 00a2 6B46     		mov r3, sp
+  87 00a4 1C46     		mov r4, r3
+  88 00a6 403C     		subs r4, r4, # 64
+  89 00a8 9846     		mov r8, r3
+  90 00aa A146     		mov r9, r4
+  91              	
+  92              		      
+  93 00ac FFBC     		pop {r0-r7}
+  94 00ae EB46     		mov r11, sp
+  95 00b0 C546     		mov sp, r8
+  96 00b2 55B4     		push {r0,r2,r4,r6}
+  97 00b4 E846     		mov r8, sp
+  98 00b6 CD46     		mov sp, r9
+ARM GAS  1.s 			page 3
+
+
+  99 00b8 AAB4     		push {r1,r3,r5,r7}
+ 100 00ba E946     		mov r9, sp
+ 101              		
+ 102 00bc DD46     		mov sp, r11
+ 103 00be FFBC     		pop {r0-r7}
+ 104 00c0 EB46     		mov r11, sp
+ 105 00c2 C546     		mov sp, r8
+ 106 00c4 55B4     		push {r0,r2,r4,r6}
+ 107 00c6 E846     		mov r8, sp
+ 108 00c8 CD46     		mov sp, r9
+ 109 00ca AAB4     		push {r1,r3,r5,r7}
+ 110 00cc E946     		mov r9, sp
+ 111              		
+ 112 00ce DD46     		mov sp, r11
+ 113 00d0 FFBC     		pop {r0-r7}
+ 114 00d2 EB46     		mov r11, sp
+ 115 00d4 C546     		mov sp, r8
+ 116 00d6 55B4     		push {r0,r2,r4,r6}
+ 117 00d8 E846     		mov r8, sp
+ 118 00da CD46     		mov sp, r9
+ 119 00dc AAB4     		push {r1,r3,r5,r7}
+ 120 00de E946     		mov r9, sp
+ 121              		
+ 122 00e0 DD46     		mov sp, r11
+ 123 00e2 FFBC     		pop {r0-r7}
+ 124 00e4 EB46     		mov r11, sp
+ 125 00e6 C546     		mov sp, r8
+ 126 00e8 55B4     		push {r0,r2,r4,r6}
+ 127 00ea E846     		mov r8, sp
+ 128 00ec CD46     		mov sp, r9
+ 129 00ee AAB4     		push {r1,r3,r5,r7}
+ 130 00f0 EB46     		mov r11, sp
+ 131 00f2 00BE     		bkpt
+ 132 00f4 AAE7     		b _fenjie
+ 133              		
+ 134              		
+ 135              	
+ 136              		
+ 137              	
+ 138              		
+ 139              	
+ 140              		
+ 141              	
+ 142              	_tingting:
+ 143 00f6 FEE7     		b _tingting
+ 144              			
+ 145              	_nmi_handler:
+ 146 00f8 7047     		bx lr
+ 147              	_hard_fault:
+ 148 00fa 7047     		bx lr
+ 149              	_svc_handler:
+ 150 00fc 7047     		bx lr
+ 151              	_pendsv_handler:
+ 152 00fe 70470005 		bx lr
+ 152      00200000 
+ 152      0000
+ARM GAS  1.s 			page 4
+
+
+DEFINED SYMBOLS
+                 1.s:6      *ABS*:0000000020001000 STACKINIT
+                 1.s:7      .data:0000000000000000 shuru
+                 1.s:9      .data:0000000000000080 hudie
+                 1.s:12     .text:0000000000000000 vectors
+                 1.s:29     .text:000000000000003c _start
+                 1.s:145    .text:00000000000000f8 _nmi_handler
+                 1.s:147    .text:00000000000000fa _hard_fault
+                 1.s:149    .text:00000000000000fc _svc_handler
+                 1.s:151    .text:00000000000000fe _pendsv_handler
+                            .text:0000000000000000 $d
+                 1.s:30     .text:000000000000003c $t
+                 1.s:36     .text:000000000000004c _fenjie
+                 1.s:142    .text:00000000000000f6 _tingting
+                 1.s:152    .text:0000000000000100 $d
+
+NO UNDEFINED SYMBOLS

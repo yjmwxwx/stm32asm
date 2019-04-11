@@ -1,0 +1,429 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm
+   2              		@fft 256点
+   3              		@2018-01-05
+   4              		 .thumb                 
+   5              	         .syntax unified
+   6              	.section .data	
+   7              	       	.equ STACKINIT,                 0x20001000
+   8              		.equ xuanzhuanyinzi,		0x20000804
+   9              		.align 4
+  10              	shuru:
+  11 0000 00000000 		.int 0x0000,0x11BB,0xFFFFFAA2,0x0C71,0xFFFFE8D1,0x05BF,0x0864,0x04B1,0x0F3B,0xFFFFE92E,0x096D,0xFF
+  11      BB110000 
+  11      A2FAFFFF 
+  11      710C0000 
+  11      D1E8FFFF 
+  12              		
+  13              		
+  14              	hudieweifanzhuan:
+  15 0400 00000000 		.int 0x0000,0x0200,0x0100,0x0300,0x0080,0x0280,0x0180,0x0380,0x0040,0x0240,0x0140,0x0340,0x00C0,0x
+  15      00020000 
+  15      00010000 
+  15      00030000 
+  15      80000000 
+  16              	fft3xuanzhuanyinzi:
+  17 0800 00800000 		.int 0x8000,0x0000,0x5A82,0xFFFFA57E,0x0000,0xFFFF8000,0xFFFFA57E,0xFFFFA57E
+  17      00000000 
+  17      825A0000 
+  17      7EA5FFFF 
+  17      00000000 
+  18              	fft4xuanzhuanyinzi:
+  19 0820 00800000 		.int 0x8000,0x0000,0x7641,0xFFFFCF05,0x5A82,0xFFFFA57E,0x30FB,0xFFFF89BF,0x0000,0xFFFF8000,0xFFFFC
+  19      00000000 
+  19      41760000 
+  19      05CFFFFF 
+  19      825A0000 
+  20              	fft5xuanzhuanyinzi:
+  21 0860 00800000 		.int 0x8000,0x0000,0x7D8A,0xFFFFE708,0x7641,0xFFFFCF05,0x6A6D,0xFFFFB8E4,0x5A82,0xFFFFA57E,0x471C,
+  21      00000000 
+  21      8A7D0000 
+  21      08E7FFFF 
+  21      41760000 
+  22              	fft6xuanzhuanyinzi:
+  23 08e0 00800000 		.int 0x8000,0x0000,0x7F62,0xFFFFF375,0x7D8A,0xFFFFE708,0x7A7D,0xFFFFDAD8,0x7641,0xFFFFCF05,0x70E2,
+  23      00000000 
+  23      627F0000 
+  23      75F3FFFF 
+  23      8A7D0000 
+  24              	fft7xuanzhuanyinzi:
+  25 09e0 00800000 		.int 0x8000,0x0000,0x7FD8,0xFFFFF9B9,0x7F62,0xFFFFF375,0x7E9D,0xFFFFED38,0x7D8A,0xFFFFE708,0x7C29,
+  25      00000000 
+  25      D87F0000 
+  25      B9F9FFFF 
+  25      627F0000 
+  26              	
+  27              	fft8xuanzhuanyinzi:
+  28 0be0 00800000 		.int 0x8000,0x0000,0x7FF6,0xFFFFFCDC,0x7FD8,0xFFFFF9B9,0x7FA7,0xFFFFF696,0x7F62,0xFFFFF375,0x7F09,
+  28      00000000 
+ARM GAS  1.s 			page 2
+
+
+  28      F67F0000 
+  28      DCFCFFFF 
+  28      D87F0000 
+  29              		           	
+  30              	.section .text
+  31              	vectors:        
+  32 0000 00100020 	        .word STACKINIT         
+  33 0004 3D000000 	        .word _start + 1        
+  34 0008 5D020000 	        .word _nmi_handler + 1  
+  35 000c 5F020000 	        .word _hard_fault  + 1  
+  36 0010 00000000 	        .word 0 
+  37 0014 00000000 	        .word 0    
+  38 0018 00000000 	        .word 0
+  39 001c 00000000 		.word 0
+  40 0020 00000000 		.word 0
+  41 0024 00000000 		.word 0
+  42 0028 00000000 		.word 0
+  43 002c 61020000 		.word _svc_handler +1
+  44 0030 00000000 		.word 0 
+  45 0034 00000000 		.word 0
+  46 0038 63020000 		.word _pendsv_handler +1
+  47              		.align 2
+  48              	_start:
+  49              	_shizhong:	                     @时钟设置
+  50 003c 774A     		ldr r2, = 0x40022000   @FLASH访问控制
+  51 003e 3221     		movs r1, # 0x32
+  52 0040 1160     		str r1, [r2]
+  53 0042 7748     		ldr r0, = 0x40021000 @ rcc
+  54              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  55 0044 0121     		movs r1, # 0x01
+  56 0046 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  57              	_dengdai14mshizhongwending:	    @等14M时钟稳定
+  58 0048 416B     		ldr r1, [r0, # 0x34]
+  59 004a 8907     		lsls r1, r1, # 30     @ 左移30位
+  60 004c FCD5     		bpl _dengdai14mshizhongwending  @ 等待14M时钟稳定
+  61              	
+  62              	_neicunqingling:	                         @ 0x1000的内存清零
+  63              		                                 @ 1K=1024BIT=0X400
+  64 004e 7548     		ldr r0, = 0x20000000
+  65 0050 0021     		movs r1, # 0
+  66 0052 754B     		ldr r3, = 0x1000
+  67              	_neicunqinglingxunhuan:	                   @ 内存清零循环
+  68 0054 043B     		subs r3, # 4
+  69 0056 C150     		str r1, [r0, r3]
+  70 0058 FCD1     		bne _neicunqinglingxunhuan                @
+  71              	
+  72              	
+  73              	
+  74              		
+  75              	_fftjisuan:
+  76              	_fft1:	
+  77 005a 7448     		ldr r0, = shuru
+  78 005c 7149     		ldr r1, = 0x20000000
+  79 005e 8022     		movs r2, # 128
+  80 0060 734B     		ldr r3, = hudieweifanzhuan
+  81              	_fft1xunhuan:
+  82 0062 1E68     		ldr r6, [r3]
+ARM GAS  1.s 			page 3
+
+
+  83 0064 5F68     		ldr r7, [r3, # 0x04]
+  84 0066 8659     		ldr r6, [r0, r6]
+  85 0068 C759     		ldr r7, [r0, r7]
+  86 006a F419     		adds r4, r6, r7
+  87 006c F51B     		subs r5, r6, r7
+  88 006e 0C60     		str r4, [r1]
+  89 0070 4D60     		str r5, [r1, # 0x04]
+  90 0072 0831     		adds r1, r1, # 0x08
+  91 0074 0833     		adds r3, r3, # 0x08
+  92 0076 013A     		subs r2, r2, # 1
+  93 0078 F3D1     		bne _fft1xunhuan
+  94              		
+  95              	_fft2:
+  96 007a 6A48     		ldr r0, = 0x20000000
+  97 007c 0124     		movs r4, # 1
+  98 007e A402     		lsls r4, r4, # 10
+  99 0080 2418     		adds r4, r4, r0
+ 100 0082 A046     		mov r8, r4
+ 101              	_fft2xunhuan:
+ 102 0084 0468     		ldr r4, [r0]
+ 103 0086 8568     		ldr r5, [r0, # 0x08]
+ 104 0088 4668     		ldr r6, [r0, # 0x04]
+ 105 008a C768     		ldr r7, [r0, # 0x0c]
+ 106 008c 6119     		adds r1, r4, r5
+ 107 008e 621B     		subs r2, r4, r5
+ 108 0090 3346     		mov r3, r6		@0r
+ 109 0092 0024     		movs r4, # 0	
+ 110 0094 E41B     		subs r4, r4, r7		@0i
+ 111 0096 3546     		mov r5, r6		@3r
+ 112 0098 3E46     		mov r6, r7		@3i
+ 113 009a 0127     		movs r7, # 1
+ 114 009c BF02     		lsls r7, r7, # 10
+ 115 009e 3F18     		adds r7, r7, r0
+ 116 00a0 0160     		str r1, [r0]
+ 117 00a2 8260     		str r2, [r0, # 0x08]
+ 118 00a4 4360     		str r3, [r0, # 0x04]
+ 119 00a6 7C60     		str r4, [r7, # 0x04]
+ 120 00a8 C560     		str r5, [r0, # 0x0c]
+ 121 00aa FE60     		str r6, [r7, # 0x0c]
+ 122 00ac 1030     		adds r0, r0, # 0x10
+ 123 00ae 4045     		cmp r0, r8
+ 124 00b0 E8D1     		bne _fft2xunhuan
+ 125              	_fft3:
+ 126 00b2 604E     		ldr r6, = xuanzhuanyinzi
+ 127 00b4 604A     		ldr r2, = fft3xuanzhuanyinzi
+ 128 00b6 5B48     		ldr r0, = 0x20000000
+ 129 00b8 3260     		str r2, [r6]
+ 130 00ba 0121     		movs r1, # 1
+ 131 00bc 8902     		lsls r1, r1, # 10
+ 132 00be 0918     		adds r1, r1, r0
+ 133 00c0 8846     		mov r8, r1
+ 134 00c2 8146     		mov r9, r0
+ 135 00c4 9246     		mov r10, r2
+ 136 00c6 1025     		movs r5, # 0x10
+ 137 00c8 AB46     		mov r11, r5
+ 138 00ca 0425     		movs r5, # 4
+ 139 00cc AC46     		mov r12, r5
+ARM GAS  1.s 			page 4
+
+
+ 140 00ce 00F067F8 		bl _fftg
+ 141              	_fft4:
+ 142 00d2 584E     		ldr r6, = xuanzhuanyinzi
+ 143 00d4 594A     		ldr r2, = fft4xuanzhuanyinzi
+ 144 00d6 5348     		ldr r0, = 0x20000000
+ 145 00d8 3260     		str r2, [r6]
+ 146 00da 0121     		movs r1, # 1
+ 147 00dc 8902     		lsls r1, r1, # 10
+ 148 00de 0918     		adds r1, r1, r0
+ 149 00e0 8846     		mov r8, r1
+ 150 00e2 8146     		mov r9, r0
+ 151 00e4 9246     		mov r10, r2
+ 152 00e6 2025     		movs r5, # 0x20
+ 153 00e8 AB46     		mov r11, r5
+ 154 00ea 0825     		movs r5, # 8
+ 155 00ec AC46     		mov r12, r5
+ 156 00ee 00F057F8 		bl _fftg
+ 157              	_fft5:
+ 158 00f2 504E     		ldr r6, = xuanzhuanyinzi
+ 159 00f4 524A     		ldr r2, = fft5xuanzhuanyinzi
+ 160 00f6 4B48     		ldr r0, = 0x20000000
+ 161 00f8 3260     		str r2, [r6]
+ 162 00fa 0121     		movs r1, # 1
+ 163 00fc 8902     		lsls r1, r1, # 10
+ 164 00fe 0918     		adds r1, r1, r0
+ 165 0100 8846     		mov r8, r1
+ 166 0102 8146     		mov r9, r0
+ 167 0104 9246     		mov r10, r2
+ 168 0106 4025     		movs r5, # 0x40
+ 169 0108 AB46     		mov r11, r5
+ 170 010a 1025     		movs r5, # 16
+ 171 010c AC46     		mov r12, r5
+ 172 010e 00F047F8 		bl _fftg
+ 173              	
+ 174              	_fft6:
+ 175 0112 484E     		ldr r6, = xuanzhuanyinzi
+ 176 0114 4B4A     		ldr r2, = fft6xuanzhuanyinzi
+ 177 0116 4348     		ldr r0, = 0x20000000
+ 178 0118 3260     		str r2, [r6]
+ 179 011a 0121     		movs r1, # 1
+ 180 011c 8902     		lsls r1, r1, # 10
+ 181 011e 0918     		adds r1, r1, r0
+ 182 0120 8846     		mov r8, r1
+ 183 0122 8146     		mov r9, r0
+ 184 0124 9246     		mov r10, r2
+ 185 0126 8025     		movs r5, # 0x80
+ 186 0128 AB46     		mov r11, r5
+ 187 012a 2025     		movs r5, # 32
+ 188 012c AC46     		mov r12, r5
+ 189 012e 00F037F8 		bl _fftg
+ 190              		
+ 191              	_fft7:
+ 192 0132 404E     		ldr r6, = xuanzhuanyinzi
+ 193 0134 444A     		ldr r2, = fft7xuanzhuanyinzi
+ 194 0136 3B48     		ldr r0, = 0x20000000
+ 195 0138 3260     		str r2, [r6]
+ 196 013a 0121     		movs r1, # 1
+ARM GAS  1.s 			page 5
+
+
+ 197 013c 8902     		lsls r1, r1, # 10
+ 198 013e 0918     		adds r1, r1, r0
+ 199 0140 8846     		mov r8, r1
+ 200 0142 8146     		mov r9, r0
+ 201 0144 9246     		mov r10, r2
+ 202 0146 0125     		movs r5, # 1
+ 203 0148 2D02     		lsls r5, r5, # 8
+ 204 014a AB46     		mov r11, r5
+ 205 014c 4025     		movs r5, # 64
+ 206 014e AC46     		mov r12, r5
+ 207 0150 00F026F8 		bl _fftg
+ 208              	
+ 209              	_fft8:
+ 210 0154 374E     		ldr r6, = xuanzhuanyinzi
+ 211 0156 3D4A     		ldr r2, = fft8xuanzhuanyinzi
+ 212 0158 3248     		ldr r0, = 0x20000000
+ 213 015a 3260     		str r2, [r6]
+ 214 015c 0121     		movs r1, # 1
+ 215 015e 8902     		lsls r1, r1, # 10
+ 216 0160 0918     		adds r1, r1, r0
+ 217 0162 8846     		mov r8, r1
+ 218 0164 8146     		mov r9, r0
+ 219 0166 9246     		mov r10, r2
+ 220 0168 0125     		movs r5, # 1
+ 221 016a 6D02     		lsls r5, r5, # 9
+ 222 016c AB46     		mov r11, r5
+ 223 016e 8025     		movs r5, # 128
+ 224 0170 AC46     		mov r12, r5
+ 225 0172 00F015F8 		bl _fftg
+ 226              	
+ 227              	
+ 228              		
+ 229              	tingting:
+ 230 0176 FEE7     		b tingting
+ 231              	_fftjisuanfuzhi:
+ 232 0178 2A48     		ldr r0, = 0x20000000
+ 233 017a 3549     		ldr r1, = 0x20000400
+ 234 017c 354D     		ldr r5, = 0x6b85	@ a
+ 235 017e 364E     		ldr r6, = 0x47cf	@ b
+ 236 0180 8846     		mov r8, r1
+ 237              	_jisuanfuzhixunhuan:
+ 238 0182 0268     		ldr r2, [r0]
+ 239 0184 0B68     		ldr r3, [r1]
+ 240 0186 7243     		muls r2, r2, r6
+ 241 0188 D213     		asrs r2, r2, # 15
+ 242 018a D243     		mvns r2, r2
+ 243 018c 0132     		adds r2, r2, # 1
+ 244 018e 6B43     		muls r3, r3, r5
+ 245 0190 DB13     		asrs r3, r3, # 15
+ 246 0192 9B18     		adds r3, r3, r2
+ 247 0194 0351     		str r3, [r0, r4]
+ 248 0196 0430     		adds r0, r0, # 4
+ 249 0198 0431     		adds r1, r1, # 4
+ 250 019a 4045     		cmp r0, r8
+ 251 019c F1D1     		bne _jisuanfuzhixunhuan
+ 252 019e 7047     		bx lr
+ 253              	_fftg:
+ARM GAS  1.s 			page 6
+
+
+ 254 01a0 00B5     		push {lr}
+ 255 01a2 0024     		movs r4, # 0
+ 256 01a4 A646     		mov lr, r4
+ 257              	_fftxunhuan:
+ 258 01a6 4846     		mov r0, r9
+ 259 01a8 4146     		mov r1, r8
+ 260 01aa 5246     		mov r2, r10
+ 261 01ac 5B46     		mov r3, r11
+ 262 01ae 0468     		ldr r4, [r0]
+ 263 01b0 0D68     		ldr r5, [r1]
+ 264 01b2 C658     		ldr r6, [r0, r3]
+ 265 01b4 CF58     		ldr r7, [r1, r3]
+ 266 01b6 1368     		ldr r3, [r2]		@sr
+ 267 01b8 5268     		ldr r2, [r2, # 0x04]	@si
+ 268 01ba 30B4     		push {r4,r5}
+ 269 01bc 3446     		mov r4, r6
+ 270 01be 5C43     		muls r4, r4, r3
+ 271 01c0 3D46     		mov r5, r7
+ 272 01c2 5543     		muls r5, r5, r2
+ 273 01c4 641B     		subs r4, r4, r5		@r
+ 274 01c6 E413     		asrs r4, r4, # 15
+ 275 01c8 3546     		mov r5, r6
+ 276 01ca 5543     		muls r5, r5, r2
+ 277 01cc 5F43     		muls r7, r7, r3
+ 278 01ce 7F19     		adds r7, r7, r5    @i
+ 279 01d0 FF13     		asrs r7, r7, # 15
+ 280 01d2 24BC     		pop {r2,r5}
+ 281 01d4 1319     		adds r3, r2, r4    @0r
+ 282 01d6 121B     		subs r2, r2, r4    @1r
+ 283 01d8 EC19     		adds r4, r5, r7
+ 284 01da ED1B     		subs r5, r5, r7
+ 285 01dc 5E46     		mov r6, r11
+ 286 01de 0360     		str r3, [r0]
+ 287 01e0 0C60     		str r4, [r1]
+ 288 01e2 8251     		str r2, [r0, r6]
+ 289 01e4 8D51     		str r5, [r1, r6]
+ 290 01e6 0430     		adds r0, r0, # 0x04
+ 291 01e8 0431     		adds r1, r1, # 0x04
+ 292 01ea 8146     		mov r9, r0
+ 293 01ec 8846     		mov r8, r1
+ 294 01ee 5246     		mov r2, r10
+ 295 01f0 0832     		adds r2, r2, # 0x08
+ 296 01f2 9246     		mov r10, r2
+ 297 01f4 7446     		mov r4, lr
+ 298 01f6 0134     		adds r4, r4, # 1
+ 299 01f8 A646     		mov lr, r4
+ 300 01fa 6746     		mov r7, r12
+ 301 01fc BC42     		cmp r4, r7
+ 302 01fe D2D1     		bne _fftxunhuan
+ 303 0200 0024     		movs  r4, # 0
+ 304 0202 0C4E     		ldr r6, = xuanzhuanyinzi
+ 305 0204 124D     		ldr r5, = 0x20000400
+ 306 0206 3668     		ldr r6, [r6]
+ 307 0208 B246     		mov r10, r6
+ 308 020a A646     		mov lr, r4
+ 309 020c 5F46     		mov r7, r11
+ 310 020e C019     		adds r0, r0, r7
+ARM GAS  1.s 			page 7
+
+
+ 311 0210 C919     		adds r1, r1, r7
+ 312 0212 8146     		mov r9, r0
+ 313 0214 8846     		mov r8, r1
+ 314 0216 A842     		cmp r0, r5
+ 315 0218 C5D1     		bne _fftxunhuan
+ 316 021a 00BD     		pop {pc}
+ 317 021c 00200240 		.ltorg
+ 317      00100240 
+ 317      00000020 
+ 317      00100000 
+ 317      00000000 
+ 318              	_nmi_handler:
+ 319 025c 7047     		bx lr
+ 320              	_hard_fault:
+ 321 025e 7047     		bx lr
+ 322              	_svc_handler:
+ 323 0260 7047     		bx lr
+ 324              	_pendsv_handler:
+ 325 0262 7047     		bx lr
+ARM GAS  1.s 			page 8
+
+
+DEFINED SYMBOLS
+                 1.s:7      *ABS*:0000000020001000 STACKINIT
+                 1.s:8      *ABS*:0000000020000804 xuanzhuanyinzi
+                 1.s:9      .data:0000000000000000 $d
+                 1.s:10     .data:0000000000000000 shuru
+                 1.s:14     .data:0000000000000400 hudieweifanzhuan
+                 1.s:16     .data:0000000000000800 fft3xuanzhuanyinzi
+                 1.s:18     .data:0000000000000820 fft4xuanzhuanyinzi
+                 1.s:20     .data:0000000000000860 fft5xuanzhuanyinzi
+                 1.s:22     .data:00000000000008e0 fft6xuanzhuanyinzi
+                 1.s:24     .data:00000000000009e0 fft7xuanzhuanyinzi
+                 1.s:27     .data:0000000000000be0 fft8xuanzhuanyinzi
+                 1.s:31     .text:0000000000000000 vectors
+                 1.s:48     .text:000000000000003c _start
+                 1.s:318    .text:000000000000025c _nmi_handler
+                 1.s:320    .text:000000000000025e _hard_fault
+                 1.s:322    .text:0000000000000260 _svc_handler
+                 1.s:324    .text:0000000000000262 _pendsv_handler
+                            .text:0000000000000000 $d
+                 1.s:47     .text:000000000000003c $t
+                 1.s:49     .text:000000000000003c _shizhong
+                 1.s:57     .text:0000000000000048 _dengdai14mshizhongwending
+                 1.s:62     .text:000000000000004e _neicunqingling
+                 1.s:67     .text:0000000000000054 _neicunqinglingxunhuan
+                 1.s:75     .text:000000000000005a _fftjisuan
+                 1.s:76     .text:000000000000005a _fft1
+                 1.s:81     .text:0000000000000062 _fft1xunhuan
+                 1.s:95     .text:000000000000007a _fft2
+                 1.s:101    .text:0000000000000084 _fft2xunhuan
+                 1.s:125    .text:00000000000000b2 _fft3
+                 1.s:253    .text:00000000000001a0 _fftg
+                 1.s:141    .text:00000000000000d2 _fft4
+                 1.s:157    .text:00000000000000f2 _fft5
+                 1.s:174    .text:0000000000000112 _fft6
+                 1.s:191    .text:0000000000000132 _fft7
+                 1.s:209    .text:0000000000000154 _fft8
+                 1.s:229    .text:0000000000000176 tingting
+                 1.s:231    .text:0000000000000178 _fftjisuanfuzhi
+                 1.s:237    .text:0000000000000182 _jisuanfuzhixunhuan
+                 1.s:257    .text:00000000000001a6 _fftxunhuan
+                 1.s:317    .text:000000000000021c $d
+                 1.s:319    .text:000000000000025c $t
+
+NO UNDEFINED SYMBOLS

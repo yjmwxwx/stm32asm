@@ -1,0 +1,165 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4 ???? DB0F4940 	xiaoshu:	.float 3.1415927
+   5 ???? 33332340 	xiaoshu1:	.float 2.55
+   6              		.equ STACKINIT,         0x20005000
+   7              	.section .text
+   8              	_xiangliangbiao:
+   9 ???? 00500020 		.word STACKINIT
+  10 ???? 1D000000 		.word _start + 1
+  11 ???? C5000000 		.word _nmi_handler + 1
+  12 ???? C7000000 		.word _hard_fault  + 1
+  13 ???? C9000000 		.word _memory_fault + 1
+  14 ???? CB000000 		.word _bus_fault + 1
+  15 ???? CD000000 		.word _usage_fault + 1
+  16              	
+  17              	_start:
+  18 ???? 4FF00A00 		mov r0, # 10
+  19 ???? 4FF00A01 		mov r1, # 10
+  20 ???? 4FF00A02 		mov r2, # 10
+  21 ???? 4FF00A03 		mov r3, # 10
+  22              		
+  23 ???? 4FEA4103 		mov r3, r1, lsl # 1
+  24 ???? 4FEA5353 		mov r3, r3, lsr # 21
+  25 ???? A3F58063 		sub r3, r3, # 0x400
+  26 ???? D3F11E03 		rsbs r3, r3, # 0x1e
+  27 ???? CCBF     		ite gt
+  28              		rsbgts r12, r3, 3 0x21
+  29              		ble loc1a
+  30              		mov r2, # 1
+  31 ???? 4FEAC272 		lsl r2, r2, # 31
+  32 ???? 42EAC122 		orr r2, r2, r1, lsl # 11
+  33 ???? 42EA5052 		orr r2, r2, r0, lsr # 21
+  34 ???? 32FA03FC 		lsrs r12, r2, r3
+  35 ???? 8CEAE17C 		eor r12, r12, r1, asr # 31
+  36 ???? ACEBE170 		sub r0, r12, r1, asr # 31
+  37              	loc1a:
+  38 ???? 102B     		cmp r3, # 0x10
+  39 ???? C4BF     		itt gt
+  40              		movgt r0, 3 0
+  41              		bxgt lr
+  42              		
+  43              	tingtingting:
+  44              		b tingtingting
+  45              		
+  46              	
+  47              	
+  48              	
+  49              	
+  50              	
+  51              	
+  52              	
+  53              		
+  54 ???? 1D48     		ldr r0, = xiaoshu
+  55 ???? 00F00DF8 		bl _fudianzhuandingdian
+  56 ???? 8046     		mov r8, r0
+  57 ???? 1C48     		ldr r0, = xiaoshu1
+ARM GAS  1.s 			page 2
+
+
+  58 ???? 00F009F8 		bl _fudianzhuandingdian
+  59 ???? 8146     		mov r9, r0
+  60 ???? 4046     		mov r0, r8
+  61 ???? 4946     		mov r1, r9
+  62 ???? 4018     		adds r0, r0, r1
+  63 ???? 8246     		mov r10, r0
+  64 ???? 00F019F8 		bl _dingdianzhuanfudian
+  65 ???? 8346     		mov r11, r0
+  66              	tingting:
+  67 ???? FEE7     		b tingting
+  68              		
+  69              	_fudianzhuandingdian:
+  70 ???? 0168     		ldr r1, [r0]
+  71 ???? CA0D     		lsrs r2, r1, # 23
+  72 ???? 4B02     		lsls r3, r1, # 9
+  73 ???? 5B0A     		lsrs r3, r3, # 9
+  74              		
+  75 ???? 7F3A     		subs r2, r2, # 127
+  76 ???? 0121     		movs r1, # 1
+  77 ???? 11FA02F2 		lsls r2, r1, r2
+  78              	_weishu:
+  79 ???? 134F     		ldr r7, = 10000000
+  80 ???? 1825     		movs r5, # 24
+  81 ???? 0020     		movs r0, # 0
+  82              	_weishuxunhuan:
+  83 ???? 013D     		subs r5, r5, # 1
+  84 ???? 06D4     		bmi _tiaochuweishu
+  85 ???? 1E02     		lsls r6, r3, # 8
+  86 ???? AE40     		lsls r6, r6, r5
+  87 ???? FAD5     		bpl _weishuxunhuan
+  88 ???? 37FA05F4 		lsrs r4, r7, r5
+  89 ???? 0019     		adds r0, r0, r4
+  90 ???? F6E7     		b _weishuxunhuan
+  91              	_tiaochuweishu:
+  92 ???? C019     		adds r0, r0, r7
+  93 ???? 5043     		muls r0, r0, r2
+  94 ???? 7047     		bx lr
+  95              		
+  96              		
+  97              	_dingdianzhuanfudian:
+  98 ???? 0027     		movs r7, # 0
+  99              	_panduanweishu:
+ 100 ???? 0137     		adds r7, r7, # 1
+ 101 ???? 10FA07F6 		lsls r6, r0, r7
+ 102 ???? FBD5     		bpl _panduanweishu
+ 103 ???? 7600     		lsls r6, r6, # 1
+ 104 ???? 760A     		lsrs r6, r6, # 9
+ 105              	
+ 106 ???? 1F25     		movs r5, # 31
+ 107 ???? EF1B     		subs r7, r5, r7
+ 108 ???? 7F37     		adds r7, r7, # 127
+ 109 ???? FF05     		lsls r7, r7, # 23
+ 110 ???? 3E43     		orrs r6, r7
+ 111 ???? 3000     		movs r0, r6
+ 112 ???? 7047     		bx lr
+ 113              		
+ 114              		
+ARM GAS  1.s 			page 3
+
+
+ 115              	_nmi_handler:
+ 116 ???? 7047     		bx lr
+ 117              	_hard_fault:
+ 118 ???? 7047     		bx lr
+ 119              	_memory_fault:
+ 120 ???? 7047     		bx lr
+ 121              	_bus_fault:
+ 122 ???? 7047     		bx lr
+ 123              	_usage_fault:
+ 124 ???? 70470000 	 	bx lr
+ 124      00000000 
+ 124      04000000 
+ 124      80969800 
+ARM GAS  1.s 			page 4
+
+
+DEFINED SYMBOLS
+                 1.s:4      .data:0000000000000000 xiaoshu
+                 1.s:5      .data:0000000000000004 xiaoshu1
+                 1.s:6      *ABS*:0000000020005000 STACKINIT
+                 1.s:8      .text:0000000000000000 _xiangliangbiao
+                 1.s:17     .text:000000000000001c _start
+                 1.s:115    .text:00000000000000c4 _nmi_handler
+                 1.s:117    .text:00000000000000c6 _hard_fault
+                 1.s:119    .text:00000000000000c8 _memory_fault
+                 1.s:121    .text:00000000000000ca _bus_fault
+                 1.s:123    .text:00000000000000cc _usage_fault
+                            .text:0000000000000000 $d
+                 1.s:18     .text:000000000000001c $t
+                 1.s:37     .text:0000000000000056 loc1a
+                 1.s:43     .text:000000000000005a tingtingting
+                 1.s:69     .text:000000000000007a _fudianzhuandingdian
+                 1.s:97     .text:00000000000000a8 _dingdianzhuanfudian
+                 1.s:66     .text:0000000000000078 tingting
+                 1.s:78     .text:000000000000008a _weishu
+                 1.s:82     .text:0000000000000090 _weishuxunhuan
+                 1.s:91     .text:00000000000000a2 _tiaochuweishu
+                 1.s:99     .text:00000000000000aa _panduanweishu
+                 1.s:124    .text:00000000000000ce $d
+                 1.s:124    .text:00000000000000d0 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,1130 @@
+
+#include "lcdll.h"
+#include "stdio.h"
+
+#include "nix.h"
+
+#include "../lcd.h"
+#include "../cpu.h"
+#include "../mem.h"
+
+
+
+////////////////////////////////// linksys stuff //////////////////////////////////////
+
+#ifdef PORTABLE
+
+int global_trace = 0;
+
+#ifndef KB_PORTABLE
+extern FILE *lcd_file;
+
+
+int inl(int p) {
+
+	switch(p) {
+		case ipod_lcd_base: return 0;
+		case 0x6000d030: return 0x20;
+		case 0x7000C140: return 1;
+	}
+
+	return 0;
+}
+
+unsigned char buf[160*150] = {0};
+
+
+void outl(int v, int p) {
+	static int lastlcdcmd = 0;
+	static int temp=0, stat=0;
+	static int pos = 0;
+	static int frameskip=0;
+
+	int t,i;
+
+	switch(p) {
+		case (ipod_lcd_base + LCD_DATA):  // here comes a byte = 4pix
+			if(lastlcdcmd == 0x11) {
+				pos = ((149-v/0x20)*160);
+				if(v==0 && !(++frameskip%10)) {
+					if(lcd_file) {
+						fseek(lcd_file, 0x46, SEEK_SET);
+						fwrite(buf, 160*150, 1, lcd_file);
+					}
+				}
+				if(!(frameskip%60))
+					if(lcd_file) fflush(lcd_file);
+			} else if(lastlcdcmd == 0x12) {
+				if(stat == 0) {
+					temp = (v<<8);
+					stat = 1;
+				} else {
+					temp |= v;
+
+					for(i = 0; i<8; i++) {
+						t = (temp>>(2*i))&0x03;
+						buf[pos++] = t;
+					}
+
+					stat = 0;
+				}
+
+			}
+		break;
+
+		case (ipod_lcd_base + LCD_CMD):
+			lastlcdcmd = v;
+			if(v == 0x00) break;			// for now we ignore that
+		break;
+
+		default: printf("default\n"); break;
+	}
+}
+#endif
+#endif
+
+#ifdef KB_PORTABLE
+
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <termios.h>
+
+	#include<termios.h>
+
+	struct termios saved_attributes;
+
+	void reset_input_mode (void)
+	{
+		tcsetattr (STDIN_FILENO, TCSANOW, &saved_attributes);
+	}
+
+	void set_input_mode (void)
+	{
+		struct termios tattr;
+
+		/* Make sure stdin is a terminal. */
+        if (!isatty (STDIN_FILENO))
+		{
+			fprintf (stderr, "Not a terminal.\n");
+			exit (EXIT_FAILURE);
+		}
+
+        /* Save the terminal attributes so we can restore them later. */
+        tcgetattr (STDIN_FILENO, &saved_attributes);
+        //atexit (reset_input_mode);
+
+        /* Set the funny terminal modes. */
+        tcgetattr (STDIN_FILENO, &tattr);
+        tattr.c_lflag &= ~(ICANON|ECHO); /* Clear ICANON and ECHO. */
+        tattr.c_cc[VMIN] = 1;
+        tattr.c_cc[VTIME] = 0;
+        tcsetattr (STDIN_FILENO, TCSAFLUSH, &tattr);
+      }
+
+int getch()
+{
+	unsigned char ch;
+	int nread;
+	struct termios tattr;
+	tcgetattr (STDIN_FILENO, &tattr);
+
+    tattr.c_cc[VMIN]=0;
+    tcsetattr(0, TCSANOW, &tattr);
+    nread = read(0,&ch,1);
+    tattr.c_cc[VMIN]=1;
+    tcsetattr(0, TCSANOW, &tattr);
+    if(nread == 1)
+    {
+        return ch;
+    }
+    return -1;
+}
+
+extern FILE *lcd_file;
+
+#define IPOD_LEFT	0x04
+#define IPOD_RIGHT	0x02
+#define IPOD_UP		0x10
+#define IPOD_DOWN	0x08
+#define IPOD_CENTER	0x01
+
+int kb_getch()
+{
+	int cur, k;
+
+next:
+
+	while((k=getch())==-1) {
+		flush_lcd();
+	}
+
+	printf("%02x %c\n", k, k);
+
+	switch(k) {
+		case 'i':	  cur = 'm'; break;
+		case 'k':	  cur = 'd'; break;
+		case 'j':	  cur = 'l'; break;
+		case 'l':	  cur = 'r'; break;
+		case 'a': 		cur = '\n'; break;
+		default: goto next;
+	}
+
+	return cur;
+}
+
+
+int inl(int p) {
+	int touch=(0xc0<<24);
+	int k;
+	static int key;
+	static int delay=10;
+
+	if(p==0x6000d030 || p==0x7000C140) {
+
+		if((k=getch())!=-1) key=k;
+		if(delay--<0) {
+			key=-1;
+			delay=10;
+		}
+	}
+
+	switch(p) {
+		case ipod_lcd_base: return 0;
+		case 0x6000d030:
+			if(key=='h') return 0;
+			return 0x20;
+		case 0x7000C140:
+			if(key=='i') touch |= 96<<16;
+			if(key=='a') touch |= 12<<16;
+			if(key=='l') touch |= 24<<16;
+			if(key=='w') touch |= 36<<16;
+			if(key=='k') touch |= 48<<16;
+			if(key=='q') touch |= 60<<16;
+			if(key=='j') touch |= 72<<16;
+			if(key=='s') touch |= 84<<16;
+			if(key=='h') touch = 0;
+			if(key=='m') cpu.ime = 1;
+			if(key=='p') cpu.halt = 0;
+			if(key=='o') ram.hi[0xff] = 0x1f;
+			if(key=='u') ram.hi[0x0f] = 0x1f;
+			if(key=='+') ram.hi[0x41] = 0x03;
+			if(key=='t') {
+				printf("\n-------------------------------------halt:%d ime:%d if:%02x ie:%02x\n", cpu.halt, cpu.ime, ram.hi[0x0f], ram.hi[0xff]);
+				//debug_disassemble(cpu.pc, 20);
+			}
+			if(key=='r') {
+				global_trace=!global_trace;
+			}
+			if(key=='+') touch = 0x0c000000 | (IPOD_DOWN << 8);
+			if(key=='-') touch = 0x0c000000 | (IPOD_UP << 8);
+			if(key=='\n') touch = 0x0c000000 | (IPOD_CENTER << 8);
+
+			return touch;
+	}
+
+
+	return 0;
+}
+
+unsigned char buf[160*150] = {0};
+
+void flush_lcd(){
+	fseek(lcd_file, 0x46, SEEK_SET);
+	fwrite(buf, 160*150, 1, lcd_file);
+	fflush(lcd_file);
+}
+
+void outl(int v, int p) {
+	static int lastlcdcmd = 0;
+	static int temp=0, stat=0;
+	static int pos = 0;
+	static int frameskip=0;
+
+	int t,i;
+
+	switch(p) {
+		case (ipod_lcd_base + LCD_DATA):  // here comes a byte = 4pix
+			if(lastlcdcmd == 0x11) {
+				pos = ((149-v/0x20)*160+((v%0x20)*8));
+				if(v==0 && !(++frameskip%10)) {
+					fseek(lcd_file, 0x46, SEEK_SET);
+					fwrite(buf, 160*150, 1, lcd_file);
+				}
+			} else if(lastlcdcmd == 0x12) {
+				if(stat == 0) {
+					temp = (v<<8);
+					stat = 1;
+				} else {
+					temp |= v;
+
+					for(i = 0; i<8; i++) {
+						t = (temp>>(2*i))&0x03;
+						buf[pos++] = t;
+					}
+
+					stat = 0;
+				}
+
+			}
+		break;
+
+		case (ipod_lcd_base + LCD_CMD):
+			lastlcdcmd = v;
+			if(v == 0x00) break;			// for now we ignore that
+		break;
+
+		default: printf("default\n"); break;
+	}
+}
+
+#endif
+
+
+// Convert RGB565 word to a 2 bit grayscale code
+#define RGB565TOGRAY(a)(((((((a) & 0xF800) >> 8) +       \
+                           (((a) & 0x07e0) >> 3)) >> 1) + \
+                           (((a) & 0x001f) << 3)) >> 1)
+
+
+static unsigned int ipod_rtc      = 0x60005010;
+static unsigned int lcd_base      = 0x70008a0c;
+static unsigned int lcd_busy_mask = 0x80000000;
+
+static unsigned int lcd_width  = 220;
+static unsigned int lcd_height = 176;
+
+//hardware identification number
+unsigned int hw_version = -1;
+int lcd_type;
+
+static unsigned long flags = 0;
+
+pBlitter lcdll_blit = 0;
+
+// RGB565 grayscale could be
+// unsigned short conv_table[4] = {0xffff, 0xcccc, 0x3333, 0x0000};
+
+// 170 and 85 out of 255
+unsigned short conv_table[4] = {0xffff, 0xad55, 0x52aa, 0x0000};
+unsigned short conv_table_byte_flipped[4] = {0xffff, 0x55ad, 0xaa52, 0x0000};
+
+// 170 and 85 out of 255 for red and blue, 85 and 43 out of 255 for green
+//unsigned short conv_table[4] = {0xffff, 0xaab5, 0x514a, 0x0000};
+//unsigned short conv_table_byte_flipped[4] = {0xffff, 0xb5aa, 0x4a51, 0x0000};
+
+// Taken from ElvisF's comment on iPodLinux Forum
+// http://ipodlinux.org/forums/viewtopic.php?t=9430&postdays=0&postorder=asc&start=450
+//unsigned short conv_table[4] = {0xffff, 0xbdd3, 0x630a, 0x0000};
+//unsigned short conv_table_byte_flipped[4] = {0xffff, 0xd3bd, 0x0a63, 0x0000};
+
+//This was used for above codes
+//#define RGB2PIXEL565(r,g,b) \
+//        ((((r) & 0xf8) << 8) | (((g) & 0xfc) << 3) | (((b) & 0xf8) >> 3))
+
+
+
+byte wxs, wxe, wys, wye;
+
+/**
+ * Sets up some variables for different kinds of iPods.
+ *
+ * @author Benjamin Eriksson & Mattias Pierre
+ */
+int blitter_init(void)
+{
+	hw_info info;
+
+	if(lcdll_blit) return 0; // don't call me twice
+
+
+	sys_ipod_hw_info(&info);
+
+	hw_version    = info.version;
+	flags         = info.flags;
+	lcd_base      = info.lcd_base;
+	lcd_busy_mask = info.lcd_busy_mask;
+	lcd_width     = info.lcd_width;
+	lcd_height    = info.lcd_height;
+	ipod_rtc      = info.ipod_rtc;
+	lcd_type      = info.lcd_type;
+
+
+	switch(hw_version) {
+		case 0x7: 			// Mini2
+		case 0x4: 			// Mini1, 138 x 110
+			lcdll_blit = blitter_ipod_update_mini;
+			break;
+		case 0x5: case 0x3: // 3g/4g, 160 x 128
+			lcdll_blit = blitter_ipod_update_4g;
+			break;
+		case 0xc:			// nano,  176 x 132
+			lcdll_blit = blitter_ipod_update_nano;
+			blitter_setwindow(0, 0, 175, 131);
+			blitter_setwindow(8, 0, 159+8, 131);
+			break;
+		case 0x6:			// photo, 220 x 176, color ** Two different LCDs!
+			lcdll_blit = blitter_ipod_update_photo;
+			break;
+		case 0xb:			// video, 320 x 240
+			lcdll_blit = blitter_ipod_update_video;
+			break;
+		default:
+			printf("iPod Model not supported\n");
+			return 1;
+	}
+
+
+	return 0;
+}
+
+/**
+ * Get current usec counter.
+ *
+ * @return The time in micro seconds
+ */
+int blitter_timer_get_current(void)
+{
+	return inl(ipod_rtc);
+}
+
+/**
+ * Checks if 'usecs' of microseconds has past since 'clock_start'.
+ *
+ * @param clock_start The time in microseconds we want to compare to.
+ * @param usecs       Minimum timediff.
+ *
+ * @return Wherever the time diff is larger or not.
+ */
+int blitter_timer_check(int clock_start, int usecs)
+{
+	unsigned long clock;
+	clock = inl(ipod_rtc);
+
+	return (clock - clock_start) >= usecs;
+}
+
+/* wait for LCD with timeout - type 0 or 1 */
+void blitter_lcd_wait_write_01(void)
+{
+	if ((inl(lcd_base) & lcd_busy_mask) != 0) {
+		int start = blitter_timer_get_current();
+
+		do {
+			if ((inl(lcd_base) & lcd_busy_mask) == 0)
+				break;
+		} while (blitter_timer_check(start, 1000) == 0);
+	}
+}
+
+
+/* wait for LCD with timeout - type 2 or 3 */
+void blitter_lcd_wait_write_23(void)
+{
+	int start = blitter_timer_get_current();
+
+	do {
+		if ((inl(lcd_base) & lcd_busy_mask) == 0)
+			break;
+	} while (blitter_timer_check(start, 1000) == 0);
+	
+}
+
+// Sends "lo" part - type 0 or 1
+void lcd_send_lo(int v)
+{
+	blitter_lcd_wait_write_01();
+	outl(v | 0x80000000, 0x70008a0c);
+}
+
+// Sends "hi" part - type 0 or 1
+void lcd_send_hi(int v)
+{
+	blitter_lcd_wait_write_01();
+	outl(v | 0x81000000, 0x70008a0c);
+}
+
+// Sends command + data - type 0 LCD
+void blitter_lcd_cmd_data_0(int cmd, int data)
+{
+		lcd_send_lo(cmd);
+		lcd_send_lo(data);
+}
+
+// Sends command + data - type 1 LCD
+void blitter_lcd_cmd_data_1(int cmd, int data)
+{
+		lcd_send_lo(0x0);
+		lcd_send_lo(cmd);
+		lcd_send_hi((data >> 8) & 0xff);
+		lcd_send_hi(data & 0xff);
+}
+
+
+
+// Sends data to the LCD - type 2
+void blitter_lcd_send_data_2(short data)
+{
+	blitter_lcd_wait_write_23();
+	outl(data>>8, lcd_base + LCD_DATA);
+	blitter_lcd_wait_write_23();
+	outl(data, lcd_base + LCD_DATA);
+}
+
+// Sends a command to the LCD - type 2
+void blitter_lcd_prepare_cmd_2(int cmd)
+{
+	blitter_lcd_wait_write_23();
+	outl(0x0, lcd_base + LCD_CMD);
+	blitter_lcd_wait_write_23();
+	outl(cmd, lcd_base + LCD_CMD);
+}
+
+// Sends a command to the LCD - type 3 (Mini 2G)
+void blitter_lcd_prepare_cmd_3(int cmd)
+{
+     blitter_lcd_wait_write_23();
+     outl((inl(0x70003000) & ~0x1f00000) | 0x1700000, 0x70003000);
+     outl(cmd | 0x740000, 0x70003008);
+}
+
+
+// Sends a command to the LCD - type 3 (Mini 2G)
+void blitter_lcd_send_data_3(short data)
+{
+	int data_lo, data_hi;
+    	data_lo = (data >> 8) & 0xff;
+    	data_hi = data & 0xff;
+	blitter_lcd_wait_write_23();
+	outl((inl(0x70003000) & ~0x1f00000) | 0x1700000, 0x70003000);
+	outl(data_hi | (data_lo << 8) | 0x760000, 0x70003008);
+	
+}
+
+// Sends command + data - type 2 or 3
+inline void blitter_lcd_cmd_data_23(int cmd, short data, int type)
+{
+        if (type == 2) {
+		blitter_lcd_prepare_cmd_2(cmd);
+		blitter_lcd_send_data_2(data);
+	} else if (type == 3) {
+		blitter_lcd_prepare_cmd_3(cmd);
+		blitter_lcd_send_data_3(data);
+	}
+}
+
+
+
+
+static void lcd_bcm_write32(unsigned address, unsigned value) {
+	/* write out destination address as two 16bit values */
+	outw(address, 0x30010000);
+	outw((address >> 16), 0x30010000);
+
+	/* wait for it to be write ready */
+	while ((inw(0x30030000) & 0x2) == 0);
+
+	/* write out the value low 16, high 16 */
+	outw(value, 0x30000000);
+	outw((value >> 16), 0x30000000);
+}
+
+static void lcd_bcm_setup_rect(unsigned cmd, unsigned start_horiz, unsigned start_vert, unsigned max_horiz, unsigned max_vert, unsigned count) {
+	lcd_bcm_write32(0x1F8, 0xFFFA0005);
+	lcd_bcm_write32(0xE0000, cmd);
+	lcd_bcm_write32(0xE0004, start_horiz);
+	lcd_bcm_write32(0xE0008, start_vert);
+	lcd_bcm_write32(0xE000C, max_horiz);
+	lcd_bcm_write32(0xE0010, max_vert);
+	lcd_bcm_write32(0xE0014, count);
+	lcd_bcm_write32(0xE0018, count);
+	lcd_bcm_write32(0xE001C, 0);
+}
+
+static unsigned lcd_bcm_read32(unsigned address) {
+	while ((inw(0x30020000) & 1) == 0);
+
+	/* write out destination address as two 16bit values */
+	outw(address, 0x30020000);
+	outw((address >> 16), 0x30020000);
+
+	/* wait for it to be read ready */
+	while ((inw(0x30030000) & 0x10) == 0);
+
+	/* read the value */
+	return inw(0x30000000) | inw(0x30000000) << 16;
+}
+
+static void lcd_bcm_finishup(void) {
+	unsigned data;
+
+	outw(0x31, 0x30030000);
+
+	lcd_bcm_read32(0x1FC);
+
+	do {
+		data = lcd_bcm_read32(0x1F8);
+	} while (data == 0xFFFA0005 || data == 0xFFFF);
+
+	lcd_bcm_read32(0x1FC);
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+
+
+void blitter_setwindow(int startx, int starty, int endx, int endy)
+{
+	int n = (endx-startx+1)*(endy-starty+1);
+
+	switch(hw_version) {
+		case 0x7: 			// Mini2
+		case 0x4: 			// Mini1, 138 x 110
+			break;
+		case 0x5: case 0x3: // 3g/4g, 160 x 128
+			break;
+		case 0xc:			// nano,  176 x 132
+			while ((inl(0x70008a20) & 0x4000000) == 0);
+			outl(0x0, 0x70008a24);
+
+			blitter_lcd_cmd_data_1(0x44, ((endx&0xff)<<8) | (startx&0xff));  // horiz 8-167
+			blitter_lcd_cmd_data_1(0x45, ((endy&0xff)<<8) | (starty&0xff));      // vert. 0-131
+			blitter_lcd_cmd_data_1(0x21, startx + 176*starty);		// ram start address (why startx???)
+			lcd_send_lo(0x0);
+			lcd_send_lo(0x22);
+			outl(0x10000080, 0x70008a20);
+			outl(0xC0010000 | (n*2-1), 0x70008a24);
+			outl(0x34000000, 0x70008a20);
+
+			do {
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				outl(0xffffffff, 0x70008b00);
+			} while(n-=2);
+
+			break;
+		case 0x6:			// photo, 220 x 176
+			if(lcd_type == 0) {
+				blitter_lcd_cmd_data_0(0x12, starty);  			// start vert
+				blitter_lcd_cmd_data_0(0x13, endx);		// end horiz
+				blitter_lcd_cmd_data_0(0x15, endy);		// end vert
+				blitter_lcd_cmd_data_0(0x16, startx);			// start horiz
+			} else {
+				blitter_lcd_cmd_data_1(0x44, ((endy)<<8) | starty);  // vert
+				blitter_lcd_cmd_data_1(0x45, ((endx)<<8) | startx);  // horiz
+				blitter_lcd_cmd_data_1(0x21, ((endx)<<8) | starty);		// is this correct ??
+			}
+			outl(0x10000080, 0x70008a20);
+			outl(0xC0010000 | ((endx-startx+1)*(endy-starty+1)*2-1), 0x70008a24);
+			outl(0x34000000, 0x70008a20);
+
+			do {
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				outl(0xffffffff, 0x70008b00);
+			} while(n-=2);
+
+			break;
+		case 0xb:			// video, 320 x 240
+			lcd_bcm_write32(0x1F8, 0xFFFA0005);
+			lcd_bcm_write32(0xE0000, 0x34);
+			lcd_bcm_write32(0xE0004, startx);
+			lcd_bcm_write32(0xE0008, starty);
+			lcd_bcm_write32(0xE000C, endx);
+			lcd_bcm_write32(0xE0010, endy);
+			lcd_bcm_write32(0xE0014, (endx-startx+1)*(endy-starty+1)*2);
+			lcd_bcm_write32(0xE0018, (endx-startx+1)*(endy-starty+1)*2);
+			lcd_bcm_write32(0xE001C, 0);
+			break;
+	}
+}
+
+
+// MIX averages two grayscale words - i.e. two groups of 8 pixels
+#define MIX(u,v) ((((((u)&0x3333)+((v)&0x3333)+(0x1111))>>1)&0x3333)|(((((u)&0xcccc)>>1)+(((v)&0xcccc)>>1)+(0x2222))&0xcccc))
+
+// MIX_RGB averages two color words - i.e. two groups of 1 color RGB565 pixels
+// Each color (R/G/B) is independently averaged
+// It doesn't seem to work for the iPod nano --> Maybe there is a bug?
+//#define MIX_RGB(u,v) ((((((u)&0x001F)+((v)&0x001F)+(0x0001))>>1)&0x001F)|(((((u)&0x07E0)+((v)&0x07E0)+(0x00E0))>>1)&0x07E0)|(((((u)&0xF800)>>1)+(((v)&0xF800)>>1)+(0x0400))&0xF800))
+
+
+// do some magic!
+void blitter_ipod_update_nano(unsigned short * addr, byte format)
+{
+	int i,y,j;
+	int scale=0, mix=0;
+
+	if(format == BLITTER_FORMAT_2BP || format == BLITTER_FORMAT_GBC_PAL) {
+		switch(*(int *)LCD_MODE_P){
+			case LCD_MODE_VIS_TOP:
+				break;
+			case LCD_MODE_SCALE:
+				scale = 1; //enable scaling
+				break;
+			case LCD_MODE_VIS_MID:
+				if (format == BLITTER_FORMAT_2BP ) addr+= 20*6;
+				else addr+= 160*6; // cut 6 lines
+				break;
+			case LCD_MODE_VIS_BOT:
+				if (format == BLITTER_FORMAT_2BP ) addr+= 20*12;
+				else addr+= 160*12; // cut 12 lines
+				break;
+		}
+	}
+
+	while ((inl(0x70008a20) & 0x4000000) == 0);
+	outl(0x10000080, 0x70008a20);
+	outl(0xC0010000 | (132*160*2-1), 0x70008a24);
+	outl(0x34000000, 0x70008a20);
+
+	// Iterate through each horizontal line of the Nano
+	for(y=0; y<132; y++) {
+
+		//Scale 144 to 132
+		//Every 11th line, remove/mix 1  (12x11 = 132)
+		if(scale&&(!((y)%11))){
+			mix=1;
+		}else{
+			mix=0;
+		}
+
+		if(format == BLITTER_FORMAT_GBC_PAL) {
+			// Each word of addr corresponds to 1 pixel --> 160 words per row
+			for(i = 0; i < 80; i++, addr+=2){
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				if(mix) {
+
+					// Don't average using MIX_RGB - seems to result in lines showing up
+					// on screen.  A bug in the MIX_RGB implementation?
+					outl(addr[0] | addr[1] << 16, 0x70008b00);
+
+					// Find average of two rows using MIX_RGB and merge rows
+					// outl(MIX_RGB(addr[0],addr[160]) | (MIX_RGB(addr[1],addr[161]) << 16), 0x70008b00);
+				} else {
+					outl(addr[0] | addr[1] << 16, 0x70008b00);
+				}
+			}
+
+		// Skip row if mix==1
+		if(mix) addr+=160;
+
+		} else {
+			// Each word of addr corresponds to 8 pixel --> 20 words per row
+			for(i = 0; i < 20; i++, addr++){
+				for(j=0;j<16;j+=4) {
+					while ((inl(0x70008a20) & 0x1000000) == 0);
+					if(mix){
+						outl(conv_table[(MIX(addr[0],addr[20])&(3<<j))>>j] | conv_table[(MIX(addr[0],addr[20])&(3<<(j+2)))>>(j+2)] << 16, 0x70008b00);
+					}else{
+						outl(conv_table[(addr[0]&(3<<j))>>j] | conv_table[(addr[0]&(3<<(j+2)))>>(j+2)] << 16, 0x70008b00);
+					}
+				}
+			}
+
+		// Skip row if mix==1
+		if(mix) addr+=20;
+
+		}
+
+	}
+
+	while ((inl(0x70008a20) & 0x4000000) == 0);
+	outl(0x0, 0x70008a24);
+}
+
+
+void blitter_ipod_update_photo(unsigned short * addr, byte format)
+{
+	int i,y,j;
+
+
+	while ((inl(0x70008a20) & 0x4000000) == 0);
+	outl(0x0, 0x70008a24);
+
+	/* setup the drawing region */
+	if(lcd_type == 0) {
+		blitter_lcd_cmd_data_0(0x12, 16);  		// start vert
+		blitter_lcd_cmd_data_0(0x13, 160+30-1);		// end horiz
+		blitter_lcd_cmd_data_0(0x15, 144+16-1);		// end vert
+		blitter_lcd_cmd_data_0(0x16, 30);		// start horiz
+	} else {
+		/* max vert << 8 | start vert */
+		blitter_lcd_cmd_data_1(0x44, ((144+16-1)<<8) | 16);  // vert
+		/* max horiz << 8 | start horiz */
+		blitter_lcd_cmd_data_1(0x45, ((160+30-1)<<8) | 30);  // horiz
+		
+		/* position cursor (set AD0-AD15) */
+		/* start horiz << 8 | start vert */
+		blitter_lcd_cmd_data_1(0x21, ((30)<<8) | 16);
+		
+		/* start drawing */
+		lcd_send_lo(0x0);
+		lcd_send_lo(0x22);
+	}
+
+	outl(0x10000080, 0x70008a20);
+	outl(0xC0010000 | (144*160*2-1), 0x70008a24);
+	outl(0x34000000, 0x70008a20);
+
+	if(format == BLITTER_FORMAT_GBC_PAL) {
+		#ifndef OLD_KERNEL
+		for(y=0; y<144; y++) {
+			for(i = 0; i < 80; i++, addr+=2){
+
+				unsigned two_pixels;
+
+				if (lcd_type == 1)
+					two_pixels = (addr[1] << 16) | addr[0];
+				else
+					two_pixels = ( ((addr[0]&0xFF)<<8) | ((addr[0]&0xFF00)>>8) ) | 
+						((((addr[1]&0xFF)<<8) | ((addr[1]&0xFF00)>>8) )<<16);
+
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				outl(two_pixels, 0x70008b00);
+			}
+		}
+		#endif
+
+	} else {
+		for(y=0; y<144; y++) {
+			for(i = 0; i < 20; i++, addr++){
+				for(j=0;j<16;j+=4) {
+					while ((inl(0x70008a20) & 0x1000000) == 0);
+
+					// conv_table converts a 2-bit grayscale code to a 
+					// 16-bit RGB code for the LCD
+					if (lcd_type == 1)
+						outl(conv_table[(addr[0]&(3<<j))>>j] | conv_table[(addr[0]&(3<<(j+2)))>>(j+2)] << 16, 0x70008b00);
+					else
+						outl(conv_table_byte_flipped[(addr[0]&(3<<j))>>j] | conv_table_byte_flipped[(addr[0]&(3<<(j+2)))>>(j+2)] << 16, 0x70008b00);
+
+				}
+			}
+		}
+	}
+
+	while ((inl(0x70008a20) & 0x4000000) == 0);
+	outl(0x0, 0x70008a24);
+}
+
+
+// LCD type is "5" for 5G Video iPod
+void blitter_ipod_update_video(unsigned short * addr, byte format)
+{
+	int x,y,j;
+
+	lcd_bcm_setup_rect(0x34, 0, 0, 320+0-1, 240+0-1, (320*240)<<1);
+
+
+	outw((0xE0020 & 0xffff), 0x30010000);
+	outw((0xE0020 >> 16), 0x30010000);
+
+	while ((inw(0x30030000) & 0x2)==0);
+
+#ifndef OLD_KERNEL
+	if(format == BLITTER_FORMAT_GBC_PAL) {
+		for(y=0; y<240; y++) {  // Loop through all 240 horizontal lines
+			for(j = 0; j < 80; j++, addr+=2){ // Loop through all 320 vertical lines
+				short flipped_bytes;
+
+				flipped_bytes = ((addr[0]&0x00FF)<<8) | ((addr[0]&0xFF00)>>8);
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				outw(flipped_bytes, 0x30000000);
+				outw(flipped_bytes, 0x30000000);  // Repeat each pixel twice
+			
+				flipped_bytes = ((addr[1]&0x00FF)<<8) | ((addr[1]&0xFF00)>>8);
+				while ((inl(0x70008a20) & 0x1000000) == 0);
+				outw(flipped_bytes, 0x30000000);
+				outw(flipped_bytes, 0x30000000);  // Repeat each pixel twice
+			}
+			if(!y || y%5 == 1 || y%5 == 4) {  // ducky: Sandler's scaling for y-dimension
+				addr -= 160;
+			}
+		}
+	} else {
+#endif
+		for (y = 0; y < 240; y++) {
+			for (x = 0; x < 20; x++, addr++) {
+				for(j=0;j<16;j+=4) {
+					while ((inl(0x70008a20) & 0x1000000) == 0);
+					// Use flipped bytes when converting RGB to grayscale					
+					outw(conv_table_byte_flipped[(addr[0]&(3<<j))>>j], 0x30000000);
+					outw(conv_table_byte_flipped[(addr[0]&(3<<j))>>j], 0x30000000);
+					while ((inl(0x70008a20) & 0x1000000) == 0);
+					// Use flipped bytes when converting RGB to grayscale
+					outw(conv_table_byte_flipped[(addr[0]&(3<<(j+2)))>>(j+2)], 0x30000000);
+					outw(conv_table_byte_flipped[(addr[0]&(3<<(j+2)))>>(j+2)], 0x30000000);
+
+				}
+			}
+			if(!y || y%5 == 1 || y%5 == 4) { // ducky: Sandler's scaling for y-dimension
+				addr -= 20;
+			}
+		}
+#ifndef OLD_KERNEL
+	}
+#endif
+
+	lcd_bcm_finishup();
+}
+
+
+int lcd_mode = LCD_MODE_VIS_TOP;
+
+void blitter_ipod_update_4g(unsigned short * addr, byte format)
+{
+
+#ifndef OLD_KERNEL
+    int i;
+    unsigned char * baddr = (unsigned char *) addr;
+    unsigned short pattern, pattern2;
+#endif
+
+    int cursor_pos;
+    int x;
+
+	// P determines initial vertical offset i.e. 0 is TOP, etc
+	int p=20<<(*(int *)LCD_MODE_P); // LCD_MODE values used directly!!!
+	int line = 0;
+	int scale = *(int *)LCD_MODE_P == LCD_MODE_SCALE;
+
+
+	if(format == BLITTER_FORMAT_GBC_PAL){
+		// We need to multiply offset by 8 because of extra size for color
+		p *= 8;
+	}
+
+	if(format == BLITTER_FORMAT_2BP_MENU){
+		scale = p = 0;
+	}
+
+#ifndef OLD_KERNEL // format GBC_PAL is not supported on oldkernel
+	if(format == BLITTER_FORMAT_GBC_PAL) {
+		for(cursor_pos=0;cursor_pos < 128*0x20; cursor_pos += 0x20){
+			blitter_lcd_cmd_data_23(0x11, cursor_pos, 2);
+			blitter_lcd_prepare_cmd_2(0x12);
+
+			//Scale to 128
+			if(scale && (!((line)%8))){
+				for (x = 0; x < 20; x++ ) {
+					pattern = pattern2 = 0;
+					for(i = 0; i < 16; i+=2){
+						// Generate 8 pixels to send at once
+						// Mix pattern and pattern2 for interpolation
+						pattern2 |= (baddr[p+160] & 0x03)<<i;
+						pattern |= (baddr[p++] & 0x03)<<i;
+					}
+					blitter_lcd_send_data_2(MIX(pattern,pattern2));
+				}
+				p+=160;
+			}else{
+
+				for (x = 0; x < 20; x++ ) {
+					pattern = 0;
+					for(i = 0; i < 16; i+=2){
+						// Generate 8 pixels to send at once
+						pattern |= (baddr[p++] & 0x03)<<i;
+					}
+					blitter_lcd_send_data_2(pattern);
+				}
+			}
+			line++;
+		}
+		return;
+	}
+#endif
+
+	for(cursor_pos=0;cursor_pos < 128*0x20; cursor_pos += 0x20){
+		blitter_lcd_cmd_data_23(0x11, cursor_pos, 2);
+		blitter_lcd_prepare_cmd_2(0x12);
+
+		//Scale to 128
+		if(scale && (!((line)%8))){
+			for (x = 0; x < 20; x++ ) {
+				blitter_lcd_send_data_2(MIX(addr[p],addr[p+20]));
+				p++;
+			}
+			p+=20;
+		}else{
+			for (x = 0; x < 20; x++ ) {
+				blitter_lcd_send_data_2(addr[p++]);
+			}
+		}
+		line++;
+	}
+}
+
+//IPOD_MINI_LCD_WIDTH   138
+//IPOD_MINI_LCD_HEIGHT  110
+
+int lcd_mode_mini_horiz = LCD_MODE_MINI_SCALE;
+int lcd_mini_mode = LCD_MODE_SCALE;
+
+void blitter_ipod_update_mini(unsigned short * addr, byte format)
+{
+    int cursor_pos;
+    int x;
+	int data_prev;
+	int data;
+	int data_next;
+	int p;
+	int pixel_to_remove;
+	int line = 1;
+	int mix = 0;
+	int scale = *(int *)LCD_MODE_P == LCD_MODE_SCALE;
+
+	p = (*(int *)LCD_MINI_MODE_P)&0x0f;
+
+	switch(*(int *)LCD_MODE_P) {
+		case LCD_MODE_VIS_MID: p += 20*17;
+			break;
+		case LCD_MODE_VIS_BOT: p += 20*34;
+			break;
+
+		default:
+		//case LCD_MODE_VIS_TOP:
+		//case LCD_MODE_SCALE:
+		//
+			break;
+	}
+
+
+	if(format == BLITTER_FORMAT_2BP_MENU){
+		scale = 0;
+		p = 20*11 + 1; // 11 lines + 8 Pixels
+	}
+
+	// now BLITTER_FORMAT_2BP is asumed (no conversion from 8/16-Bit for now)
+	for(cursor_pos=0;cursor_pos < 110*0x20; cursor_pos += 0x20){
+		blitter_lcd_cmd_data_23(0x11, cursor_pos, lcd_type);
+		if ( lcd_type == 2 )
+			blitter_lcd_prepare_cmd_2(0x12);
+		else
+			blitter_lcd_prepare_cmd_3(0x12);
+
+		//Scale to 110 from 144 horizontal lines
+		if(scale){
+			if(!(line%3)){  // Every third line "mix"
+				//p+=20;
+				mix = 1;
+			}else{
+				mix = 0;
+			}
+			line++;
+			if(line == 20)
+				line = 1;
+		}
+
+		if((*(int *)LCD_MINI_MODE_P) == LCD_MODE_MINI_SCALE &&
+			format != BLITTER_FORMAT_2BP_MENU) {
+
+			pixel_to_remove = 7; // pixel_to_remove is used to lookahead for mini horizontal scaling
+			// Start off by removing 7th bit, 14th, ... 154th
+
+			for (x = 0; x < 18; x++) { 
+				// Loop through a single row
+				// 18*8 pixels -- Only 138 pixels displayed (out of 160)
+				// Final 6 pixels are NOT displayed
+
+				if(mix) {
+					// Combine two horizontal rows
+					data_prev = MIX(addr[p],addr[p+20]);
+					data_next = MIX(addr[p+1],addr[p+21]);
+				}
+				else {
+					// No need to combine two horizontal rows
+					data_prev = addr[p];
+					data_next = addr[p+1];
+				}
+				p++;
+
+
+				switch(pixel_to_remove)
+				{
+				  case 7:
+					// Start: px1 of data_prev, End: px1 of data_next
+					// Remove px7 of data_prev
+					data = data_prev & 0x0FFF;
+					data |= (data_prev & 0xC000) >> 2;
+					data |= data_next << 14;
+					break;
+				  case 6:
+					// Start: px2 of data_prev, End: px2 of data_next
+					// Remove px6 of data_prev
+					data = (data_prev & 0x03FF) >> 2;
+					data |= (data_prev & 0xF000) >> 4;
+					data |= data_next << 12;
+					break;
+				  case 5:
+					// Start: px3 of data_prev, End: px3 of data_next
+					// Remove px5 of data_prev
+					data = (data_prev & 0x00FF) >> 4;
+					data |= (data_prev & 0xFC00) >> 6;
+					data |= data_next << 10;
+					break;
+				  case 4:
+					// Start: px4 of data_prev, End: px5 of data_next
+					// Remove px4 of data_prev and px3 of data_next
+					data = (data_prev & 0xFF00) >> 8;
+					data |= (data_next & 0x000F) << 8;
+					data |= (data_next & 0x03C0) << 6;
+					break;
+				  case 2:
+					// Start: px6 of data_prev, End: px6 of data_next
+					// Remove px2 of data_next
+					data = (data_prev & 0xFC00) >> 10;
+					data |= (data_next & 0x0003) << 6;
+					data |= (data_next & 0x0FF0) << 4;
+					break;
+				  case 1:
+					// Start: px7 of data_prev, End: px7 of data_next
+					// Remove px1 and px8 data_next
+					data = (data_prev & 0xF000) >> 12;
+					data |= (data_next & 0x3FFC) << 2;
+					p++; // Skip data_next
+					break;
+					// and we also increment data to skip the 8th.  Return to case 7
+				  default: 
+					break;
+				    //code
+				}
+
+				// Decrement pixel_to_remove
+				pixel_to_remove = pixel_to_remove - 1;
+				if ( pixel_to_remove == 3 ) pixel_to_remove = 2;
+				if ( pixel_to_remove == 0 ) pixel_to_remove = 7;					
+
+				// Send data to screen
+				if ( lcd_type == 2 )
+					blitter_lcd_send_data_2(data);
+				else
+					blitter_lcd_send_data_3(data);
+				
+			}
+
+			p--; // Decrement p before going to next line (Is this because of an error above?)
+			if(mix) p+=20; // Skip line
+
+		}
+		else{
+
+
+			// No horizontal scaling
+			if ( lcd_type == 2 ) {
+				// 17,25 shorts or 138 Pixels or
+				for (x = 0; x < 17; x++ ) { 		// 17.0 or 136 Pixels
+					blitter_lcd_send_data_2(addr[p++]);
+				}
+				blitter_lcd_send_data_2((addr[p++]));  // plus 0.25 or 2 Pixels
+				p+=2; // remaining to 20
+			} else {
+				// 17,25 shorts or 138 Pixels or
+				for (x = 0; x < 17; x++ ) { 		// 17.0 or 136 Pixels
+					blitter_lcd_send_data_3(addr[p++]);
+				}
+				blitter_lcd_send_data_3((addr[p++]));  // plus 0.25 or 2 Pixels
+				p+=2; // remaining to 20
+			}
+		}
+	}
+
+}

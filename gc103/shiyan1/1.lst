@@ -1,0 +1,122 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4              		.equ STACKINIT,         0x20005000
+   5 0000 6A6C696E 	yjmwxwx: .ascii "jlink ob boot 2017-11-19 yjmwxwx"
+   5      6B206F62 
+   5      20626F6F 
+   5      74203230 
+   5      31372D31 
+   6              	.section .text
+   7              	_xiangliangbiao:
+   8 0000 00500020 		.word STACKINIT
+   9 0004 41000000 		.word _start + 1
+  10 0008 9B000000 		.word _nmi_handler + 1
+  11 000c 9D000000 		.word _hard_fault  + 1
+  12 0010 9F000000 		.word _memory_fault + 1
+  13 0014 A1000000 		.word _bus_fault + 1
+  14 0018 A3000000 		.word _usage_fault + 1
+  15 001c 00000000 		.word 0
+  16 0020 00000000 		.word 0
+  17 0024 00000000 		.word 0
+  18 0028 00000000 		.word 0
+  19 002c 00000000 		.word 0
+  20 0030 00000000 		.word 0
+  21 0034 00000000 		.word 0
+  22 0038 00000000 		.word 0
+  23 003c A5000000 		.word _systickdingshiqi +1
+  24              	_start:
+  25 0040 1948     		ldr r0, = 0x40021000
+  26 0042 1A49     		ldr r1, = 0x14D83
+  27 0044 0160     		str r1, [r0]
+  28              	gsszbz:
+  29 0046 0268     		ldr r2, [r0]
+  30 0048 4FF40031 		ldr r1, = 0x20000
+  31 004c 1142     		tst r1, r2           @HSE高速时钟标志位
+  32 004e 00D1     		bne rccchushihua
+  33 0050 F9E7     		b gsszbz
+  34              	rccchushihua:
+  35 0052 1748     		ldr r0, = 0x40022000
+  36 0054 4FF03201 		mov r1, # 0x00000032
+  37 0058 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启
+  38 005a 1648     		ldr r0, = 0x40021004
+  39 005c 1649     		ldr r1, = 0x1D8400
+  40 005e 0160     		str r1, [r0]
+  41 0060 1148     		ldr r0, = 0x40021000
+  42 0062 1649     		ldr r1, = 0x1033D03
+  43 0064 0160     		str r1, [r0]
+  44              	chaxun:
+  45 0066 0268     		ldr r2, [r0]
+  46 0068 4FF00071 		ldr r1, = 0x2000000
+  47 006c 1142     		tst r1, r2
+  48 006e 00D1     		bne rccgg               @等待PLL稳定
+  49 0070 F9E7     		b chaxun
+  50              		
+  51              	rccgg:
+  52 0072 1348     		ldr r0, = 0xe000e010
+  53 0074 6FF07F41 		ldr r1, = 0xffffff
+ARM GAS  1.s 			page 2
+
+
+  54 0078 4160     		str r1, [r0, # 0x04]
+  55 007a 8160     		str r1, [r0, # 0x08]
+  56 007c 4FF00701 		mov r1, # 0x07
+  57 0080 0160     		str r1, [r0]
+  58              		
+  59 0082 4FF00001 		mov r1, # 0
+  60              	d1:
+  61 0086 0F48     		ldr r0, = yjmwxwx
+  62 0088 ADF5A04D 		sub sp, sp, # 0x5000
+  63 008c 0090     		str r0, [sp]
+  64 008e 0DF5A04D 		add sp, sp, # 0x5000
+  65 0092 01F10101 		add r1, r1, # 1
+  66 0096 F6E7     		b d1
+  67              		
+  68              	tingting:
+  69 0098 FEE7     		b tingting
+  70              		
+  71              	_nmi_handler:
+  72 009a 7047     		bx lr
+  73              	_hard_fault:
+  74 009c 7047     		bx lr
+  75              	_memory_fault:
+  76 009e 7047     		bx lr
+  77              	_bus_fault:
+  78 00a0 7047     		bx lr
+  79              	_usage_fault:
+  80 00a2 7047     	 	bx lr
+  81              	_systickdingshiqi:
+  82 00a4 F8E70000 		b tingting
+  82      00100240 
+  82      834D0100 
+  82      00200240 
+  82      04100240 
+ARM GAS  1.s 			page 3
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:0000000020005000 STACKINIT
+                 1.s:5      .data:0000000000000000 yjmwxwx
+                 1.s:7      .text:0000000000000000 _xiangliangbiao
+                 1.s:24     .text:0000000000000040 _start
+                 1.s:71     .text:000000000000009a _nmi_handler
+                 1.s:73     .text:000000000000009c _hard_fault
+                 1.s:75     .text:000000000000009e _memory_fault
+                 1.s:77     .text:00000000000000a0 _bus_fault
+                 1.s:79     .text:00000000000000a2 _usage_fault
+                 1.s:81     .text:00000000000000a4 _systickdingshiqi
+                            .text:0000000000000000 $d
+                 1.s:25     .text:0000000000000040 $t
+                 1.s:28     .text:0000000000000046 gsszbz
+                 1.s:34     .text:0000000000000052 rccchushihua
+                 1.s:44     .text:0000000000000066 chaxun
+                 1.s:51     .text:0000000000000072 rccgg
+                 1.s:60     .text:0000000000000086 d1
+                 1.s:68     .text:0000000000000098 tingting
+                 1.s:82     .text:00000000000000a6 $d
+                 1.s:82     .text:00000000000000a8 $d
+
+NO UNDEFINED SYMBOLS

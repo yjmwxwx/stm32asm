@@ -1,0 +1,99 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data	
+   5              	       	.equ STACKINIT,                 0x20000300	
+   6              	.section .text
+   7              	vectors:        
+   8 0000 00030020 	        .word STACKINIT         
+   9 0004 B1000000 	        .word _start + 1        
+  10 0008 13020000 	        .word _nmi_handler + 1  
+  11 000c 15020000 	        .word _hard_fault  + 1  
+  12 0010 00000000 	        .word 0 
+  13 0014 00000000 	        .word 0    
+  14 0018 00000000 	        .word 0
+  15 001c 00000000 		.word 0
+  16 0020 00000000 		.word 0
+  17 0024 00000000 		.word 0
+  18 0028 00000000 		.word 0
+  19 002c 17020000 		.word _svc_handler +1
+  20 0030 00000000 		.word 0 
+  21 0034 00000000 		.word 0
+  22 0038 19020000 		.word _pendsv_handler +1
+  23 003c 00000000 		.word 0     @_systick +1               @ 15   
+  24 0040 00000000 		.word 0     @ _wwdg +1          @ 0
+  25 0044 00000000 		.word 0     @_pvd +1            @ 1
+  26 0048 00000000 		.word 0     @_rtc +1            @ 2
+  27 004c 00000000 		.word 0     @_flash +1          @ 3
+  28 0050 00000000 		.word 0     @ _rcc + 1          @ 4
+  29 0054 00000000 		.word 0      @_exti0_1  +1      @ 5
+  30 0058 00000000 		.word 0      @ _exti2_3 +1      @ 6
+  31 005c 00000000 		.word 0       @_exti4_15 +1     @ 7
+  32 0060 00000000 		.word 0                         @ 8
+  33 0064 00000000 		.word 0         @_dma1_1  +1    @ 9
+  34 0068 00000000 		.word 0    @_dma1_2_3 +1        @ 10
+  35 006c 00000000 		.word 0       @_dma1_4_5 +1     @ 11
+  36 0070 00000000 		.word 0      @_adc1 +1          @ 12
+  37 0074 00000000 		.word 0       @_tim1_brk_up +1  @ 13
+  38 0078 00000000 		.word 0        @ _tim1_cc +1    @ 14
+  39 007c 00000000 		.word 0         @_tim2 +1       @ 15
+  40 0080 00000000 		.word 0          @_tim3 +1      @ 16
+  41 0084 00000000 		.word 0                         @ 17
+  42 0088 00000000 		.word 0		                @ 18
+  43 008c 00000000 		.word 0    @_tim14 +1    @ 19
+  44 0090 00000000 		.word 0                         @ 20
+  45 0094 00000000 		.word 0         @_tim16 +1      @ 21
+  46 0098 00000000 		.word 0         @_tim17 +1      @ 22
+  47 009c 00000000 		.word 0          @_i2c   +1     @ 23
+  48 00a0 00000000 		.word 0                         @ 24
+  49 00a4 00000000 		.word 0           @_spi   +1    @ 25
+  50 00a8 00000000 		.word 0                         @ 26
+  51 00ac 00000000 		.word 0         @_usart1 +1     @ 27
+  52              		
+  53              	_start:
+  54 00b0 0221     		movs r1, # 2
+  55 00b2 0122     		movs r2, # 1
+  56 00b4 00F001F8 		bl cordic
+  57              	ting:
+ARM GAS  1.s 			page 2
+
+
+  58 00b8 FEE7     		b ting
+  59              	cordic:
+  60 00ba 30B4C80F 		.word 0x0fc8b430,0x10431840,0x18800fd0,0x29001040,0x2a00d50a,0x2180d504,0x424201c9,0xe0050018,0x00
+  60      40184310 
+  60      D00F8018 
+  60      40100029 
+  60      0AD5002A 
+  61              		
+  62              	_nmi_handler:
+  63 0212 7047     		bx lr
+  64              	_hard_fault:
+  65 0214 7047     		bx lr
+  66              	_svc_handler:
+  67 0216 7047     		bx lr
+  68              	_pendsv_handler:
+  69 0218 7047     		bx lr
+  70              	
+ARM GAS  1.s 			page 3
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:20000300 STACKINIT
+                 1.s:7      .text:00000000 vectors
+                 1.s:53     .text:000000b0 _start
+                 1.s:62     .text:00000212 _nmi_handler
+                 1.s:64     .text:00000214 _hard_fault
+                 1.s:66     .text:00000216 _svc_handler
+                 1.s:68     .text:00000218 _pendsv_handler
+                            .text:00000000 $d
+                 1.s:54     .text:000000b0 $t
+                 1.s:59     .text:000000ba cordic
+                 1.s:57     .text:000000b8 ting
+                 1.s:60     .text:000000ba $d
+                 1.s:63     .text:00000212 $t
+
+NO UNDEFINED SYMBOLS

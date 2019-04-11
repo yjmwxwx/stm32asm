@@ -1,0 +1,25 @@
+zhuchengxu:
+	ldr r0, = 0xe000e010
+	mov r1, # 7
+	str r1, [r0]
+jiancedingshiqibiaozhi:
+	ldr r6, = systickbiaozhi
+	ldr r7, [r6]
+	cmp r7, # 1
+	bne shumaguan
+	mov r7, # 0
+	str r7, [r6]
+	add r11, r11, # 1
+	mov r10, # 10
+	udiv r8, r11, r10
+	mul  r6, r8, r10
+	sub r7, r11, r6
+	ldr r0, = shumaguanmabiao
+	ldrb r1, [r0, r8]
+	ldrb r2, [r0, r7]
+	ldr r0, = 0x20000000
+	strb r1, [r0]
+	strb r2, [r0, # 1]
+shumaguan:
+	bl xie595
+	b jiancedingshiqibiaozhi

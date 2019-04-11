@@ -1,0 +1,266 @@
+ARM GAS  1.s 			page 1
+
+
+   1              	@ stm32f030f4p6 asm 
+   2              	@ 温度控制
+   3              		 .thumb                 
+   4              	         .syntax unified
+   5              	.section .data
+   6              		.equ duizhanding,       0x20001000
+   7              		.equ dqrwyxj,           0x20000044 @ 当前任务优先级
+   8              		.equ xtzgyxj,           0x20000048 @ 系统里最高优先级
+   9              		.equ dangqian,          0x2000004c @  当前TCB任务控制块指针
+  10              		.equ dengyunxing,       0x20000050 @ 待运行TCB任务控制块指针
+  11              		.equ jiuxubiao,         0x20000054 @ 就绪查找表8个任务
+  12              		 @ 保留0X20
+  13              		.equ renwubiao,         0x20000074 @ 任务控制块指针表
+  14              		@保留0x20
+  15              		.equ renwukongzhikuai,  0x20000094 @ 任务控制块起始地址
+  16              		@每个控制块4个数据，+0堆栈顶，+4任务时间,+8优先级，+C
+  17              		
+  18              		.equ renwuduizhan,	0x20000100 @ 任务堆栈
+  19              		
+  20              		
+  21              	.section .text
+  22              	vectors:          @向量表
+  23 0000 00100020 	        .word duizhanding                     
+  24 0004 41000000 	        .word _start + 1             @复位向量
+  25 0008 0F010000 	        .word _nmi_handler + 1  
+  26 000c 11010000 	        .word _hard_fault  + 1  
+  27 0010 00000000 	        .word 0 
+  28 0014 00000000 	        .word 0    
+  29 0018 00000000 	        .word 0
+  30 001c 00000000 		.word 0
+  31 0020 00000000 		.word 0
+  32 0024 00000000 		.word 0
+  33 0028 00000000 		.word 0
+  34 002c 13010000 		.word _svc + 1
+  35 0030 00000000 		.word 0
+  36 0034 00000000 		.word 0
+  37 0038 15010000 		.word _pendsvzhongduan + 1
+  38 003c 41010000 		.word _systickzhongduan + 1
+  39              		
+  40              		
+  41              	
+  42              	_start:
+  43              	_shizhong:                     @时钟设置
+  44 0040 424A     		ldr r2, = 0x40022000   @FLASH访问控制
+  45 0042 3221     		movs r1, # 0x32
+  46 0044 1160     		str r1, [r2]
+  47 0046 4248     		ldr r0, = 0x40021000 @ rcc
+  48              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  49 0048 0121     		movs r1, # 0x01
+  50 004a 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  51              	_dengdai14mshizhongwending:    @等14M时钟稳定
+  52 004c 416B     		ldr r1, [r0, # 0x34]
+  53 004e 8907     		lsls r1, r1, # 30     @ 左移30位
+  54 0050 FCD5     		bpl _dengdai14mshizhongwending  @ 等待14M时钟稳定
+  55              	
+  56              	_neicunqingling:
+  57 0052 4048     		ldr r0, = 0x20000000
+ARM GAS  1.s 			page 2
+
+
+  58 0054 0021     		movs r1, # 0
+  59 0056 404B     		ldr r3, = 0x1000
+  60              	_neicunqinglingxunhuan:
+  61 0058 043B     		subs r3, # 4
+  62 005a C150     		str r1, [r0, r3]
+  63 005c FCD1     		bne _neicunqinglingxunhuan
+  64              	
+  65              	_systick:
+  66              		@ 0xe000ed20 30-31 youxianji
+  67 005e 3F48     		ldr r0, = 0xe000e010
+  68 0060 3F49     		ldr r1, = 10000    
+  69 0062 4160     		str r1, [r0, # 4]
+  70 0064 8160     		str r1, [r0, # 8]
+  71 0066 0721     		movs r1, # 0x07
+  72 0068 0160     		str r1, [r0]
+  73              	
+  74 006a 0020     		movs r0, # 0
+  75 006c 80F30988 		msr psp, r0
+  76              	
+  77 0070 3C48     		ldr r0, = renwuduizhan
+  78 0072 3D49     		ldr r1, = _kongxianrenwu
+  79 0074 3D4A     		ldr r2, = 0x01000000
+  80 0076 1746     		mov r7, r2
+  81 0078 0E46     		mov r6, r1
+  82 007a 0D46     		mov r5, r1
+  83 007c 0C46     		mov r4, r1
+  84 007e 0246     		mov r2, r0
+  85 0080 2030     		adds r0, r0, # 0x20
+  86 0082 F0C0     		stmia r0!, {r4-r7}
+  87 0084 3A49     		ldr r1, = renwukongzhikuai
+  88 0086 0A60     		str r2, [r1]
+  89              	
+  90 0088 3A48     		ldr r0, = renwubiao
+  91 008a 0160     		str r1, [r0]
+  92              	
+  93              		
+  94              	_renwu1chushihua:
+  95 008c 3548     		ldr r0, = renwuduizhan
+  96 008e 3030     		adds r0, # 0x30
+  97 0090 3949     		ldr r1, = _renwu1
+  98 0092 364A     		ldr r2, = 0x01000000
+  99 0094 1746     		mov r7, r2
+ 100 0096 0E46     		mov r6, r1
+ 101 0098 0D46     		mov r5, r1
+ 102 009a 0C46     		mov r4, r1
+ 103 009c 0246     		mov r2, r0
+ 104 009e 2030     		adds r0, r0, # 0x20
+ 105 00a0 F0C0     		stmia r0!, {r4-r7}
+ 106 00a2 3349     		ldr r1, = renwukongzhikuai
+ 107 00a4 1031     		adds r1, # 0x10
+ 108 00a6 0A60     		str r2, [r1]
+ 109              	
+ 110 00a8 3248     		ldr r0, = renwubiao
+ 111 00aa 0430     		adds r0, # 0x04
+ 112 00ac 0160     	        str r1, [r0]
+ 113              	
+ 114 00ae 3348     		ldr r0, = jiuxubiao
+ARM GAS  1.s 			page 3
+
+
+ 115 00b0 0121     		movs r1, # 1
+ 116 00b2 0160     		str r1, [r0]
+ 117 00b4 4160     		str r1, [r0, # 0x04]
+ 118              	
+ 119 00b6 00F01AF8 		bl _diaodu
+ 120              		
+ 121              	
+ 122              	_dddd:
+ 123 00ba FEE7     		b _dddd
+ 124              		
+ 125              		
+ 126              	
+ 127              	_pendkai:	
+ 128 00bc 3048     		ldr r0, = 0xe000ed04
+ 129 00be 3149     		ldr r1, = 0x10000000
+ 130 00c0 0160     		str r1, [r0]
+ 131 00c2 7047     		bx lr
+ 132              	_kongxianrenwu:
+ 133 00c4 2A48     		ldr r0, = renwukongzhikuai
+ 134 00c6 4169     		ldr r1, [r0, # 0x14]
+ 135 00c8 FF29     		cmp r1, # 0xff                @任务1多少时间执行一次
+ 136 00ca 04D9     		bls _kongrenwujixuyunxing     @小于继续运行空任务
+ 137 00cc 2B48     		ldr r0, = jiuxubiao
+ 138 00ce 0121     		movs r1, # 1
+ 139 00d0 4160     		str r1, [r0, # 0x04]          @任务1就绪
+ 140 00d2 00F00CF8 		bl _diaodu
+ 141              	_kongrenwujixuyunxing:	
+ 142 00d6 2A48     		ldr r0, = 0xe000ed04
+ 143 00d8 2A49     		ldr r1, = 0x10000000
+ 144 00da 0160     		str r1, [r0]
+ 145 00dc F2E7     		b _kongxianrenwu
+ 146              	_renwu1:
+ 147 00de 244A     		ldr r2, = renwukongzhikuai
+ 148 00e0 2648     		ldr r0, = jiuxubiao
+ 149 00e2 0021     		movs r1, # 0
+ 150 00e4 4160     		str r1, [r0, # 0x04]           @任务1就绪表清零
+ 151 00e6 5161     		str r1, [r2, # 0x14]           @任务1时间清零
+ 152 00e8 00F001F8 		bl _diaodu
+ 153 00ec F7E7     		b _renwu1
+ 154              		
+ 155              	
+ 156              	_diaodu:
+ 157 00ee 07B5     		push {r0-r2,lr}
+ 158 00f0 2248     	        ldr r0, = jiuxubiao
+ 159 00f2 0821     		movs r1, # 0x08
+ 160 00f4 8900     		lsls r1, # 2
+ 161              	_zhaozuigao:
+ 162 00f6 0439     	        subs r1, r1, # 4
+ 163 00f8 4258     	        ldr r2, [r0, r1]
+ 164 00fa 012A     	        cmp r2, # 1
+ 165 00fc FBD1     	        bne _zhaozuigao
+ 166              	_zhaodaozuigao:
+ 167 00fe 1D48     		ldr r0, = renwubiao
+ 168 0100 4018     		adds r0, r1
+ 169 0102 214A     		ldr r2, = dengyunxing
+ 170 0104 1060     	        str r0, [r2]
+ 171 0106 1E48     		ldr r0, = 0xe000ed04
+ARM GAS  1.s 			page 4
+
+
+ 172 0108 1E49     		ldr r1, = 0x10000000
+ 173 010a 0160     		str r1, [r0]
+ 174 010c 07BD     		pop {r0-r2,pc}
+ 175              		
+ 176              	_nmi_handler:
+ 177 010e 7047     		bx lr
+ 178              	_hard_fault:
+ 179 0110 7047     		bx lr
+ 180              	_svc:
+ 181 0112 7047     		bx lr
+ 182              	_pendsvzhongduan:             @PENDSV中断
+ 183 0114 72B6     		cpsid i               @ 关中断
+ 184 0116 EFF30980 		mrs r0, psp           @ 读PSP当前地址到R0
+ 185 011a 0028     		cmp r0, # 0
+ 186 011c 01D0     		beq _qiehuanrenwu
+ 187 011e 2038     		subs r0, r0, # 0x20
+ 188 0120 F0C0     		stmia r0!, {r4-r7}
+ 189              	_qiehuanrenwu:                @ 切换任务
+ 190 0122 1A48     		ldr r0, = dangqian    @ 当前任务指针
+ 191 0124 1849     		ldr r1, = dengyunxing @ 等待运行指针
+ 192 0126 0A68     		ldr r2, [r1]          @ 取出任务表里的指针
+ 193 0128 0260     		str r2, [r0]          @ 任务表里的指针写到待运行指针
+ 194 012a 1068     		ldr r0, [r2]          @ R0等于任务控制块表
+ 195 012c 0068     		ldr r0, [r0]          @ 取出任务堆栈底
+ 196 012e F0C8     		ldmia r0!, {r4-r7}
+ 197 0130 80F30988 		msr psp, r0
+ 198 0134 7146     		mov r1, lr
+ 199 0136 0422     		movs r2, # 0x04
+ 200 0138 1143     		orrs r1, r2
+ 201 013a 8E46     		mov lr, r1
+ 202 013c 62B6     		cpsie i               @ 开中断
+ 203 013e 7047     		bx lr
+ 204              	_systickzhongduan:
+ 205 0140 0B48     		ldr r0, = renwukongzhikuai
+ 206 0142 4169     		ldr r1, [r0, # 0x14]
+ 207 0144 0131     		adds r1, r1, # 1
+ 208 0146 4161     		str r1, [r0, # 0x14]
+ 209 0148 70470000 		bx lr
+ 209      00200240 
+ 209      00100240 
+ 209      00000020 
+ 209      00100000 
+ARM GAS  1.s 			page 5
+
+
+DEFINED SYMBOLS
+                 1.s:6      *ABS*:0000000020001000 duizhanding
+                 1.s:7      *ABS*:0000000020000044 dqrwyxj
+                 1.s:8      *ABS*:0000000020000048 xtzgyxj
+                 1.s:9      *ABS*:000000002000004c dangqian
+                 1.s:10     *ABS*:0000000020000050 dengyunxing
+                 1.s:11     *ABS*:0000000020000054 jiuxubiao
+                 1.s:13     *ABS*:0000000020000074 renwubiao
+                 1.s:15     *ABS*:0000000020000094 renwukongzhikuai
+                 1.s:18     *ABS*:0000000020000100 renwuduizhan
+                 1.s:22     .text:0000000000000000 vectors
+                 1.s:42     .text:0000000000000040 _start
+                 1.s:176    .text:000000000000010e _nmi_handler
+                 1.s:178    .text:0000000000000110 _hard_fault
+                 1.s:180    .text:0000000000000112 _svc
+                 1.s:182    .text:0000000000000114 _pendsvzhongduan
+                 1.s:204    .text:0000000000000140 _systickzhongduan
+                 1.s:43     .text:0000000000000040 _shizhong
+                            .text:0000000000000000 $d
+                 1.s:44     .text:0000000000000040 $t
+                 1.s:51     .text:000000000000004c _dengdai14mshizhongwending
+                 1.s:56     .text:0000000000000052 _neicunqingling
+                 1.s:60     .text:0000000000000058 _neicunqinglingxunhuan
+                 1.s:65     .text:000000000000005e _systick
+                 1.s:132    .text:00000000000000c4 _kongxianrenwu
+                 1.s:94     .text:000000000000008c _renwu1chushihua
+                 1.s:146    .text:00000000000000de _renwu1
+                 1.s:156    .text:00000000000000ee _diaodu
+                 1.s:122    .text:00000000000000ba _dddd
+                 1.s:127    .text:00000000000000bc _pendkai
+                 1.s:141    .text:00000000000000d6 _kongrenwujixuyunxing
+                 1.s:161    .text:00000000000000f6 _zhaozuigao
+                 1.s:166    .text:00000000000000fe _zhaodaozuigao
+                 1.s:189    .text:0000000000000122 _qiehuanrenwu
+                 1.s:209    .text:000000000000014a $d
+                 1.s:209    .text:000000000000014c $d
+
+NO UNDEFINED SYMBOLS

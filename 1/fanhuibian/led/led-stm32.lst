@@ -1,0 +1,75 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              		.thumb 
+   2              		.syntax unified
+   3              		.equ STACKINIT, 0x20005000 
+   4              		.equ LEDDELAY, 800000 
+   5              	.section .text
+   6              	vectors: 
+   7 0000 00500020 		.word STACKINIT 
+   8 0004 1D000000 		.word _start + 1 
+   9 0008 4F000000 		.word _nmi_handler + 1 
+  10 000c 51000000 		.word _hard_fault + 1 
+  11 0010 53000000 		.word _memory_fault + 1 
+  12 0014 55000000 		.word _bus_fault + 1 
+  13 0018 57000000 		.word _usage_fault + 1 
+  14              	_start:
+  15              	
+  16 001c 0E48     		ldr r0, = 0x40021018
+  17 001e 4FF03901 		mov r1, # 0x39
+  18 0022 0160     		str r1, [r0]
+  19 0024 0D48     		ldr r0, = 0x40011400
+  20 0026 0E49     		ldr r1, = 0x44444344
+  21 0028 0160     		str r1, [r0]
+  22 002a 4FF00102 		mov r2, # 1
+  23 002e 4FF00003 		mov r3, # 0 
+  24 0032 0C4E     		ldr r6, = 0x42228188 
+  25              	loop:
+  26 0034 3260     		str r2, [r6] 
+  27 0036 0C49     		ldr r1, = LEDDELAY
+  28              		delay1:
+  29 0038 0139     		subs r1, 1
+  30 003a 7FF4FDAF 		bne delay1 
+  31 003e 3360     		str r3, [r6] 
+  32 0040 0949     		ldr r1, = LEDDELAY
+  33              	delay2:
+  34 0042 0139     		subs r1, 1
+  35 0044 7FF4FDAF 		bne delay2
+  36 0048 7047     		bx lr
+  37 004a FFF7F3BF 		b loop 
+  38              	_nmi_handler:
+  39 004e 7047     		bx lr
+  40              	_hard_fault:
+  41 0050 7047     		bx lr
+  42              	_memory_fault:
+  43 0052 7047     		bx lr
+  44              	_bus_fault:
+  45 0054 7047     		bx lr
+  46              	_usage_fault:
+  47 0056 70471810 		bx lr
+  47      02400014 
+  47      01404443 
+  47      44448881 
+  47      22420035 
+ARM GAS  led-stm32.s 			page 2
+
+
+DEFINED SYMBOLS
+         led-stm32.s:3      *ABS*:20005000 STACKINIT
+         led-stm32.s:4      *ABS*:000c3500 LEDDELAY
+         led-stm32.s:6      .text:00000000 vectors
+         led-stm32.s:14     .text:0000001c _start
+         led-stm32.s:38     .text:0000004e _nmi_handler
+         led-stm32.s:40     .text:00000050 _hard_fault
+         led-stm32.s:42     .text:00000052 _memory_fault
+         led-stm32.s:44     .text:00000054 _bus_fault
+         led-stm32.s:46     .text:00000056 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:16     .text:0000001c $t
+         led-stm32.s:25     .text:00000034 loop
+         led-stm32.s:28     .text:00000038 delay1
+         led-stm32.s:33     .text:00000042 delay2
+         led-stm32.s:47     .text:00000058 $d
+
+NO UNDEFINED SYMBOLS

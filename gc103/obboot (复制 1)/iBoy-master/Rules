@@ -1,0 +1,26 @@
+	
+
+OBJS =  cpu.o mem.o lcd.o lcdc.o hw.o emu.o rtc.o sound.o  \
+        iboy.o menu/menu.o save.o loader.o \
+		dyntrans/compiler_defs.o dyntrans/op_generators.o \
+		dyntrans/compiler.o dyntrans/cached_compiler.o lcdgbc.o
+
+INCS = -I.
+
+MYCC = $(CC) $(CFLAGS) $(INCS) $(SYS_INCS) $(SYS_DEFS)
+MYAS = $(CC) $(ASFLAGS) $(INCS) $(SYS_INCS) $(SYS_DEFS) 
+
+PRINT = @printf "\n   | %-9s |   %-30s %s   \r"
+
+PRINTNOR = @printf "\n   | %-9s |   %-30s %s   "
+
+
+main.o: Version
+
+.c.o:
+	$(PRINT) "Compiler" $< $@
+	@$(MYCC) -c $< -o $@ > /dev/null
+
+.s.o:
+	$(PRINT) "Assembler" $< $@
+	@$(MYAS) -c $< -o $@ > /dev/null

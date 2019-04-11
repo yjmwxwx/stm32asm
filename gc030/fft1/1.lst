@@ -1,0 +1,508 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data	
+   5              	       	.equ STACKINIT,                 0x20001000
+   6              	
+   7              		.equ shumaguanma,	0x20000000
+   8              		.equ temp,		0x200000fc
+   9              		.equ fftshuchu,		0x20000100
+  10              		.equ fftshuchu1,	0x20000200
+  11 0000 7C950000 	sin_2pi_16:	.long	     	38268
+  12 0004 36140100 	sin_4pi_16:	.long		70710
+  13 0008 E3680100 	sin_6pi_16:	.long		92387
+  14 000c 60FE0100 	c_p_s_2pi_16:	.long	       130656
+  15 0010 67D30000 	c_m_s_2pi_16:	.long		54119
+  16 0014 60FE0100 	c_p_s_6pi_16:	.long	       130656
+  17 0018 982CFFFF 	c_m_s_6pi_16:	.long		0xffff2c98
+  18 001c 00000000 	fftshuru:	.long 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+  18      01000000 
+  18      02000000 
+  18      03000000 
+  18      04000000 
+  19              	shumaguanmabiao:
+  20 005c FC000000 		.int 0xfc,0x60,0xda,0xf2,0x66,0xb6,0xbe,0xe0,0xfe,0xf6
+  20      60000000 
+  20      DA000000 
+  20      F2000000 
+  20      66000000 
+  21              	shumaguanshuaxinbiao:
+  22 0084 00FE0000 		.int 0xfe00,0xfd00,0xfb00,0xf700,0xef00,0xdf00,0xbf00,0x7f00,0
+  22      00FD0000 
+  22      00FB0000 
+  22      00F70000 
+  22      00EF0000 
+  23              	.section .text
+  24              	vectors:        
+  25 0000 00100020 	        .word STACKINIT         
+  26 0004 AD000000 	        .word _start + 1        
+  27 0008 C9020000 	        .word _nmi_handler + 1  
+  28 000c CB020000 	        .word _hard_fault  + 1  
+  29 0010 00000000 	        .word 0 
+  30 0014 00000000 	        .word 0    
+  31 0018 00000000 	        .word 0
+  32 001c 00000000 		.word 0
+  33 0020 00000000 		.word 0
+  34 0024 00000000 		.word 0
+  35 0028 00000000 		.word 0
+  36 002c CD020000 		.word _svc_handler +1
+  37 0030 00000000 		.word 0 
+  38 0034 00000000 		.word 0
+  39 0038 CF020000 		.word _pendsv_handler +1
+  40 003c 00000000 		.word 0 @_systick +1               @ 15   
+  41 0040 00000000 		.word 0     @ _wwdg +1          @ 0
+  42 0044 00000000 		.word 0     @_pvd +1            @ 1
+  43 0048 00000000 		.word 0     @_rtc +1            @ 2
+  44 004c 00000000 		.word 0     @_flash +1          @ 3
+  45 0050 00000000 		.word 0     @ _rcc + 1          @ 4
+ARM GAS  1.s 			page 2
+
+
+  46 0054 00000000 		.word 0      @_exti0_1  +1      @ 5
+  47 0058 00000000 		.word 0      @ _exti2_3 +1      @ 6
+  48 005c 00000000 		.word 0       @_exti4_15 +1     @ 7
+  49 0060 00000000 		.word 0                         @ 8
+  50 0064 00000000 		.word 0 	@_dma1_1  +1    @ 9
+  51 0068 00000000 		.word 0    @_dma1_2_3 +1        @ 10
+  52 006c 00000000 		.word 0       @_dma1_4_5 +1     @ 11
+  53 0070 00000000 		.word 0 @_adc1 +1          @ 12
+  54 0074 00000000 		.word 0       @_tim1_brk_up +1  @ 13
+  55 0078 00000000 		.word 0        @ _tim1_cc +1    @ 14
+  56 007c 00000000 		.word 0         @_tim2 +1       @ 15
+  57 0080 00000000 		.word 0          @_tim3 +1      @ 16
+  58 0084 00000000 		.word 0                         @ 17
+  59 0088 00000000 		.word 0		                @ 18
+  60              		.word @_tim14 +1    @ 19
+  61 008c 00000000 		.word 0                         @ 20
+  62 0090 00000000 		.word 0         @_tim16 +1      @ 21
+  63 0094 00000000 		.word 0         @_tim17 +1      @ 22
+  64 0098 00000000 		.word 0          @_i2c   +1     @ 23
+  65 009c 00000000 		.word 0                         @ 24
+  66 00a0 00000000 		.word 0           @_spi   +1    @ 25
+  67 00a4 00000000 		.word 0                         @ 26
+  68 00a8 00000000 		.word 0         @_usart1 +1     @ 27
+  69              		
+  70              	_start:
+  71              	shizhong:
+  72 00ac 8848     		ldr r0, = 0x40021000 @ rcc
+  73 00ae 894A     		ldr r2, = 0x40022000   @FLASH访问控制
+  74 00b0 3221     		movs r1, # 0x32
+  75 00b2 1160     		str r1, [r2]           @FLASH缓冲 缓冲开启
+  76 00b4 8648     		ldr r0, = 0x40021000 @ rcc
+  77 00b6 8849     		ldr r1, = 0x100002
+  78 00b8 4160     		str r1, [r0, # 0x04]
+  79 00ba 8849     		ldr r1, = 0x1000001
+  80 00bc 0160     		str r1, [r0]
+  81              	dengrc:
+  82 00be 0168     		ldr r1, [r0]
+  83 00c0 8907     		lsls r1, # 30
+  84 00c2 FCD5     		bpl dengrc
+  85              	dengpll:
+  86 00c4 0168     		ldr r1, [r0]
+  87 00c6 8901     		lsls r1, # 6
+  88 00c8 FCD5     		bpl dengpll
+  89              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  90 00ca 0121     		movs r1, # 0x01
+  91 00cc 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  92              	dengdai14mshizhongwending:
+  93 00ce 416B     		ldr r1, [r0, # 0x34]
+  94 00d0 8907     		lsls r1, r1, # 30     @ 左移30位
+  95 00d2 FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+  96              	
+  97              	neicunqingling:
+  98 00d4 8248     		ldr r0, = 0x20000000
+  99 00d6 0021     		movs r1, # 0
+ 100 00d8 824B     		ldr r3, = 0x1000
+ 101              	neicunqinglingxunhuan:
+ 102 00da 043B     		subs r3, # 4
+ARM GAS  1.s 			page 3
+
+
+ 103 00dc C150     		str r1, [r0, r3]
+ 104 00de FCD1     		bne neicunqinglingxunhuan
+ 105              	
+ 106              		
+ 107 00e0 8148     		ldr r0, = fftshuru
+ 108 00e2 8249     		ldr r1, = fftshuchu
+ 109              	
+ 110              		@实
+ 111 00e4 0268     		ldr r2, [r0]
+ 112 00e6 036A     		ldr r3, [r0, # 0x20]
+ 113 00e8 D418     		adds r4, r2, r3
+ 114 00ea 0C60     		str r4, [r1]
+ 115              	
+ 116 00ec 4268     		ldr r2, [r0, # 0x04]
+ 117 00ee 436A     		ldr r3, [r0, # 0x24]
+ 118 00f0 D418     		adds r4, r2, r3
+ 119 00f2 4C60     		str r4, [r1, # 0x04]
+ 120              	
+ 121 00f4 8268     		ldr r2, [r0, # 0x08]
+ 122 00f6 836A     		ldr r3, [r0, # 0x28]
+ 123 00f8 D418     		adds r4, r2, r3
+ 124 00fa 8C60     		str r4, [r1, # 0x08]
+ 125              	
+ 126 00fc C268     		ldr r2, [r0, # 0x0c]
+ 127 00fe C36A     		ldr r3, [r0, # 0x2c]
+ 128 0100 D418     		adds r4, r2, r3
+ 129 0102 CC60     		str r4, [r1, # 0x0c]
+ 130              	
+ 131 0104 0269     		ldr r2, [r0, # 0x10]
+ 132 0106 036B     		ldr r3, [r0, # 0x30]
+ 133 0108 D418     		adds r4, r2, r3
+ 134 010a 0C61     		str r4, [r1, # 0x10]
+ 135              	
+ 136 010c 4269     		ldr r2, [r0, # 0x14]
+ 137 010e 436B     		ldr r3, [r0, # 0x34]
+ 138 0110 D418     		adds r4, r2, r3
+ 139 0112 4C61     		str r4, [r1, # 0x14]
+ 140              	
+ 141 0114 8269     		ldr r2, [r0, # 0x18]
+ 142 0116 836B     		ldr r3, [r0, # 0x38]
+ 143 0118 D418     		adds r4, r2, r3
+ 144 011a 8C61     		str r4, [r1, # 0x18]
+ 145              	
+ 146 011c C269     		ldr r2, [r0, # 0x1c]
+ 147 011e C36B     		ldr r3, [r0, # 0x3c]
+ 148 0120 D418     		adds r4, r2, r3
+ 149 0122 CC61     		str r4, [r1, # 0x1c]
+ 150              	
+ 151              		@虚
+ 152 0124 0268     		ldr r2, [r0]
+ 153 0126 036A     		ldr r3, [r0, # 0x20]
+ 154 0128 D41A     		subs r4, r2, r3
+ 155 012a 0C62     		str r4, [r1, # 0x20]
+ 156              	
+ 157 012c 4268     		ldr r2, [r0, # 0x04]
+ 158 012e 436A     		ldr r3, [r0, # 0x24]
+ 159 0130 D41A     		subs r4, r2, r3
+ARM GAS  1.s 			page 4
+
+
+ 160 0132 4C62     		str r4, [r1, # 0x24]
+ 161              	
+ 162 0134 8268     		ldr r2, [r0, # 0x08]
+ 163 0136 836A     		ldr r3, [r0, # 0x28]
+ 164 0138 D41A     		subs r4, r2, r3
+ 165 013a 8C62     		str r4, [r1, # 0x28]
+ 166              	
+ 167 013c C268     		ldr r2, [r0, # 0x0c]
+ 168 013e C36A     		ldr r3, [r0, # 0x2c]
+ 169 0140 D41A     		subs r4, r2, r3
+ 170 0142 CC62     		str r4, [r1, # 0x2c]
+ 171              	
+ 172 0144 026B     		ldr r2, [r0, # 0x30]
+ 173 0146 0369     		ldr r3, [r0, # 0x10]
+ 174 0148 D41A     		subs r4, r2, r3
+ 175 014a 0C63     		str r4, [r1, # 0x30]
+ 176              	
+ 177 014c 426B     		ldr r2, [r0, # 0x34]
+ 178 014e 4369     		ldr r3, [r0, # 0x14]
+ 179 0150 D41A     		subs r4, r2, r3
+ 180 0152 4C63     		str r4, [r1, # 0x34]
+ 181              	
+ 182 0154 826B     		ldr r2, [r0, # 0x38]
+ 183 0156 8369     		ldr r3, [r0, # 0x18]
+ 184 0158 D41A     		subs r4, r2, r3
+ 185 015a 8C63     		str r4, [r1, # 0x38]
+ 186              	
+ 187 015c C26B     		ldr r2, [r0, # 0x3c]
+ 188 015e C369     		ldr r3, [r0, # 0x1c]
+ 189 0160 D41A     		subs r4, r2, r3
+ 190 0162 CC63     		str r4, [r1, # 0x3c]
+ 191              	
+ 192              		@@@@@@@@@@@@@@@
+ 193              		
+ 194 0164 4A6B     		ldr r2, [r1, # 0x34]
+ 195 0166 4B6A     		ldr r3, [r1, # 0x24]
+ 196 0168 614C     		ldr r4, = sin_2pi_16
+ 197 016a 2468     		ldr r4, [r4]
+ 198 016c D21A     		subs r2, r2, r3
+ 199 016e 6243     		muls r2, r2, r4
+ 200 0170 1546     		mov r5, r2                      @ 
+ 201              		
+ 202 0172 4A6A     		ldr r2, [r1, # 0x24]
+ 203 0174 5F4E     		ldr r6, = c_p_s_2pi_16
+ 204 0176 3668     		ldr r6, [r6]
+ 205 0178 7243     		muls r2, r2, r6
+ 206 017a 5219     		adds r2, r2, r5
+ 207 017c 4A62     		str r2, [r1, # 0x24]          @ 0x17c
+ 208              	
+ 209 017e 4A6B     		ldr r2, [r1, # 0x34]
+ 210 0180 5D4E     		ldr r6, = c_m_s_2pi_16
+ 211 0182 3668     		ldr r6, [r6]
+ 212 0184 7243     		muls r2, r2, r6
+ 213 0186 5219     		adds r2, r2, r5
+ 214 0188 4A63     		str r2, [r1, # 0x34]        @ 0x188
+ 215              	
+ 216 018a 8A6B     		ldr r2, [r1, # 0x38]
+ARM GAS  1.s 			page 5
+
+
+ 217 018c 5B4E     		ldr r6, = sin_4pi_16
+ 218 018e 3668     		ldr r6, [r6]
+ 219 0190 7243     		muls r2, r2, r6           @ 0x190
+ 220              	
+ 221 0192 8B6A     		ldr r3, [r1, # 0x28]
+ 222 0194 7343     		muls r3, r3, r6          @ 0x194
+ 223              	
+ 224 0196 D21A     		subs r2, r2, r3
+ 225 0198 8A63     		str r2, [r1, # 0x38]    @ 0x198
+ 226              	
+ 227 019a D218     		adds r2, r2, r3
+ 228 019c D218     		adds r2, r2, r3
+ 229 019e 8A62     		str r2, [r1, # 0x28]  @ 0x19e
+ 230              	
+ 231 01a0 CA6B     		ldr r2, [r1, # 0x3c]
+ 232 01a2 CB6A     		ldr r3, [r1, # 0x2c]
+ 233 01a4 564E     		ldr r6, = sin_6pi_16
+ 234 01a6 3668     		ldr r6, [r6]
+ 235 01a8 D41A     		subs r4, r2, r3
+ 236 01aa 7443     		muls r4, r4, r6         @ 0x1aa
+ 237              	
+ 238 01ac 554E     		ldr r6, = c_p_s_6pi_16
+ 239 01ae 3668     		ldr r6, [r6]
+ 240 01b0 7343     		muls r3, r3, r6
+ 241 01b2 1B19     		adds r3, r3, r4
+ 242 01b4 CB62     		str r3, [r1, # 0x2c]   @ 0x1b4
+ 243              	
+ 244 01b6 544E     		ldr r6, = c_m_s_6pi_16
+ 245 01b8 3668     		ldr r6, [r6]
+ 246 01ba 7243     		muls r2, r2, r6
+ 247 01bc 1219     		adds r2, r2, r4
+ 248 01be CA63     		str r2, [r1, # 0x3c]   @ 0x1be 有点问题
+ 249              	
+ 250              		@@@@@@@@@@@@@@@@@@@@@
+ 251              	
+ 252 01c0 0A6A     		ldr r2, [r1, # 0x20]
+ 253 01c2 8B6A     		ldr r3, [r1, # 0x28]
+ 254 01c4 D218     		adds r2, r2, r3
+ 255 01c6 0A62     		str r2, [r1, # 0x20] @ 0x1c6
+ 256              	
+ 257 01c8 D21A     		subs r2, r2, r3
+ 258 01ca D21A     		subs r2, r2, r3
+ 259 01cc 8A62     		str r2, [r1, # 0x28] @ 0x1cc
+ 260              	
+ 261 01ce 8A6B     		ldr r2, [r1, # 0x38]
+ 262 01d0 0B6B     		ldr r3, [r1, # 0x30]
+ 263 01d2 9B18     		adds r3, r3, r2
+ 264 01d4 0B63     		str r3, [r1, # 0x30] @ 0x1d4
+ 265              	
+ 266 01d6 9B1A     		subs r3, r3, r2
+ 267 01d8 9B1A     		subs r3, r3, r2
+ 268 01da 8B63     		str r3, [r1, # 0x38]  @ 0x1da
+ 269              	
+ 270 01dc 4A6A     		ldr r2, [r1, # 0x24]
+ 271 01de CB6A     		ldr r3, [r1, # 0x2c]
+ 272 01e0 D218     		adds r2, r2, r3
+ 273 01e2 4A62     		str r2, [r1, # 0x24]  @ 0x1e2
+ARM GAS  1.s 			page 6
+
+
+ 274              	
+ 275 01e4 D21A     		subs r2, r2, r3
+ 276 01e6 D21A     		subs r2, r2, r3
+ 277 01e8 CA62     		str r2, [r1, # 0x2c]  @ 0x1e8
+ 278              	
+ 279 01ea 4A6B     		ldr r2, [r1, # 0x34]
+ 280 01ec CB6B     		ldr r3, [r1, # 0x3c]
+ 281 01ee D218     		adds r2, r2, r3
+ 282 01f0 4A63     		str r2, [r1, # 0x34]     @ 0x1f0 结果有点不一样
+ 283              	
+ 284 01f2 D21A     		subs r2, r2, r3
+ 285 01f4 D21A     		subs r2, r2, r3
+ 286 01f6 CA63     		str r2, [r1, # 0x3c]    @ 0x1f6
+ 287              	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 288 01f8 444F     		ldr r7, = fftshuchu1
+ 289 01fa 0A6A     		ldr r2, [r1, # 0x20]
+ 290 01fc 4B6A     		ldr r3, [r1, # 0x24]
+ 291 01fe D418     		adds r4, r2, r3
+ 292 0200 7C60     		str r4, [r7, # 0x04]      @ 0x200
+ 293              	
+ 294 0202 D51A     		subs r5, r2, r3
+ 295 0204 FD61     		str r5, [r7, # 0x1c]     @ 0x204
+ 296              	
+ 297 0206 0A6B     		ldr r2, [r1, # 0x30]
+ 298 0208 4B6B     		ldr r3, [r1, # 0x34]
+ 299 020a D418     		adds r4, r2, r3
+ 300 020c 7C62     		str r4, [r7, # 0x24]     @0x20c 不一样，差一点
+ 301              	
+ 302 020e 9B1A     		subs r3, r3, r2
+ 303 0210 FB63     		str r3, [r7, # 0x3c]    @ 0x210
+ 304              	
+ 305 0212 8A6A     		ldr r2, [r1, # 0x28]
+ 306 0214 CB6A     		ldr r3, [r1, # 0x2c]
+ 307 0216 8C6B     		ldr r4, [r1, # 0x38]
+ 308 0218 CD6B     		ldr r5, [r1, # 0x3c]
+ 309 021a 5619     		adds r6, r2, r5
+ 310 021c 7E61     		str r6, [r7, # 0x14]   @ 0x21c 不一样
+ 311              		
+ 312 021e E61A     		subs r6, r4, r3
+ 313 0220 7E63     		str r6, [r7, # 0x34]   @ 0x220
+ 314              		
+ 315 0222 561B     		subs r6, r2, r5
+ 316 0224 FE60     		str r6, [r7, # 0x0c]  @ 0x224 相差8
+ 317              	
+ 318 0226 0022     		movs r2, # 0
+ 319 0228 121B     		subs r2, r2, r4
+ 320 022a D61A     		subs r6, r2, r3
+ 321 022c FE62     		str r6, [r7, # 0x2c]  @ 0x22c
+ 322              	
+ 323              		
+ 324 022e 0A68     		ldr r2, [r1]
+ 325 0230 0B69     		ldr r3, [r1, # 0x10]
+ 326 0232 4C69     		ldr r4, [r1, # 0x14]
+ 327 0234 8D69     		ldr r5, [r1, # 0x18]
+ 328 0236 1619     		adds r6, r2, r4            @ out0=out0+out4
+ 329 0238 0E60     		str r6, [r1]              @0x238 相差差2
+ 330              		
+ARM GAS  1.s 			page 7
+
+
+ 331 023a D61A     		subs r6, r2, r3
+ 332 023c F61A     		subs r6, r6, r3
+ 333 023e 0E61     		str r6, [r1, # 0x10]
+ 334 0240 4E68     		ldr r6, [r1, # 0x04]
+ 335 0242 3619     		adds r6, r6, r4
+ 336 0244 4E60     		str r6, [r1, # 0x04]       @ 0x23e
+ 337              		
+ 338 0246 361B     		subs r6, r6, r4
+ 339 0248 361B     		subs r6, r6, r4
+ 340 024a 4E61     		str r6, [r1, # 0x14]   	   @ 0x24a
+ 341              		
+ 342 024c 8A68     		ldr r2, [r1, # 0x08]
+ 343 024e 5219     		adds r2, r2, r5
+ 344 0250 8A60     		str r2, [r1, # 0x08]   	   @ 0x250
+ 345              		
+ 346 0252 521B     		subs r2, r2, r5
+ 347 0254 521B     		subs r2, r2, r5
+ 348 0256 8A61     		str r2, [r1, # 0x18]      @ 0x256 out6=out2-out6-out6
+ 349              		
+ 350 0258 CA68     		ldr r2, [r1, # 0x0c]
+ 351 025a CB69     		ldr r3, [r1, # 0x1c]
+ 352 025c D218     		adds r2, r2, r3
+ 353 025e CA60     		str r2, [r1, # 0x0c]      @ 0x25e
+ 354              		
+ 355 0260 D21A     		subs r2, r2, r3
+ 356 0262 D21A     		subs r2, r2, r3          @ 0x262
+ 357 0264 CA61     		str r2, [r1, # 0x1c]
+ 358              	
+ 359 0266 0A68     		ldr r2, [r1]		@ output[0]=out0+out2
+ 360 0268 8B68     		ldr r3, [r1, # 0x08]
+ 361 026a D618     		adds r6, r2, r3
+ 362 026c 3E60     		str r6, [r7]            @ 0x26a 差了2
+ 363              	
+ 364 026e D61A     		subs r6, r2, r3
+ 365 0270 3E61     		str r6, [r7, # 0x10]   @ 0x26e
+ 366              		
+ 367 0272 4A68     		ldr r2, [r1, # 0x04]
+ 368 0274 CB68     		ldr r3, [r1, # 0x0c]
+ 369 0276 D218     		adds r2, r2, r3
+ 370 0278 4A60     		str r2, [r1, # 0x04]  @  0x270
+ 371              		
+ 372 027a DB18     		adds r3, r3, r3
+ 373 027c 9B1A     		subs r3, r3, r2
+ 374 027e 3B63     		str r3, [r7, # 0x30]
+ 375              		
+ 376 0280 3B68     		ldr r3, [r7]
+ 377 0282 9B18     		adds r3, r3, r2
+ 378 0284 3B60     		str r3, [r7]              @output[0] +=out1
+ 379 0286 9B1A     		subs r3, r3, r2
+ 380 0288 9B1A     		subs r3, r3, r2
+ 381 028a 3B62     		str r3, [r7, # 0x20]     @ 0x288
+ 382              	
+ 383 028c 1B4A     		ldr r2, = sin_4pi_16
+ 384 028e 1268     		ldr r2, [r2]
+ 385 0290 4C69     		ldr r4, [r1, # 0x14]
+ 386 0292 CD69     		ldr r5, [r1, # 0x1c]
+ 387 0294 5443     		muls r4, r4, r2
+ARM GAS  1.s 			page 8
+
+
+ 388 0296 4C61     		str r4, [r1, # 0x14]      @ 0x294
+ 389              		
+ 390 0298 5543     		muls r5, r5, r2
+ 391 029a CD61     		str r5, [r1, # 0x1c] 	@ 0x29a
+ 392              		
+ 393 029c 641B     		subs r4, r4, r5
+ 394 029e 4C61     		str r4, [r1, # 0x14]	@0x29e
+ 395              		
+ 396 02a0 6419     		adds r4, r4, r5
+ 397 02a2 6419     		adds r4, r4, r5
+ 398 02a4 CC61     		str r4, [r1, # 0x1c] 	@ 0x2a4
+ 399              	
+ 400 02a6 8A69     		ldr r2, [r1, # 0x18]
+ 401 02a8 CB69     		ldr r3, [r1, # 0x1c]
+ 402 02aa D21A     		subs r2, r2, r3
+ 403 02ac BA63     		str r2, [r7, # 0x38]	@ 0x2ac
+ 404              	
+ 405 02ae 4A69     		ldr r2, [r1, # 0x14]
+ 406 02b0 0B69     		ldr r3, [r1, # 0x10]
+ 407 02b2 D618     		adds r6, r2, r3
+ 408 02b4 BE60     		str r6, [r7, # 0x08]
+ 409              	
+ 410 02b6 9B1A     		subs r3, r3, r2
+ 411 02b8 BB61     		str r3, [r7, # 0x18]
+ 412              	
+ 413 02ba 0024     		movs r4, # 0
+ 414 02bc CA69     		ldr r2, [r1, # 0x1c]
+ 415 02be 8B69     		ldr r3, [r1, # 0x18]
+ 416 02c0 A41A     		subs r4, r4, r2
+ 417 02c2 E41A     		subs r4, r4, r3
+ 418 02c4 BC62     		str r4, [r7, # 0x28]
+ 419              	
+ 420              		
+ 421              	_tingting:
+ 422 02c6 FEE7     		b _tingting
+ 423              		
+ 424              	_nmi_handler:
+ 425 02c8 7047     		bx lr
+ 426              	_hard_fault:
+ 427 02ca 7047     		bx lr
+ 428              	_svc_handler:
+ 429 02cc 7047     		bx lr
+ 430              	_pendsv_handler:
+ 431 02ce 70470010 		bx lr
+ 431      02400020 
+ 431      02400200 
+ 431      10000100 
+ 431      00010000 
+ARM GAS  1.s 			page 9
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:0000000020001000 STACKINIT
+                 1.s:7      *ABS*:0000000020000000 shumaguanma
+                 1.s:8      *ABS*:00000000200000fc temp
+                 1.s:9      *ABS*:0000000020000100 fftshuchu
+                 1.s:10     *ABS*:0000000020000200 fftshuchu1
+                 1.s:11     .data:0000000000000000 sin_2pi_16
+                 1.s:12     .data:0000000000000004 sin_4pi_16
+                 1.s:13     .data:0000000000000008 sin_6pi_16
+                 1.s:14     .data:000000000000000c c_p_s_2pi_16
+                 1.s:15     .data:0000000000000010 c_m_s_2pi_16
+                 1.s:16     .data:0000000000000014 c_p_s_6pi_16
+                 1.s:17     .data:0000000000000018 c_m_s_6pi_16
+                 1.s:18     .data:000000000000001c fftshuru
+                 1.s:19     .data:000000000000005c shumaguanmabiao
+                 1.s:21     .data:0000000000000084 shumaguanshuaxinbiao
+                 1.s:24     .text:0000000000000000 vectors
+                 1.s:70     .text:00000000000000ac _start
+                 1.s:424    .text:00000000000002c8 _nmi_handler
+                 1.s:426    .text:00000000000002ca _hard_fault
+                 1.s:428    .text:00000000000002cc _svc_handler
+                 1.s:430    .text:00000000000002ce _pendsv_handler
+                 1.s:71     .text:00000000000000ac shizhong
+                            .text:0000000000000000 $d
+                 1.s:72     .text:00000000000000ac $t
+                 1.s:81     .text:00000000000000be dengrc
+                 1.s:85     .text:00000000000000c4 dengpll
+                 1.s:92     .text:00000000000000ce dengdai14mshizhongwending
+                 1.s:97     .text:00000000000000d4 neicunqingling
+                 1.s:101    .text:00000000000000da neicunqinglingxunhuan
+                 1.s:421    .text:00000000000002c6 _tingting
+                 1.s:431    .text:00000000000002d0 $d
+
+NO UNDEFINED SYMBOLS

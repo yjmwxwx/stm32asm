@@ -1,0 +1,231 @@
+ARM GAS  1.s 			page 1
+
+
+   1              	@ stm32f030f4p6 asm 
+   2              		 .thumb                 
+   3              	         .syntax unified
+   4              	.section .data	
+   5              	        	.equ STACKINIT,          0x20000300
+   6              			.equ shumaguanma,	0x20000000
+   7 ???? FC000000 	shumaguanmabiao:	.int 0xfc,0x60,0xda,0xf2,0x66,0xb6,0xbe,0xe0,0xfe,0xf6
+   7      60000000 
+   7      DA000000 
+   7      F2000000 
+   7      66000000 
+   8              	
+   9              	.section .text
+  10              	vectors:        
+  11 ???? 00030020 	        .word STACKINIT         
+  12 ???? 1D000000 	        .word _start + 1        
+  13 ???? E7000000 	        .word _nmi_handler + 1  
+  14 ???? E9000000 	        .word _hard_fault  + 1  
+  15 ???? EB000000 	        .word _memory_fault + 1 
+  16 ???? ED000000 	        .word _bus_fault + 1    
+  17 ???? EF000000 	        .word _usage_fault + 1 
+  18              	
+  19              	_start:
+  20              	shizhong:
+  21 ???? 3448     		ldr r0, = 0x40021000 @ rcc_cr
+  22 ???? 3549     		ldr r1, = 0x15683     
+  23 ???? 0160     		str r1, [r0]
+  24              	gsszbz: 
+  25 ???? 0268     		ldr r2, [r0]
+  26 ???? 3449     		ldr r1, = 0x20000    
+  27 ???? 1142     		tst r1, r2           @HSE时钟标志位           
+  28 ???? 00D1     		bne rccchushihua
+  29 ???? FAE7     		b gsszbz
+  30              	rccchushihua: 
+  31 ???? 3348     		ldr r0, = 0x40022000   @FLASH访问控制
+  32 ???? 3221     		movs r1, # 0x32
+  33 ???? 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  34 ???? 3348     		ldr r0, = 0x40021004 
+  35 ???? 3349     		ldr r1, = 0x110000    @ HSE-PLL-6倍频
+  36 ???? 0160     		str r1, [r0]
+  37 ???? 2D48     		ldr r0, = 0x40021000
+  38 ???? 3349     		ldr r1, = 0x1035683     @ PLL开
+  39 ???? 0160     		str r1, [r0]
+  40              	chaxun:
+  41 ???? 0268     		ldr r2, [r0]
+  42 ???? 3249     		ldr r1, = 0x2000000     @ PLL锁定标志位
+  43 ???? 1142     		tst r1, r2              
+  44 ???? 00D1     		bne rccgg               @ 等待PLL锁定 
+  45 ???? FAE7     		b chaxun
+  46              	rccgg:
+  47 ???? 3149     		ldr r1, = 0x11000a      @ PLL作为系统时钟
+  48 ???? 4160     		str r1, [r0, # 0x04]
+  49              		
+  50              		@0x34时钟控制寄存器 2 (RCC_CR2)
+  51 ???? 0121     		movs r1, # 0x01
+  52 ???? 4163     		str r1, [r0, # 0x34]  @ HSI开14M时钟
+  53              	dengdai14mshizhongwending:
+ARM GAS  1.s 			page 2
+
+
+  54 ???? 416B     		ldr r1, [r0, # 0x34]
+  55 ???? 8907     		lsls r1, r1, # 30     @ 左移30位
+  56 ???? FCD5     		bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
+  57              		
+  58              	waisheshizhong:	 @ 外设时钟              
+  59              		@+0x18外设时钟使能寄存器 (RCC_APB2ENR)
+  60              		@ （0）SYSCFGEN（9）ADC（11）TIM1（12）SPI（14）USART1
+  61              		@ （16）TIM15 （17）TIM6（18）TIM17 (22)DBGMCU
+  62 ???? 2F49     		ldr r1, = 0x200
+  63 ???? 8161     		str r1, [r0, # 0x18]  
+  64              		
+  65 ???? 2F48     		ldr r0, = 0x40021014    @ AHB外部时钟
+  66 ???? 2F49     		ldr r1, = 0x60014       @ 开时钟
+  67 ???? 0160     		str r1, [r0]
+  68              		@ DMA（0）SRAM（2）FLITF（4）CRC（6）PA（17）
+  69              		@PB（18）PC（19）PD（20）PF（22）TSCEN（24）
+  70 ???? 2F48     		ldr r0, = 0x4002101c
+  71 ???? 3049     		ldr r1, = 0x132
+  72 ???? 0160     		str r1, [r0]
+  73              	
+  74              		
+  75              	io_she_zhi:
+  76              	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  77              		@a(0x48000000)b(0x48000400)c(0x48000800)d(0x48000c00)f(0x48001400)
+  78              		@ 输入（00），通用输出（01），复用功能（10），模拟（11）
+  79              		@偏移0x4 = 端口输出类型 @ （0 推挽），（ 1 开漏）
+  80              		@偏移0x8 = 输出速度  00低速， 01中速， 11高速
+  81              		@偏移0xC = 上拉下拉 00无上下拉，  01 上拉， 10下拉
+  82              		@偏移0x10 = 输入数据寄存器
+  83              		@偏移0x14 = 输出数据寄存器
+  84              		@偏移0x18 = 端口开  0-15置位 
+  85              		@偏移0x28 = 端口关
+  86              		@0X20 = 复用低
+  87              		@GPIO口0（0-3位）每个IO口占用4位
+  88              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+  89              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+  90              		@0x24 = 复用高
+  91              		@GPIO口8 （0-3位）每个IO口占用4位
+  92              		@ AF0 = 0X0000, AF1 = 0X0001, AF2 = 0X0010 AF3 = 0X0011, AF4 = 0X0100
+  93              		@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
+  94              	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  95 ???? 3048     		ldr r0, = 0x48000000
+  96 ???? 3049     		ldr r1, = 0x28005400
+  97 ???? 0160     		str r1, [r0]
+  98 ???? 8168     		ldr r1, [r0, # 0x08]
+  99 ???? 304A     		ldr r2, = 0xfc00
+ 100 ???? 1143     		orrs r1, r2
+ 101 ???? 8160     		str r1, [r0, # 0x08]
+ 102              	zhuchengxu:
+ 103              		udiv r1, r1, r2
+ 104 ???? 1C26     		movs r6, # 28
+ 105 ???? 00F001F8 		bl xieshumaguan
+ 106 ???? FBE7     		b zhuchengxu
+ 107              		
+ 108              	xieshumaguan: @ r12=位数 @数码管码
+ 109 ???? FFB5     		push {r0-r7,lr}
+ 110 ???? 2D49     		ldr r1, = 0xfefefefe
+ARM GAS  1.s 			page 3
+
+
+ 111 ???? 0122     		movs r2, # 0x01
+ 112 ???? 0027     		movs r7, # 0
+ 113 ???? 2C4D     		ldr r5, = shumaguanmabiao
+ 114              	shumaguanshuaxin:
+ 115 ???? EB59     		ldr r3, [r5, r7]
+ 116 ???? 0C0E     		lsrs r4, r1, # 24
+ 117 ???? 2402     		lsls r4, r4, # 8
+ 118 ???? 1C43     		orrs r4, r4, r3
+ 119 ???? A446     		mov r12, r4
+ 120 ???? 00F005F8 		bl xie595
+ 121 ???? D141     		rors r1, r2
+ 122 ???? 0437     		adds  r7, r7, # 4
+ 123 ???? B742     		cmp r7, r6
+ 124 ???? F4D9     		bls shumaguanshuaxin
+ 125 ???? FFBD     		pop {r0-r7,pc}
+ 126              		
+ 127              	xie595: @ R12=要写的数据
+ 128 ???? FFB5     		push {r0-r7,lr}
+ 129 ???? 4020     		movs r0, # 0x40
+ 130 ???? 8027     		movs r7, # 0x80 
+ 131 ???? 2026     		movs r6, # 0x20 
+ 132 ???? 6546     		mov r5, r12
+ 133 ???? 1023     		movs r3, # 16   @16位
+ 134 ???? 1F4A     		ldr r2, = 0x48000000 @ gpioa
+ 135 ???? 0121     		movs r1, # 0x01
+ 136              	xunhuan595:
+ 137 ???? 9761     		str r7, [r2, # 0x18]
+ 138 ???? 00F014F8 		bl yanshi
+ 139 ???? 0D42     		tst r5, r1
+ 140 ???? 01D1     		bne xie595_0
+ 141 ???? 9062     		str r0, [r2, # 0x28]
+ 142 ???? 00E0     		b suocun595
+ 143              	xie595_0:
+ 144 ???? 9061     		str r0, [r2, # 0x18]
+ 145              	suocun595:
+ 146 ???? 00F00DF8 		bl yanshi
+ 147 ???? 6D08     		lsrs r5, # 1
+ 148 ???? 9762     		str r7, [r2, # 0x28]
+ 149 ???? 00F009F8 		bl yanshi
+ 150 ???? 013B     		subs r3, r3, # 1
+ 151 ???? EFD1     		bne xunhuan595
+ 152 ???? 9661     		str r6, [r2, # 0x18]
+ 153 ???? 00F004F8 		bl yanshi
+ 154 ???? 9662     		str r6, [r2, # 0x28]
+ 155 ???? 00F001F8 		bl yanshi
+ 156 ???? FFBD     		pop {r0-r7,pc}
+ 157              	
+ 158              	yanshi:
+ 159 ???? FFB5     		push {r0-r7,lr}
+ 160 ???? FF20     		ldr r0, = 0xff
+ 161              	yanshi1:
+ 162 ???? 0138     		subs r0, # 1
+ 163 ???? FDD1     		bne yanshi1
+ 164 ???? FFBD     		pop {r0-r7,pc}
+ 165              	_nmi_handler:
+ 166 ???? 7047     		bx lr
+ 167              	_hard_fault:
+ARM GAS  1.s 			page 4
+
+
+ 168 ???? 7047     		bx lr
+ 169              	_memory_fault:
+ 170 ???? 7047     		bx lr
+ 171              	_bus_fault:
+ 172 ???? 7047     		bx lr
+ 173              	_usage_fault:
+ 174 ???? 7047     	 	bx lr
+ 175 ???? 00100240 		
+ 175      83560100 
+ 175      00000200 
+ 175      00200240 
+ 175      04100240 
+ARM GAS  1.s 			page 5
+
+
+DEFINED SYMBOLS
+                 1.s:5      *ABS*:20000300 STACKINIT
+                 1.s:6      *ABS*:20000000 shumaguanma
+                 1.s:7      .data:00000000 shumaguanmabiao
+                 1.s:10     .text:00000000 vectors
+                 1.s:19     .text:0000001c _start
+                 1.s:165    .text:000000e6 _nmi_handler
+                 1.s:167    .text:000000e8 _hard_fault
+                 1.s:169    .text:000000ea _memory_fault
+                 1.s:171    .text:000000ec _bus_fault
+                 1.s:173    .text:000000ee _usage_fault
+                 1.s:20     .text:0000001c shizhong
+                            .text:00000000 $d
+                 1.s:21     .text:0000001c $t
+                 1.s:24     .text:00000022 gsszbz
+                 1.s:30     .text:0000002c rccchushihua
+                 1.s:40     .text:0000003e chaxun
+                 1.s:46     .text:00000048 rccgg
+                 1.s:53     .text:00000050 dengdai14mshizhongwending
+                 1.s:58     .text:00000056 waisheshizhong
+                 1.s:75     .text:00000066 io_she_zhi
+                 1.s:102    .text:00000074 zhuchengxu
+                 1.s:108    .text:0000007c xieshumaguan
+                 1.s:114    .text:00000086 shumaguanshuaxin
+                 1.s:127    .text:0000009e xie595
+                 1.s:136    .text:000000ae xunhuan595
+                 1.s:158    .text:000000dc yanshi
+                 1.s:143    .text:000000bc xie595_0
+                 1.s:145    .text:000000be suocun595
+                 1.s:161    .text:000000e0 yanshi1
+                 1.s:175    .text:000000f0 $d
+
+NO UNDEFINED SYMBOLS

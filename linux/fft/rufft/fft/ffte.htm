@@ -1,0 +1,206 @@
+<html>
+<head>
+  <title>Программирование - Быстрое преобразование Фурье</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/styles2.css">
+</head>
+<body>
+ <div id=hdr>
+  <div id=psi></div>
+  <div id=l1></div><div id=l2></div><div id=l3></div><div id=l4></div>
+  <div id=capt2>Логарифмический алгоритм<br>для произвольного N</div>
+ </div>
+<div id=body>
+  <div id=mi><a href="fftd.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fftf.htm">[следующая глава]</a></div>
+<div id=text>
+
+<p>
+
+В "Википедии" нашелся алгоритм сложности <nobr>O(Nlog<sub><sub>2</sub></sub>N)</nobr>для произвольного <nobr>N</nobr>.
+Алгоритм основан на значительном увеличении числа элементов последовательности и дополнении ее нулями. Хотя такое
+расширение, естественно, будет компенсироваться высокой скоростью алгоритма.
+
+<p>
+
+Длина последовательности берется равной <nobr>N'</nobr>, где <nobr>N'</nobr> - степень двойки ближайшая сверху к
+<nobr>2N</nobr>. То есть, <nobr>4N &gt; N' = 2<sup>T</sup> &ge; 2N</nobr>. Т.е. число элементов новой последовательности
+в худшем случае может превышать число элементов исходной последовательности почти в <nobr>4</nobr> раза.
+Например, если <nobr>N = 9</nobr>, то <nobr>N' = 32</nobr>.
+
+<p>
+
+Обозначим 
+
+<p>
+
+<img align="absmiddle" src="image208.gif">
+
+<p>
+
+Представим формулу (1) в виде:
+
+<p>
+
+<img align="absmiddle" src="image209.gif">
+
+<p>
+
+Преобразуем степень:
+
+<p>
+
+<nobr>kn = 2kn/2 = (&minus;k<sup>2</sup> + k<sup>2</sup> + 2kn + n<sup>2</sup> &minus; n<sup>2</sup>)/2
+= (&minus;k<sup>2</sup> + (k + n)<sup>2</sup> &minus; n<sup>2</sup>)/2
+</nobr>
+
+<p>
+
+Это используем для дальнейшего преобразования формулы (1):
+
+<p>
+
+<img align="absmiddle" src="image210.gif">
+
+<p>
+
+Далее введем обозначения:
+
+<p>
+
+<nobr>x'<sub><sub>n</sub></sub> = x<sub><sub>n</sub></sub>W<sup> &minus;n<sup>2</sup>/2</sup></nobr>
+
+<p>
+
+<nobr>X'<sub><sub>k</sub></sub> = X<sub><sub>k</sub></sub>W<sup> k<sup>2</sup>/2</sup></nobr>
+
+<p>
+
+Для <nobr>n &gt; N</nobr>, полагаем <nobr>x<sub><sub>n</sub></sub> = 0</nobr>.
+
+<p>
+
+Тогда
+
+<p>
+
+<img align="absmiddle" src="image211.gif">&nbsp;&nbsp;&nbsp;(42)
+
+<p>
+
+И далее авторы алгоритма выполняют виртуозный "финт ушами". Пусть:
+
+<p>
+
+<nobr>z<sub><sub>k</sub></sub> = (2N &minus; 2 &minus; k)</nobr>
+
+<p>
+
+<nobr>w<sub><sub>n</sub></sub> = W <sup>z<sub><sub>n</sub></sub><sup>2</sup>/2</sup></nobr>
+
+<p>
+
+И превращают формулу (42) в:
+
+<p>
+
+<img align="absmiddle" src="image212.gif">&nbsp;&nbsp;&nbsp;(43)
+
+<p>
+
+Проверим:
+
+<p>
+
+<nobr><span style="font-size: 32px;">
+w<sub><sub>z<sub><sub>k</sub></sub> &minus; n</sub></sub>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(z<sub><sub>z<sub><sub>k</sub></sub> &minus; n</sub></sub>)<sup>2</sup>/2</sup>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(2N &minus; 2 &minus; (z<sub><sub>k</sub></sub> &minus; n))<sup>2</sup>/2</sup>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(2N &minus; 2 &minus; z<sub><sub>k</sub></sub> + n)<sup>2</sup>/2</sup>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(2N &minus; 2 &minus; (2N &minus; 2 &minus; k) + n)<sup>2</sup>/2</sup>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(2N &minus; 2 &minus; 2N + 2 + k + n)<sup>2</sup>/2</sup>
+</span></nobr>
+<nobr><span style="font-size: 32px;">
+= W <sup>(k + n)<sup>2</sup>/2</sup>
+</span></nobr>
+
+<p>
+
+Правая часть формулы (43) является дискретной сверткой. В общем случае формула свертки имеет вид:
+
+<p>
+
+<img align="absmiddle" src="image213.gif">&nbsp;&nbsp;&nbsp;(44)
+
+<p>
+
+где <nobr>f</nobr> и <nobr>g</nobr> - функции от целых переменных (т.е. дискретные функции). В данном случае
+роль таких функций играют <nobr>x'<sub><sub>n</sub></sub></nobr> и <nobr>w<sub><sub>n</sub></sub></nobr>,
+которые "зависят" от своих индексов как от целых переменных. Свертка обладает замечательным
+свойством:
+
+<p>
+
+<nobr>F(f * g) = F(f) F(g)</nobr>&nbsp;&nbsp;&nbsp;(45)
+
+<p>
+
+где <nobr>F(f)</nobr> - это дискретная функция, которая получается из дискретной функции <nobr>f</nobr>
+с помощью быстрого преобразования Фурье.
+
+<p>
+
+Дальнейший порядок вычисления таков. Сначала надо вычислить <nobr>F(x')</nobr>, то есть
+взять набор <nobr>x'<sub><sub>n</sub></sub></nobr> и вычислить БПФ для <nobr>n = 0...N' &minus; 1</nobr>.
+Затем вычислить <nobr>F(w)</nobr>, для чего  взять набор <nobr>w<sub><sub>n</sub></sub></nobr> и вычислить 
+БПФ для <nobr>n = 0...N' &minus; 1</nobr>. Потом по формуле (45) простым перемножением получаем
+<nobr>F(x' * w) = F(x') F(w)</nobr>. Просто берем <nobr>i</nobr>-й элемент, полученный после
+БПФ набора <nobr>x'<sub><sub>n</sub></sub></nobr>, и умножаем на <nobr>i</nobr>-й элемент, полученный после
+БПФ набора <nobr>w<sub><sub>n</sub></sub></nobr>. В результате получим БПФ свертки <nobr>x' * w</nobr>.
+Теперь у нас есть БПФ свертки, из него надо получить саму свертку. Для этого применяем обратное 
+преобразование Фурье. Теперь нам надо найти <nobr>X'<sub><sub>k</sub></sub></nobr>. Для этого используем формулу 
+(43). <nobr>k</nobr>-й элемент набора <nobr>X<sub><sub>k</sub></sub></nobr> будет соответствовать
+<nobr>z<sub><sub>k</sub></sub></nobr>-му элементу свертки. Наконец, останется перейти от <nobr>X'<sub><sub>k</sub></sub></nobr>
+к <nobr>X<sub><sub>k</sub></sub></nobr>.
+
+<p>
+
+В процессе вычислений мы применяли алгоритмы порядка сложности <nobr>N</nobr>, <nobr>N'</nobr> и <nobr>N'log<sub><sub>2</sub></sub>N'</nobr>
+(когда делали три БПФ).
+Поскольку <nobr>N'</nobr> не может превышать <nobr>N</nobr> более, чем в <nobr>4</nobr> раза, то весь алгоритм
+имеет сложность <nobr>O(Nlog<sub><sub>2</sub></sub>N)</nobr>
+
+<p>
+
+Обратное преобразование требует величины <nobr>W</nobr> без минуса в показателе и в конце алгоритма - деления
+всех полученных элементов на <nobr>N</nobr>. Три алгоритма БПФ остаются в этом случае теми же: два прямых
+перобразования и одно обратное.
+
+<p>
+
+На следующей страничке приведен листинг программы, выполняющей прямое и обратное преобразования
+по этому алгоритму. Оптимизация выполнена примерно теми же способами, что и в предыдущем случае
+с незначительными модификациями. Переменные <nobr>x'</nobr> в алгоритме обозначаются как <nobr>x_</nobr>,
+<nobr>2N</nobr> как <nobr>N2</nobr>, <nobr>N'</nobr> как <nobr>N_</nobr>,
+<nobr>z<sub><sub>k</sub></sub></nobr> как <nobr>N22</nobr>, <nobr>&pi;/N</nobr> (или
+<nobr>&minus;&pi;/N</nobr> при обратном преобразовании) как <nobr>piN</nobr>.
+
+<p>
+
+  <div id=mi>
+   <hr size=1 noshade color=black>
+   <a href="fftd.htm">[предыдущая глава]</a>&nbsp;&nbsp;<a href="fft.htm">[оглавление]</a>&nbsp;&nbsp;<a href="fftf.htm">[следующая глава]</a>
+   <hr size=1 noshade color=black>
+  </div>
+ </div>
+</body>
+</html>

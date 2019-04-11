@@ -1,0 +1,80 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	
+   2              	
+   3              	@@@ Directives
+   4              	        .thumb                 
+   5              	        .syntax unified
+   6              	
+   7              	.section .data
+   8              	
+   9 0000 41614262 	wxwx:	 .ascii "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz" 
+   9      43634464 
+   9      45654666 
+   9      47674868 
+   9      49694A6A 
+  10              	
+  11              	        .equ STACKINIT,   0x20005000        
+  12              	        
+  13              	.section .text
+  14              	        .org 0
+  15              	
+  16              	@@@ Vectors
+  17              	vectors:        
+  18 0000 00500020 	        .word STACKINIT         @ stack pointer value when stack is empty
+  19 0004 1D000000 	        .word _start + 1        @ reset vector (manually adjust to odd for thumb)
+  20 0008 39000000 	        .word _nmi_handler + 1  @ 
+  21 000c 39000000 	        .word _hard_fault  + 1  @ 
+  22 0010 39000000 	        .word _memory_fault + 1 @ 
+  23 0014 39000000 	        .word _bus_fault + 1    @ 
+  24 0018 39000000 	        .word _usage_fault + 1  @ 
+  25              	
+  26              	_start:
+  27 001c 4FF0060A 		mov r10, # 6
+  28 0020 4FF05F0B 		mov r11, # 0x5f
+  29              	
+  30              	diyi:	
+  31              	
+  32 0024 DFF81480 		ldr r8, = 0x30000000
+  33 0028 DFF81490 		ldr r9, = wxwx
+  34              	
+  35 002c B9E8FF00 		ldmia r9!, {r0-r7}
+  36 0030 A8E8FF00 		stmia r8!, {r0-r7}
+  37              	
+  38              	dier:
+  39              	
+  40 0034 1BEA080F 		tst r11, r8
+  41              		
+  42              	
+  43              	
+  44              	_dummy:                        @ if any int gets triggered, just hang in a loop
+  45              	_nmi_handler:
+  46              	_hard_fault:
+  47              	_memory_fault:
+  48              	_bus_fault:
+  49              	_usage_fault:
+  50 0038 70470000 		bx lr 
+  50      00000030 
+  50      00000000 
+ARM GAS  led-stm32.s 			page 2
+
+
+DEFINED SYMBOLS
+         led-stm32.s:9      .data:00000000 wxwx
+         led-stm32.s:11     *ABS*:20005000 STACKINIT
+         led-stm32.s:17     .text:00000000 vectors
+         led-stm32.s:26     .text:0000001c _start
+         led-stm32.s:45     .text:00000038 _nmi_handler
+         led-stm32.s:46     .text:00000038 _hard_fault
+         led-stm32.s:47     .text:00000038 _memory_fault
+         led-stm32.s:48     .text:00000038 _bus_fault
+         led-stm32.s:49     .text:00000038 _usage_fault
+                            .text:00000000 $d
+         led-stm32.s:27     .text:0000001c $t
+         led-stm32.s:30     .text:00000024 diyi
+         led-stm32.s:38     .text:00000034 dier
+         led-stm32.s:44     .text:00000038 _dummy
+         led-stm32.s:50     .text:0000003a $d
+
+NO UNDEFINED SYMBOLS

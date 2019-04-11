@@ -1,0 +1,384 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              		 .thumb                 
+   2              	         .syntax unified
+   3              	.section .data
+   4              	        .equ STACKINIT,          0x20005000
+   5              		 .equ yanshius,           0x20000200
+   6              		 .equ ledkongzhi,         0x20000204
+   7              		 .equ hongwaikuandu,      0x20000208
+   8              		.equ hongwaikuandu1,      0x2000020c
+   9              		.equ hongwaikuanduhe,     0x20000210
+  10              		.equ hongwaipianyi,	  0x20000214
+  11              		.equ hongwaijiema, 	  0x20000218
+  12              		.equ hongwaishu,	  0x20000220
+  13              		.equ pwmpinlv,		  0x20000228
+  14              		.equ pwmzhankong,	  0x2000022c
+  15              	.section .text
+  16              	vectors:        
+  17 0000 00500020 	        .word STACKINIT         
+  18 0004 B9000000 	        .word _start + 1        
+  19 0008 0D020000 	        .word _nmi_handler + 1  
+  20 000c 0F020000 	        .word _hard_fault  + 1  
+  21 0010 11020000 	        .word _memory_fault + 1 
+  22 0014 13020000 	        .word _bus_fault + 1    
+  23 0018 15020000 	        .word _usage_fault + 1 
+  24 001c 00000000 		.word 0
+  25 0020 00000000 		.word 0
+  26 0024 00000000 		.word 0
+  27 0028 00000000 		.word 0
+  28 002c 00000000 		.word 0
+  29 0030 00000000 		.word 0
+  30 0034 00000000 		.word 0 
+  31 0038 00000000 		.word 0
+  32 003c 17020000 		.word _dingshiqi + 1
+  33 0040 00000000 		.word 0
+  34 0044 00000000 		.word 0
+  35 0048 00000000 		.word 0
+  36 004c 00000000 		.word 0
+  37 0050 00000000 		.word 0
+  38 0054 00000000 		.word 0 
+  39 0058 00000000 		.word 0
+  40 005c 19020000 		.word _extizhongduan + 1
+  41 0060 00000000 		.word 0
+  42 0064 00000000 		.word 0
+  43 0068 00000000 		.word 0
+  44 006c 00000000 		.word 0
+  45 0070 00000000 		.word 0
+  46 0074 00000000 		.word 0
+  47 0078 00000000 		.word 0
+  48 007c 00000000 		.word 0
+  49 0080 00000000 		.word 0
+  50 0084 00000000 		.word 0
+  51 0088 00000000 		.word 0
+  52 008c 00000000 		.word 0
+  53 0090 00000000 		.word 0
+  54 0094 00000000 		.word 0
+  55 0098 00000000 		.word 0
+  56 009c 00000000 		.word 0
+  57 00a0 00000000 		.word 0
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 00a4 00000000 		.word 0
+  59 00a8 00000000 		.word 0
+  60 00ac 00000000 		.word 0
+  61 00b0 00000000 		.word 0
+  62 00b4 C1020000 		.word _tim3dingshiqi +1	
+  63              	_start:
+  64 00b8 4FF00000 		mov r0, # 0
+  65 00bc 4FF00001 		mov r1, # 0
+  66 00c0 4FF00002 		mov r2, # 0
+  67 00c4 4FF00003 		mov r3, # 0
+  68 00c8 4FF00004 		mov r4, # 0
+  69 00cc 4FF00005 		mov r5, # 0
+  70 00d0 4FF00006 		mov r6, # 0 
+  71 00d4 4FF00007 		mov r7, # 0
+  72 00d8 4FF00008 		mov r8, # 0
+  73 00dc 4FF00009 		mov r9, # 0
+  74 00e0 4FF0000A 		mov r10, # 0
+  75 00e4 4FF0000B 		mov r11, # 0 
+  76              	@@AFIO-MAPR 开SWD模式
+  77 00e8 7648     		ldr r0, = 0x40010004
+  78 00ea 7749     		ldr r1, = 0x02000000
+  79 00ec 0160     		str r1, [r0]
+  80              	shizhong:
+  81 00ee 7748     		ldr r0, = 0x40021000
+  82 00f0 7749     		ldr r1, = 0x14D83
+  83 00f2 0160     		str r1, [r0]
+  84              	gsszbz: 
+  85 00f4 0268     		ldr r2, [r0]
+  86 00f6 7749     		ldr r1, = 0x20000
+  87 00f8 1142     		tst r1, r2           @高速时钟标志位           
+  88 00fa 40F00280 		bne rccchushihua
+  89 00fe FFF7F9BF 		b gsszbz
+  90              	rccchushihua: 
+  91 0102 7548     		ldr r0, = 0x40022000
+  92 0104 4FF03201 		mov r1, # 0x00000032
+  93 0108 0160     		str r1, [r0]           @FLASH缓冲 缓冲开启 
+  94 010a 7448     		ldr r0, = 0x40021004
+  95 010c 7449     		ldr r1, = 0x1D8400
+  96 010e 0160     		str r1, [r0]
+  97 0110 6E48     		ldr r0, = 0x40021000
+  98 0112 7449     		ldr r1, = 0x1033D03
+  99 0114 0160     		str r1, [r0]
+ 100              	chaxun:
+ 101 0116 0268     		ldr r2, [r0]
+ 102 0118 6B49     		ldr r1, = 0x2000000
+ 103 011a 1142     		tst r1, r2
+ 104 011c 40F00280 		bne rccgg
+ 105 0120 FFF7F9BF 		b chaxun
+ 106              	rccgg:
+ 107 0124 6D48     		ldr r0, = 0x40021004
+ 108 0126 7049     		ldr r1, = 0x1D8402
+ 109 0128 0160     		str r1, [r0]
+ 110              	iokoushezhi:
+ 111 012a 7048     		ldr r0, = 0x40021018 @apb2enr
+ 112 012c 4FF00501 		mov r1, #0x05	     @使能PA口时钟
+ 113 0130 0160     		str r1, [r0]
+ 114 0132 6F48     		ldr r0, = 0x40010800  @ gpioa 低
+ARM GAS  led-stm32.s 			page 3
+
+
+ 115 0134 6F49     		ldr r1, = 0x4B444484  @
+ 116 0136 0160     		str r1, [r0]	
+ 117 0138 6F48     		ldr r0, = 0x4001080C
+ 118 013a 4FF04201 		mov r1, # 0x42
+ 119 013e 0160     		str r1, [r0]
+ 120              	extiexti:
+ 121 0140 6E48     		ldr r0, = 0x40010008 @AFIO_EXTICR1
+ 122 0142 4FF00001 		mov r1, # 0
+ 123 0146 0160     		str r1, [r0] @PA1外部中断
+ 124 0148 4FF00201 		mov r1, # 0x02
+ 125 014c 6C48     		ldr r0, = 0x40010400 @EXTI_IMR中断屏蔽寄存器
+ 126 014e 0160     		str r1, [r0]
+ 127 0150 6C48     		ldr r0, = 0x40010404 @EXTI_EMR事件屏蔽
+ 128 0152 0160     		str r1, [r0]
+ 129 0154 6C48     		ldr r0, = 0x4001040C @EXTI_FTSR下降沿触发
+ 130 0156 0160     		str r1, [r0]
+ 131 0158 6C48     		ldr r0, = 0xE000E100 @NVIC_ISER0 SETENA0
+ 132 015a 4FF08001 		mov r1, # 0x80 @ exti1开中断
+ 133 015e 0160     		str r1, [r0]
+ 134              	zhuchengxu:
+ 135              	hw0:	
+ 136 0160 6B48     		ldr r0, = 0x20000260
+ 137 0162 0068     		ldr r0, [r0]
+ 138 0164 6B4B     		ldr r3, = 0xba45ff00
+ 139 0166 9842     		cmp r0, r3
+ 140 0168 00F00A80 		beq hw1
+ 141 016c 6A4B     		ldr r3, = 0xb946ff00
+ 142 016e 9842     		cmp r0, r3
+ 143 0170 00F00A80 		beq hw2
+ 144 0174 694B     		ldr r3, = 0xb847ff00
+ 145 0176 9842     		cmp r0, r3
+ 146 0178 00F00A80 		beq hw3
+ 147 017c FFF7F0BF 		b hw0
+ 148              	hw1:
+ 149 0180 6749     		ldr r1, = 0xFFF0
+ 150 0182 684A     		ldr r2, = 0x6FFF
+ 151 0184 00F006B8 		b hwhw
+ 152              	hw2:
+ 153 0188 6749     		ldr r1, = 0x2EE0
+ 154 018a 684A     		ldr r2, = 0x1770
+ 155 018c 00F002B8 		b hwhw
+ 156              	hw3:
+ 157 0190 6649     		ldr r1, = 0x1770
+ 158 0192 674A     		ldr r2, = 0xbb8	
+ 159              	hwhw:
+ 160 0194 6748     		ldr r0, = pwmpinlv
+ 161 0196 6249     		ldr r1, = 0xFFF0
+ 162 0198 0160     		str r1, [r0]
+ 163 019a 6748     		ldr r0, = pwmzhankong
+ 164 019c 614A     		ldr r2, = 0x6fff
+ 165 019e 0160     		str r1, [r0]
+ 166 01a0 00F018F8 		bl tim3dingshiqi
+ 167 01a4 FFF7DCBF 		b hw0
+ 168              	sysyanshi:
+ 169 01a8 3FB5     		push {r0-r5, lr}
+ 170 01aa 6448     		ldr r0, = 0xE000E010
+ 171 01ac 6449     		ldr r1, = yanshius
+ARM GAS  led-stm32.s 			page 4
+
+
+ 172 01ae 0968     		ldr r1, [r1] 
+ 173 01b0 4160     		str r1, [r0, # 4]
+ 174 01b2 8160     		str r1, [r0, # 8]
+ 175 01b4 634C     		ldr r4, = 0xFFFFF0
+ 176 01b6 A142     		cmp r1, r4
+ 177 01b8 40F00480 		bne kaidingshiqi
+ 178 01bc 4FF00102 		mov r2, # 0x01
+ 179 01c0 0260     		str r2, [r0]
+ 180 01c2 3FBD     		pop {r0-r5, pc}
+ 181              	kaidingshiqi:
+ 182 01c4 4FF00102 		mov r2, # 0x01
+ 183 01c8 0260     		str r2, [r0]
+ 184              	tingzaizhe:
+ 185 01ca 8368     		ldr r3, [r0, # 8]
+ 186 01cc 002B     		cmp r3, # 0 
+ 187 01ce 7FF4FCAF 		bne tingzaizhe
+ 188 01d2 3FBD     		pop {r0-r5, pc}
+ 189              	tim3dingshiqi:
+ 190 01d4 3FB5     		push {r0-r5, lr}
+ 191 01d6 5C48     		ldr r0, = 0x4002101C
+ 192 01d8 4FF00201 		mov r1, # 0x02 
+ 193 01dc 0160     		str r1, [r0] @ 开TIM3时钟
+ 194 01de 5B48     		ldr r0, = 0x4000042C @TIM ARR自动重载寄存器
+ 195 01e0 5449     		ldr r1, = pwmpinlv
+ 196 01e2 0968     		ldr r1, [r1]
+ 197 01e4 0160     		str r1, [r0]
+ 198 01e6 5A48     		ldr r0, = 0x40000428 @psc预分频器
+ 199 01e8 4FF00C01 		mov r1, # 12
+ 200 01ec 0160     		str r1, [r0]	
+ 201 01ee 5948     		ldr r0, = 0x40000418  
+ 202 01f0 5949     		ldr r1, = 0x78     
+ 203 01f2 0160     		str r1, [r0]
+ 204 01f4 5948     		ldr r0, = 0x40000420 
+ 205 01f6 5A49     		ldr r1, = 0x01	     
+ 206 01f8 0160     		str r1, [r0] 
+ 207 01fa 5A48     		ldr r0, = 0x40000400 
+ 208 01fc 4FF08101 		mov r1, #0x81
+ 209 0200 0160     		str r1, [r0]		
+ 210 0202 5948     		ldr r0, = 0x40000434
+ 211 0204 4C49     		ldr r1, = pwmzhankong
+ 212 0206 0968     		ldr r1, [r1]
+ 213 0208 0160     		str r1, [r0]
+ 214 020a 3FBD     		pop {r0-r5, pc}	
+ 215              	_nmi_handler:
+ 216 020c 7047     		bx lr
+ 217              	_hard_fault:
+ 218 020e 7047     		bx lr
+ 219              	_memory_fault:
+ 220 0210 7047     		bx lr
+ 221              	_bus_fault:
+ 222 0212 7047     		bx lr
+ 223              	_usage_fault:
+ 224 0214 7047     		bx lr
+ 225              	_dingshiqi:		
+ 226 0216 7047     	        bx lr 
+ 227              	_extizhongduan:
+ 228 0218 FFB5     		push {r0-r7, lr}
+ARM GAS  led-stm32.s 			page 5
+
+
+ 229 021a 5448     		ldr r0, = hongwaipianyi
+ 230 021c 5449     		ldr r1, = 0x22004c00
+ 231 021e 0160     		str r1, [r0]
+ 232              	kaishile:
+ 233 0220 484C     		ldr r4, = 0xFFFFF0
+ 234 0222 474D     		ldr r5, = yanshius
+ 235 0224 2C60     		str r4, [r5]
+ 236 0226 FFF7BFFF 		bl sysyanshi
+ 237              	dengdaigaomaichong:
+ 238 022a 5248     		ldr r0, = 0xE000E018
+ 239 022c 0068     		ldr r0, [r0]
+ 240 022e 5249     		ldr r1, = 0xF00000
+ 241 0230 8842     		cmp r0, r1
+ 242 0232 40F24080 		bls fanhuizhuchengxu
+ 243 0236 5148     		ldr r0, = 0x42210104
+ 244 0238 0068     		ldr r0, [r0]
+ 245 023a 0128     		cmp r0, # 1
+ 246 023c 7FF4F5AF 		bne dengdaigaomaichong
+ 247 0240 4F4A     		ldr r2, = hongwaikuandu
+ 248 0242 4C49     		ldr r1, = 0xE000E018
+ 249 0244 0968     		ldr r1, [r1]
+ 250 0246 3F4B     		ldr r3, = 0xFFFFF0
+ 251 0248 5B1A     		subs r3, r1
+ 252 024a 1360     		str r3, [r2]
+ 253 024c 3D4C     		ldr r4, = 0xFFFFF0
+ 254 024e 3C4D     		ldr r5, = yanshius
+ 255 0250 2C60     		str r4, [r5]
+ 256 0252 FFF7A9FF 		bl sysyanshi
+ 257              	dengdaidimaichong:
+ 258 0256 4748     		ldr r0, = 0xE000E018
+ 259 0258 0068     		ldr r0, [r0]
+ 260 025a 4749     		ldr r1, = 0xF00000
+ 261 025c 8842     		cmp r0, r1
+ 262 025e 40F22A80 		bls fanhuizhuchengxu
+ 263 0262 4648     		ldr r0, = 0x42210104
+ 264 0264 0068     		ldr r0, [r0]
+ 265 0266 0028     		cmp r0, # 0
+ 266 0268 7FF4F5AF 		bne dengdaidimaichong
+ 267 026c 454B     		ldr r3, = hongwaikuandu1
+ 268 026e 4149     		ldr r1, = 0xE000E018
+ 269 0270 0968     		ldr r1, [r1]
+ 270 0272 344A     		ldr r2, = 0xFFFFF0
+ 271 0274 521A     		subs r2, r1
+ 272 0276 1A60     		str r2, [r3]
+ 273              	panduan:
+ 274 0278 4149     		ldr r1, = hongwaikuandu
+ 275 027a 0968     		ldr r1, [r1]
+ 276 027c 414A     		ldr r2, = hongwaikuandu1
+ 277 027e 1268     		ldr r2, [r2]
+ 278 0280 5218     		adds r2, r1
+ 279 0282 12F4F032 		ands r2, # 0x1E000
+ 280 0286 B2F5005F 		cmp r2, # 0x2000
+ 281 028a 00F00680 		beq dd1
+ 282 028e B2F5804F 		cmp r2, # 0x4000
+ 283 0292 00F00680 		beq dd2
+ 284 0296 00F00AB8 		b dd5
+ 285              	dd1:
+ARM GAS  led-stm32.s 			page 6
+
+
+ 286 029a 4FF00002 		mov r2, # 0
+ 287 029e 00F002B8 		b dd3
+ 288              	dd2:
+ 289 02a2 4FF00102 		mov r2, # 1
+ 290              	dd3:
+ 291 02a6 3148     		ldr r0, = hongwaipianyi
+ 292 02a8 0168     		ldr r1, [r0]
+ 293 02aa 04C1     		stmia r1!, {r2}
+ 294 02ac 0160     		str r1, [r0]
+ 295              	dd5:
+ 296 02ae 364A     		ldr r2, = 0x22004c80
+ 297 02b0 9142     		cmp r1, r2
+ 298 02b2 7FF4B5AF 		bne kaishile
+ 299              	fanhuizhuchengxu:
+ 300 02b6 3548     		ldr r0, = 0x40010414 @挂起寄存器EXTI_PR
+ 301 02b8 4FF00201 		mov r1, # 0x02
+ 302 02bc 0160     		str r1, [r0]
+ 303 02be FFBD     		pop {r0-r7, pc}	
+ 304              	_tim3dingshiqi:
+ 305 02c0 7047     		bx lr	
+ 306 02c2 00000400 	         
+ 306      01400000 
+ 306      00020010 
+ 306      0240834D 
+ 306      01000000 
+ARM GAS  led-stm32.s 			page 7
+
+
+DEFINED SYMBOLS
+         led-stm32.s:4      *ABS*:20005000 STACKINIT
+         led-stm32.s:5      *ABS*:20000200 yanshius
+         led-stm32.s:6      *ABS*:20000204 ledkongzhi
+         led-stm32.s:7      *ABS*:20000208 hongwaikuandu
+         led-stm32.s:8      *ABS*:2000020c hongwaikuandu1
+         led-stm32.s:9      *ABS*:20000210 hongwaikuanduhe
+         led-stm32.s:10     *ABS*:20000214 hongwaipianyi
+         led-stm32.s:11     *ABS*:20000218 hongwaijiema
+         led-stm32.s:12     *ABS*:20000220 hongwaishu
+         led-stm32.s:13     *ABS*:20000228 pwmpinlv
+         led-stm32.s:14     *ABS*:2000022c pwmzhankong
+         led-stm32.s:16     .text:00000000 vectors
+         led-stm32.s:63     .text:000000b8 _start
+         led-stm32.s:215    .text:0000020c _nmi_handler
+         led-stm32.s:217    .text:0000020e _hard_fault
+         led-stm32.s:219    .text:00000210 _memory_fault
+         led-stm32.s:221    .text:00000212 _bus_fault
+         led-stm32.s:223    .text:00000214 _usage_fault
+         led-stm32.s:225    .text:00000216 _dingshiqi
+         led-stm32.s:227    .text:00000218 _extizhongduan
+         led-stm32.s:304    .text:000002c0 _tim3dingshiqi
+                            .text:00000000 $d
+         led-stm32.s:64     .text:000000b8 $t
+         led-stm32.s:80     .text:000000ee shizhong
+         led-stm32.s:84     .text:000000f4 gsszbz
+         led-stm32.s:90     .text:00000102 rccchushihua
+         led-stm32.s:100    .text:00000116 chaxun
+         led-stm32.s:106    .text:00000124 rccgg
+         led-stm32.s:110    .text:0000012a iokoushezhi
+         led-stm32.s:120    .text:00000140 extiexti
+         led-stm32.s:134    .text:00000160 zhuchengxu
+         led-stm32.s:135    .text:00000160 hw0
+         led-stm32.s:148    .text:00000180 hw1
+         led-stm32.s:152    .text:00000188 hw2
+         led-stm32.s:156    .text:00000190 hw3
+         led-stm32.s:159    .text:00000194 hwhw
+         led-stm32.s:189    .text:000001d4 tim3dingshiqi
+         led-stm32.s:168    .text:000001a8 sysyanshi
+         led-stm32.s:181    .text:000001c4 kaidingshiqi
+         led-stm32.s:184    .text:000001ca tingzaizhe
+         led-stm32.s:232    .text:00000220 kaishile
+         led-stm32.s:237    .text:0000022a dengdaigaomaichong
+         led-stm32.s:299    .text:000002b6 fanhuizhuchengxu
+         led-stm32.s:257    .text:00000256 dengdaidimaichong
+         led-stm32.s:273    .text:00000278 panduan
+         led-stm32.s:285    .text:0000029a dd1
+         led-stm32.s:288    .text:000002a2 dd2
+         led-stm32.s:295    .text:000002ae dd5
+         led-stm32.s:290    .text:000002a6 dd3
+         led-stm32.s:306    .text:000002c2 $d
+
+NO UNDEFINED SYMBOLS

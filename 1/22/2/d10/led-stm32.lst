@@ -1,0 +1,327 @@
+ARM GAS  led-stm32.s 			page 1
+
+
+   1              	@@@
+   2              	        .thumb                 
+   3              	        .syntax unified
+   4              	@@@
+   5              	        .equ STACKINIT, 	0x20005000
+   6              		.equ rcckz,		0x40021000 @rcc时钟控制寄存器
+   7              		.equ rccpz,		0x40021004 @时钟配置寄存器
+   8              		.equ flashacr,		0x40022000 @flash闪存访问寄存器 
+   9              	   	.equ syskz,       	0xE000E010 @ 控制寄存器
+  10              	    	.equ syscz,        	0xE000E014 @systick定时器重载
+  11              	    	.equ syssz,        	0xE000E018 @systick计数值查询
+  12              			 		   	
+  13              	.section .text
+  14              	
+  15              	vectors_table:
+  16              	vectors:        
+  17 0000 00500020 	        .word STACKINIT         
+  18 0004 B9000000 	        .word _start + 1        
+  19 0008 CF010000 	        .word _nmi_handler + 1  
+  20 000c D1010000 	        .word _hard_fault  + 1  
+  21 0010 D3010000 	        .word _memory_fault + 1 
+  22 0014 D5010000 	        .word _bus_fault + 1    
+  23 0018 D7010000 	        .word _usage_fault + 1   
+  24 001c 00000000 		.word 0
+  25 0020 00000000 		.word 0
+  26 0024 00000000 		.word 0
+  27 0028 00000000 		.word 0
+  28 002c 00000000 		.word 0
+  29 0030 00000000 		.word 0
+  30 0034 00000000 		.word 0 
+  31 0038 00000000 		.word 0
+  32 003c D9010000 		.word _dingshiqi + 1
+  33 0040 00000000 		.word 0
+  34 0044 00000000 		.word 0
+  35 0048 00000000 		.word 0
+  36 004c 00000000 		.word 0
+  37 0050 00000000 		.word 0
+  38 0054 00000000 		.word 0
+  39 0058 00000000 		.word 0
+  40 005c 00000000 		.word 0
+  41 0060 00000000 		.word 0
+  42 0064 00000000 		.word 0
+  43 0068 00000000 		.word 0
+  44 006c 00000000 		.word 0
+  45 0070 00000000 		.word 0
+  46 0074 00000000 		.word 0
+  47 0078 00000000 		.word 0
+  48 007c 00000000 		.word 0
+  49 0080 00000000 		.word 0
+  50 0084 00000000 		.word 0
+  51 0088 00000000 		.word 0
+  52 008c 00000000 		.word 0
+  53 0090 00000000 		.word 0
+  54 0094 00000000 		.word 0
+  55 0098 00000000 		.word 0
+  56 009c 00000000 		.word 0
+  57 00a0 00000000 		.word 0
+ARM GAS  led-stm32.s 			page 2
+
+
+  58 00a4 00000000 		.word 0
+  59 00a8 00000000 		.word 0
+  60 00ac 00000000 		.word 0
+  61 00b0 00000000 		.word 0
+  62 00b4 DD010000 		.word _tim3dingshiqi +1 
+  63              	
+  64              	_start:
+  65              	chushihua:
+  66 00b8 4FF00000 		mov r0, #0
+  67 00bc 4FF00001 		mov r1, #0
+  68 00c0 4FF00002 		mov r2, #0
+  69 00c4 4FF00003 		mov r3, #0
+  70 00c8 4FF00004 		mov r4, #0
+  71 00cc 4FF00005 		mov r5, #0
+  72 00d0 4FF00006 		mov r6, #0
+  73 00d4 4FF00007 		mov r7, #0
+  74 00d8 4FF00008 		mov r8, #0
+  75              	
+  76              	shizhong:
+  77 00dc 4648     		ldr r0, = rcckz
+  78 00de 4749     		ldr r1, = 0x14D83
+  79 00e0 0160     		str r1, [r0]
+  80              	gsszbz: @高速时钟标志位
+  81 00e2 0168     		ldr r1, [r0]
+  82 00e4 464A     		ldr r2, = 0x34D83
+  83 00e6 8A42     		cmp r2, r1 
+  84 00e8 FBD1     		bne	gsszbz
+  85              	
+  86              		@FLASH缓冲 缓冲开启 
+  87 00ea 4648     		ldr r0, = flashacr
+  88 00ec 4FF03201 		mov r1, # 0x00000032
+  89 00f0 0160     		str r1, [r0]
+  90              		@设置
+  91 00f2 4548     		ldr r0, = rccpz
+  92 00f4 4549     		ldr r1, = 0x1D8400
+  93 00f6 0160     		str r1, [r0]
+  94              		
+  95 00f8 3F48     		ldr r0, = rcckz
+  96 00fa 4549     		ldr r1, = 0x1033D03
+  97 00fc 0160     		str r1, [r0]
+  98              	chaxun:
+  99 00fe 0168     		ldr r1, [r0]
+ 100 0100 444A     		ldr r2, = 0x03033D03
+ 101 0102 9142     		cmp r1, r2
+ 102 0104 FBD1     		bne chaxun
+ 103              	
+ 104 0106 4048     		ldr r0, = rccpz
+ 105 0108 4349     		ldr r1, = 0x1D8402
+ 106 010a 0160     		str r1, [r0]
+ 107              	
+ 108              	gpioakou:
+ 109 010c 4348     		ldr r0, = 0x40021018 
+ 110 010e 4449     		ldr r1, = 0x805
+ 111 0110 0160     		str r1, [r0]
+ 112              	
+ 113 0112 4448     		ldr r0, = 0x40010804
+ 114 0114 4449     		ldr r1, = 0x4444444B
+ARM GAS  led-stm32.s 			page 3
+
+
+ 115 0116 0160     		str r1, [r0]
+ 116              	
+ 117 0118 4448     		ldr r0, = 0x4001080C
+ 118 011a 4549     		ldr r1, = 0x100
+ 119 011c 0160     		str r1, [r0]
+ 120              	
+ 121              	systick:
+ 122              	
+ 123 011e 4549     		ldr r1, = syskz
+ 124 0120 4548     		ldr r0, = syscz
+ 125 0122 464A     		ldr r2, = syssz
+ 126              		
+ 127 0124 4FF00003 		mov r3, #0
+ 128 0128 0B60     		str r3, [r1]
+ 129              	
+ 130 012a 454B     		ldr r3, = 0x2328
+ 131 012c 0360     		str r3, [r0]
+ 132 012e 1360     		str r3, [r2]
+ 133              	
+ 134 0130 4FF00303 		mov r3, # 0x03
+ 135 0134 0B60     		str r3, [r1]
+ 136              	
+ 137              	dingshiqi3:
+ 138 0136 4348     		ldr r0, = 0xE000E100
+ 139 0138 4349     		ldr r1, = 0x20000000
+ 140 013a 0160     		str r1, [r0]
+ 141              		
+ 142 013c 4348     		ldr r0, = 0x4002101C
+ 143 013e 4FF00201 		mov r1, # 0x02 
+ 144 0142 0160     		str r1, [r0] 
+ 145              	
+ 146 0144 4248     		ldr r0, = 0x4000042C 
+ 147 0146 4349     		ldr r1, = 0xFFFF
+ 148 0148 0160     		str r1, [r0]
+ 149              	
+ 150 014a 4348     		ldr r0, = 0x40000428 
+ 151 014c 4349     		ldr r1, = 0x44C
+ 152 014e 0160     		str r1, [r0]
+ 153              	
+ 154 0150 4348     		ldr r0, = 0x40000418  
+ 155 0152 4449     		ldr r1, = 0x78     
+ 156 0154 0160     		str r1, [r0]
+ 157              		
+ 158 0156 4448     		ldr r0, = 0x40000404 
+ 159 0158 4FF04001 		mov r1, #0x40
+ 160 015c 0160     		str r1, [r0]
+ 161              	
+ 162 015e 4348     		ldr r0, = 0x4000040C 
+ 163 0160 4349     		ldr r1, = 0x02	     
+ 164 0162 0160     		str r1, [r0] 
+ 165              	
+ 166 0164 4348     		ldr r0, = 0x40000414 
+ 167 0166 4FF00301 		mov r1, #0x03
+ 168 016a 0160     		str r1, [r0]
+ 169              	
+ 170 016c 4248     		ldr r0, = 0x40000420
+ 171 016e 4FF00101 		mov r1, #0x01
+ARM GAS  led-stm32.s 			page 4
+
+
+ 172 0172 0160     		str r1, [r0]
+ 173              	
+ 174              	
+ 175              	dingshiqi1:
+ 176              	
+ 177 0174 2948     		ldr r0, = 0x40021018 
+ 178 0176 2A49     		ldr r1, = 0x805
+ 179 0178 0160     		str r1, [r0]
+ 180              	
+ 181 017a 4048     		ldr r0, = 0x40012C2C
+ 182 017c 3549     		ldr r1, = 0xFFFF
+ 183 017e 0160     		str r1, [r0]
+ 184              	
+ 185 0180 3F48     		ldr r0, = 0x40012C28
+ 186 0182 4FF00A01 		mov r1, # 10
+ 187 0186 0160     		str r1, [r0]
+ 188              	
+ 189 0188 3E48     		ldr r0, = 0x40012C08
+ 190 018a 3F49     		ldr r1, = 0xD5
+ 191 018c 0160     		str r1, [r0]
+ 192              	
+ 193 018e 3F48     	        ldr r0, = 0x40012C44
+ 194 0190 3F49     		ldr r1, = 0x807F
+ 195 0192 0160     		str r1, [r0]
+ 196              		
+ 197 0194 3F48     		ldr r0, = 0x40012C20
+ 198 0196 4049     		ldr r1, = 0x05
+ 199 0198 0160     		str r1, [r0]
+ 200              	
+ 201 019a 4048     		ldr r0, = 0x40012C18
+ 202 019c 3149     		ldr r1, = 0x78
+ 203 019e 0160     		str r1, [r0]
+ 204              	
+ 205 01a0 3F48     		ldr r0, = 0x40012C04 
+ 206 01a2 3D49     		ldr r1, = 0x05
+ 207 01a4 0160     		str r1, [r0]
+ 208              	
+ 209 01a6 3F48     		ldr r0, = 0x40000400 
+ 210 01a8 3F49     		ldr r1, = 0x81
+ 211 01aa 0160     		str r1, [r0]
+ 212              	
+ 213 01ac 3F48     		ldr r0, = 0x40012C00
+ 214 01ae 3E49     		ldr r1, = 0x81
+ 215 01b0 0160     		str r1, [r0]
+ 216              	
+ 217              	
+ 218              	
+ 219              	
+ 220              	
+ 221              		
+ 222              	
+ 223              		
+ 224              	 
+ 225              	main: 
+ 226 01b2 3F48     	    ldr r0, = 0x40012C34
+ 227 01b4 3F49     	    ldr r1, = 0xFF
+ 228 01b6 0160     	    str r1, [r0]
+ARM GAS  led-stm32.s 			page 5
+
+
+ 229              	
+ 230 01b8 3F48     	    ldr r0, = 0x40000434
+ 231 01ba 3E49     	    ldr r1, = 0xFF
+ 232 01bc 0160     	    str r1, [r0]
+ 233 01be 00F001F8 	    bl yanshi
+ 234 01c2 F6E7     	    b main
+ 235              	
+ 236              	yanshi:    
+ 237 01c4 022D     	    cmp r5, #2
+ 238 01c6 FDD1     	    bne yanshi
+ 239 01c8 4FF00005 	    mov r5, #0
+ 240 01cc 7047     	    bx lr
+ 241              		
+ 242              	_nmi_handler:
+ 243 01ce 7047     		bx lr
+ 244              	_hard_fault:
+ 245 01d0 7047     		bx lr
+ 246              	_memory_fault:
+ 247 01d2 7047     		bx lr
+ 248              	_bus_fault:
+ 249 01d4 7047     		bx lr
+ 250              	_usage_fault:
+ 251 01d6 7047     		bx lr
+ 252              	_dingshiqi:		
+ 253 01d8 0135     	  	adds r5, 1
+ 254 01da 7047     	        bx lr  
+ 255              	_tim3dingshiqi:
+ 256 01dc 0137     		adds r7, 1
+ 257 01de 642F     		cmp r7, # 100
+ 258 01e0 04D1     		bne qingchu
+ 259 01e2 4FF00007 		mov r7, # 0
+ 260 01e6 2B48     		ldr r0, = 0x40012C20
+ 261 01e8 3449     		ldr r1, = 0x00
+ 262 01ea 0160     		str r1, [r0] 
+ 263              		
+ 264              		
+ 265              	qingchu:	
+ 266 01ec 3448     		ldr r0, = 0x40000410
+ 267 01ee 4FF00001 		mov r1, # 0 
+ 268 01f2 0160     		str r1, [r0]
+ 269 01f4 7047     		bx lr	
+ 270              	         
+ 271 01f6 00000010 	
+ 271      0240834D 
+ 271      0100834D 
+ 271      03000020 
+ 271      02400410 
+ARM GAS  led-stm32.s 			page 6
+
+
+DEFINED SYMBOLS
+         led-stm32.s:5      *ABS*:20005000 STACKINIT
+         led-stm32.s:6      *ABS*:40021000 rcckz
+         led-stm32.s:7      *ABS*:40021004 rccpz
+         led-stm32.s:8      *ABS*:40022000 flashacr
+         led-stm32.s:9      *ABS*:e000e010 syskz
+         led-stm32.s:10     *ABS*:e000e014 syscz
+         led-stm32.s:11     *ABS*:e000e018 syssz
+         led-stm32.s:15     .text:00000000 vectors_table
+         led-stm32.s:16     .text:00000000 vectors
+         led-stm32.s:64     .text:000000b8 _start
+         led-stm32.s:242    .text:000001ce _nmi_handler
+         led-stm32.s:244    .text:000001d0 _hard_fault
+         led-stm32.s:246    .text:000001d2 _memory_fault
+         led-stm32.s:248    .text:000001d4 _bus_fault
+         led-stm32.s:250    .text:000001d6 _usage_fault
+         led-stm32.s:252    .text:000001d8 _dingshiqi
+         led-stm32.s:255    .text:000001dc _tim3dingshiqi
+         led-stm32.s:65     .text:000000b8 chushihua
+                            .text:00000000 $d
+         led-stm32.s:66     .text:000000b8 $t
+         led-stm32.s:76     .text:000000dc shizhong
+         led-stm32.s:80     .text:000000e2 gsszbz
+         led-stm32.s:98     .text:000000fe chaxun
+         led-stm32.s:108    .text:0000010c gpioakou
+         led-stm32.s:121    .text:0000011e systick
+         led-stm32.s:137    .text:00000136 dingshiqi3
+         led-stm32.s:175    .text:00000174 dingshiqi1
+         led-stm32.s:225    .text:000001b2 main
+         led-stm32.s:236    .text:000001c4 yanshi
+         led-stm32.s:265    .text:000001ec qingchu
+         led-stm32.s:271    .text:000001f6 $d
+
+NO UNDEFINED SYMBOLS
