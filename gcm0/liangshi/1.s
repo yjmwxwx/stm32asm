@@ -1,23 +1,21 @@
 	@@单片机stm32f030f4p6
-	@@功能涡流探伤
+	@@电容小麦水分测量
 	@作者：yjmwxwx
-	@时间：2019-02-21
-	@编译器：GNU AS（ARM-NONE-EABI-AS）
+	@时间：2019-05-26
+	@编译器：ARM-NONE-EABI-AS
 	 .thumb
 	         .syntax unified
 .section .data
 zheng_xian_biao:
 	.short 0x30,0x33,0x36,0x38,0x3b,0x3e,0x41,0x44,0x47,0x49,0x4c,0x4e,0x50,0x52,0x54,0x56,0x58,0x59,0x5b,0x5c,0x5d,0x5e,0x5e,0x5f,0x5f,0x5f,0x5f,0x5f,0x5e,0x5d,0x5c,0x5b,0x5a,0x59,0x57,0x55,0x53,0x51,0x4f,0x4d,0x4a,0x48,0x45,0x43,0x40,0x3d,0x3a,0x37,0x34,0x31,0x2e,0x2b,0x28,0x25,0x22,0x1f,0x1c,0x1a,0x17,0x15,0x12,0x10,0xe,0xc,0xa,0x8,0x6,0x5,0x4,0x3,0x2,0x1,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x3,0x4,0x6,0x7,0x9,0xb,0xd,0xf,0x11,0x13,0x16,0x18,0x1b,0x1e,0x21,0x24,0x27,0x29,0x2c,0x30
-jia:
-	.ascii "++++++++++"
-jian:
-	.ascii "----------"
 lcdshuju:
-	.ascii  "yjmwxwx-20190221"
+	.ascii  "yjmwxwx-20190526"
 dianhua:	
 	.ascii	"     15552208295"
 qq:
 	.ascii	"   QQ:3341656346"
+xiaomai:
+	.ascii "xiaomai ="
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
 	.equ jishu,			0x20000010
@@ -73,37 +71,45 @@ vectors:
 	.align 2
 
 _start:
-__shi_zhong_chu_shi_hua:
-	ldr r0, = 0x40021000 @ rcc
+shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
 	str r1, [r2]           @FLASH缓冲 缓冲开启
 	ldr r0, = 0x40021000 @ rcc
-	ldr r1, = 0x01
-	str r1, [r0, # 0x04]
-	ldr r1, = 0x10000
+	ldr r1, = 0x10001
 	str r1, [r0]
-__deng_hse_jiu_xu:
-        ldr r1, [r0]
-        lsls r1, # 14
-        bpl __deng_hse_jiu_xu
-
+denghse:
+	ldr r1, [r0]
+	lsls r1, r1, # 14
+	bpl denghse
+dengpllguan:
+	ldr r1, [r0]
+	lsls r1, r1, # 6
+	bmi dengpllguan
+        ldr r1, = 0x110002
+        str r1, [r0, # 0x04]
+	ldr r1, = 0x1010001
+	str r1, [r0]
+dengpll:
+	ldr r1, [r0]
+	lsls r1, # 6
+	bpl dengpll
 	@0x34时钟控制寄存器 2 (RCC_CR2)
 	movs r1, # 0x01
 	str r1, [r0, # 0x34]  @ HSI开14M时钟
-__deng_dai_14m_shi_zhong_wen_ding:
+dengdai14mshizhongwending:
 	ldr r1, [r0, # 0x34]
 	lsls r1, r1, # 30     @ 左移30位
-	bpl __deng_dai_14m_shi_zhong_wen_ding  @ 等待14M时钟稳定
+	bpl dengdai14mshizhongwending  @ 等待14M时钟稳定
 
-__nei_cun_qing_ling:
+_neicunqingling:
 	ldr r0, = 0x20000000
 	movs r1, # 0
 	ldr r3, = 0x1000
-__nei_cun_qing_ling_xun_huan:
+_neicunqinglingxunhuan:
 	subs r3, # 4
 	str r1, [r0, r3]
-	bne __nei_cun_qing_ling_xun_huan
+	bne _neicunqinglingxunhuan
 
 _waisheshizhong:			 @ 外设时钟
 	@+0x14=RCC_AHBENR
@@ -257,83 +263,57 @@ _lcdchushihua:
 	
 
 
-__zhuang_man_lv_bo_qi_huan_chong_qu:	
-	movs r6, # 16
-__deng_lv_bo_qi_huan_chong_man:	        @等滤波器缓冲区满
-	bl _lvdtfuzhi
-	subs r6, r6, # 1
-	bne __deng_lv_bo_qi_huan_chong_man
-
-
-tingting:
+_tingting:
 	ldr r0, = jishu
 	ldr r1, [r0]
-	cmp r1, # 2
+	cmp r1, # 8
 	beq _lcddi1
-	cmp r1, # 4
+	cmp r1, # 16
 	beq _lcddi2
-	cmp r1, # 6
+	cmp r1, # 24
 	beq _lcddi3
-	b _tiaoguolcdxunhuan
+	b _tiaoguoguanggao
 _lcddi1:
 	movs r0, # 0x80
 	ldr r1, = lcdshuju
 	movs r2, # 16
-	movs r3, # 0xff
 	bl _lcdxianshi
 	ldr r0, = 0x40020000
 	ldr r1, = 0
 	str r1, [r0, # 0x08]
-	b _tiaoguolcdxunhuan
+	b _tiaoguoguanggao
 _lcddi2:
 	movs r0, # 0x80
 	ldr r1, = dianhua
 	movs r2, # 16
-	movs r3, # 0xff
 	bl _lcdxianshi
-	b _tiaoguolcdxunhuan
+	b _tiaoguoguanggao
 _lcddi3:
-	
 	movs r0, # 0x80
 	ldr r1, = qq
 	movs r2, # 16
-	movs r3, # 0xff
 	bl _lcdxianshi
 	ldr r0, = jishu
 	movs r1, # 0
 	str r1, [r0]
-
-_tiaoguolcdxunhuan:
-        bl _lvdtfuzhi           @计算LVDT传感器幅值
-        mov r4, r0
-        cmp r1, # 1
-        beq _lvdtzheng
-        ldr r1, = jian
-        b _lvdtzhengfuxianshi
-_lvdtzheng:
-        ldr r1, = jia
-_lvdtzhengfuxianshi:
-        movs r0, # 0xc6         @LCD位置
-        movs r2, # 10            @长度
-        movs r3, # 0xff         @没小数点
-        bl _lcdxianshi
-
-        mov r0, r4
-        movs r1, # 4
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-
-        movs r0, # 0xc1
-        ldr r1, = asciimabiao
-        movs r2, # 4
-        bl _lcdxianshi
-
-
-	b tingting
+_tiaoguoguanggao:
+	movs r0, # 0xc0
+	ldr r1, = xiaomai
+	movs r2, # 9
+	bl _lcdxianshi
+	bl _chuanganqi
+	movs r1, # 4
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xcc
+	ldr r1, = asciimabiao
+	movs r2, # 0x04
+	bl _lcdxianshi
+	b _tingting
 
 	
-_lvdtfuzhi:		@出
+_chuanganqi:		@出
 			@R0=幅值，R1=相位
 	push {r2-r7,lr}
 	ldr r0, = 0x40012400
@@ -362,7 +342,7 @@ _xiangweipanduan:		@相位判断
 				@出R0=相之间相差的数值，
 				@出R1=1,90度是正，R1=0，90度是负
 	push {r2,lr}
-	subs r1, r1, # 110	@ 校准0点
+	subs r1, r1, # 0	@ 校准0点
 	subs r2, r0, r1
 	bpl _adc90shizheng
 	subs r2, r1, r0
@@ -554,7 +534,7 @@ _lcdshuju:
 	.ltorg
 
 
-_zhuanascii:					@ 16进制转数码管码
+_zhuanascii:					@ 16进制转ASCII
 		@ R0要转的数据， R1长度，R2结果表首地址, r3=小数点位置
 	push {r0-r7,lr}
 	mov r7, r3
