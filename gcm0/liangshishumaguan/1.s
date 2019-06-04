@@ -409,12 +409,12 @@ _jianbo:				@检波
 	cpsid i
 _jianbo90du:
 	ldr r4, [r2]
-	cmp r4, # 25
+	cmp r4, # 35			@ 25
 	bne _jianbo90du
 	ldr r0, [r3]			@取出90度
 _jianbo270du:
 	ldr r4, [r2]
-	cmp r4, # 75
+	cmp r4, # 85 			@ 75
 	bne _jianbo270du
 	ldr r1, [r3]
 	cpsie i
