@@ -9,11 +9,15 @@
 zheng_xian_biao:
 	.short 0x30,0x33,0x36,0x38,0x3b,0x3e,0x41,0x44,0x47,0x49,0x4c,0x4e,0x50,0x52,0x54,0x56,0x58,0x59,0x5b,0x5c,0x5d,0x5e,0x5e,0x5f,0x5f,0x5f,0x5f,0x5f,0x5e,0x5d,0x5c,0x5b,0x5a,0x59,0x57,0x55,0x53,0x51,0x4f,0x4d,0x4a,0x48,0x45,0x43,0x40,0x3d,0x3a,0x37,0x34,0x31,0x2e,0x2b,0x28,0x25,0x22,0x1f,0x1c,0x1a,0x17,0x15,0x12,0x10,0xe,0xc,0xa,0x8,0x6,0x5,0x4,0x3,0x2,0x1,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x3,0x4,0x6,0x7,0x9,0xb,0xd,0xf,0x11,0x13,0x16,0x18,0x1b,0x1e,0x21,0x24,0x27,0x29,0x2c,0x30
 lcdshuju:
-	.ascii  "yjmwxwx-20190526"
+	.ascii  "yjmwxwx-20190609"
 dianhua:	
 	.ascii	"     15552208295"
 qq:
 	.ascii	"   QQ:3341656346"
+fu:
+	.ascii "-"
+zheng:
+	.ascii "+"
 xiaomai:
 	.ascii "xiaomai ="
 	.equ STACKINIT,        	        0x20001000
@@ -21,7 +25,7 @@ xiaomai:
 	.equ jishu,			0x20000010
 	.equ lvbozhizhen,		0x20000020
 	.equ lvbohuanchong,		0x20000024
-	.equ adccaiyang,		0x20000100
+	.equ adccaiyang,		0x20000500
 	.section .text
 vectors:
 	.word STACKINIT
@@ -302,6 +306,21 @@ _tiaoguoguanggao:
 	movs r2, # 9
 	bl _lcdxianshi
 	bl _chuanganqi
+	mov r4, r0
+	cmp r1, # 1
+	bne __zhengzhi
+	movs r0, # 0xca
+	ldr r1, = fu
+	movs r2, # 1
+	bl _lcdxianshi
+	b __xianshiliangshishuzhi
+__zhengzhi:
+	movs r0, # 0xca
+	ldr r1, = zheng
+	movs r2, # 1
+	bl _lcdxianshi
+__xianshiliangshishuzhi:	
+	mov r0, r4
 	movs r1, # 4
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
@@ -330,7 +349,7 @@ _chuanganqi:		@出
 	mov r4, r1
 	mov r3, r0
 	ldr r0, = lvbohuanchong		@滤波器缓冲区
-	movs r1, # 16			@级数
+	ldr  r1, = 1024			@级数
 	ldr r2, = lvbozhizhen		@滤波器指针
 	bl _lvboqi			@平滑，平均滤波器
 	mov r1, r4
@@ -415,9 +434,9 @@ _lvboqi:				@滤波器
 			@出R0=结果
 	push {r1-r7,lr}	
 	ldr r5, [r2]		@读出表指针
-	lsls r6, r1, # 2	
-	str r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 4
+	lsls r6, r1, # 1	
+	strh r3, [r0, r5]	@数值写到滤波器缓冲区
+	adds r5, r5, # 2
 	cmp r5, r6
 	bne _lvboqimeidaohuanchongquding
 	movs r5, # 0
@@ -429,12 +448,12 @@ _lvboqixunhuan:
 	bne _lvbozonghe
 	movs r5, # 0
 _lvbozonghe:
-	ldr r4, [r0, r5]
-	adds r5, r5, # 4
+	ldrh r4, [r0, r5]
+	adds r5, r5, # 2
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 4	@修改
+	asrs r0, r7, # 10	@修改
 	pop {r1-r7,pc}
 	
 

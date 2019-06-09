@@ -19,10 +19,9 @@ yjmwxwx:
 	.equ jishu,			0x20000030
 	.equ lvbozhizhen,		0x20000040
 	.equ lvbohuanchong,		0x20000044
-	.equ dangqianwendu,		0x20000500
-	.equ chuanganqidianya,		0x20000504
-	.equ wendubuchangbiaozhizhen,	0x20000508
-	.equ wendubuchangbiao,		0x2000050c
+	.equ dangqianwendu,		0x20000510
+	.equ wendubuchangbiaozhizhen,	0x20000514
+	.equ wendubuchangbiao,		0x20000518
 	.section .text
 vectors:
 	.word STACKINIT
@@ -238,11 +237,7 @@ io_she_zhi:
 	str r1, [r0, # 0x24]
 	
 _tingting:
-	bl __chuanganqi
-	ldr r1, = chuanganqidianya
-	str r0, [r1]
-	bl __dangqianwendu
-	bl __baocunwendubuchangbiao
+	bl __wendubuchang
 	ldr r2, = shumaguanma
 	movs r1, # 8
 	bl _zhuanshumaguanma
@@ -252,32 +247,22 @@ _tingting:
 
 
 __wendubuchang:
-	push {r1-r5,lr}
-	movs r0, # 0
-	movs r5, # 8
+	push {r1-r3,lr}
 	ldr r1, = 0x40012400
 	movs r2, # 2
 	str r2, [r1, # 0x28]
-__wenduzonghe:	
-	ldr r4, [r1, # 0x40]
-	add r0, r0, r4
-	subs r5, r5, # 1
-	bne __wenduzonghe
-	lsrs r0, r0, # 3
-	ldr r2, = 3300
-	movs r3, # 12
-        muls r0, r2
-        asrs r0, r0, r3
-	ldr r1, = dangqianwendu
-	ldr r2, [r1]
-	cmp r2, r0
-	bhi __bubaocundaobiao
-	ldr r1, = wendubuchangbiaozhizhen
+	ldr r2, = dangqianwendu
+	ldr r0, [r1, # 0x40]
+	ldr r3, [r2]
+	cmp r3, r0
+	bcc __bubaocunwendu
+	str r0, [r2]
+	ldr r2, = wendubuchangbiaozhizhen
 	ldr r3, = wendubuchangbiao
-	ldr r4, [r1]
-	strb r0
-__bubaocundaobiao:
-	pop {r0-r3,pc}
+	
+__bubaocunwendu:
+	pop {r1-r3,pc}
+
 	
 _zhuanshumaguanma:@ 16进制转数码管码
 		@ R0要转的数据， R1长度，R2结果表首地址
