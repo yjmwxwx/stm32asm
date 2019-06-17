@@ -1,7 +1,7 @@
 	@@单片机stm32f030f4p6
 	@@电容小麦水分测量
 	@作者：yjmwxwx
-	@时间：2019-05-26
+	@时间：2019-06-10
 	@编译器：ARM-NONE-EABI-AS
 	 .thumb
 	         .syntax unified
@@ -20,12 +20,12 @@ zheng:
 	.ascii "+"
 xiaomai:
 	.ascii "xiaomai ="
+	
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
 	.equ jishu,			0x20000010
-	.equ lvbozhizhen,		0x20000020
-	.equ lvbohuanchong,		0x20000024
-	.equ adccaiyang,		0x20000500
+	.equ lvbozhizhen,		0x20000030
+	.equ lvbohuanchong,		0x20000034
 	.section .text
 vectors:
 	.word STACKINIT
@@ -267,44 +267,15 @@ _lcdchushihua:
 	
 
 
-_tingting:
-	ldr r0, = jishu
-	ldr r1, [r0]
-	cmp r1, # 8
-	beq _lcddi1
-	cmp r1, # 16
-	beq _lcddi2
-	cmp r1, # 24
-	beq _lcddi3
-	b _tiaoguoguanggao
-_lcddi1:
-	movs r0, # 0x80
-	ldr r1, = lcdshuju
-	movs r2, # 16
-	bl _lcdxianshi
-	ldr r0, = 0x40020000
-	ldr r1, = 0
-	str r1, [r0, # 0x08]
-	b _tiaoguoguanggao
-_lcddi2:
 	movs r0, # 0x80
 	ldr r1, = dianhua
 	movs r2, # 16
 	bl _lcdxianshi
-	b _tiaoguoguanggao
-_lcddi3:
-	movs r0, # 0x80
-	ldr r1, = qq
-	movs r2, # 16
-	bl _lcdxianshi
-	ldr r0, = jishu
-	movs r1, # 0
-	str r1, [r0]
-_tiaoguoguanggao:
 	movs r0, # 0xc0
 	ldr r1, = xiaomai
 	movs r2, # 9
 	bl _lcdxianshi
+_tingting:	
 	bl _chuanganqi
 	mov r4, r0
 	cmp r1, # 1
@@ -349,7 +320,7 @@ _chuanganqi:		@出
 	mov r4, r1
 	mov r3, r0
 	ldr r0, = lvbohuanchong		@滤波器缓冲区
-	ldr  r1, = 1024			@级数
+	ldr  r1, = 512			@级数
 	ldr r2, = lvbozhizhen		@滤波器指针
 	bl _lvboqi			@平滑，平均滤波器
 	mov r1, r4
@@ -418,12 +389,12 @@ _jianbo:				@检波
 	cpsid i
 _jianbo90du:
 	ldr r4, [r2]
-	cmp r4, # 25
+	cmp r4, # 25			@ 25
 	bne _jianbo90du
 	ldr r0, [r3]			@取出90度
 _jianbo270du:
 	ldr r4, [r2]
-	cmp r4, # 75
+	cmp r4, # 75			@ 75
 	bne _jianbo270du
 	ldr r1, [r3]
 	cpsie i
@@ -453,7 +424,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 10	@修改
+	asrs r0, r7, # 9	@修改
 	pop {r1-r7,pc}
 	
 
