@@ -1,5 +1,5 @@
 	@@单片机stm32f030f4p6
-	@@ spwm定时器= 304761 HZ
+	@@ tim1 spwm,TIM3周期同步
 	@作者：yjmwxwx
 	@时间：2019-06-18
 	@编译器：ARM-NONE-EABI-AS
@@ -8,7 +8,7 @@
 	.section .data
 
 zheng_xian_biao:
-	.short 0xa,0xd,0x10,0x12,0x14,0x14,0x14,0x12,0x10,0xd,0xa,0x7,0x4,0x2,0x0,0x0,0x0,0x2,0x4,0x7,0xa
+	.short 18,21,24,27,29,31,33,34,35,35,34,33,31,29,27,24,21,18,14,11,8,6,4,2,1,0,0,1,2,4,6,8,11,14,18
 yjmwxwx:
 	.equ STACKINIT,        	        0x20001000
 	.section .text
@@ -65,36 +65,50 @@ _start:
 
 _waisheshizhong:			 @ 外设时钟
 	@+0x14=RCC_AHBENR
-	@0=DMA @2=SRAM @4=FLITF@6=CRC @17=PA @18=PB @19=PC @20=PD @22=PF
+	@ 0=DMA @ 2=SRAM @ 4=FLITF@ 6=CRC @ 17=PA @ 18=PB @ 19=PC @ 20=PD @ 22=PF
 	ldr r0, = 0x40021000
-	ldr r1, = 0x460005
+	ldr r1, = 0x60001
 	str r1, [r0, # 0x14]
 
 	@+0x18外设时钟使能寄存器 (RCC_APB2ENR)
 	@0=SYSCFG @5=USART6EN @9=ADC @11=TIM1 @12=SPI1 @14=USART1 @16=TIM15 @17=TIM16 @18=TIM17 @22=DBGMCU
-	ldr r1, = 0xa00
+	ldr r1, = 0x800
 	str r1, [r0, # 0x18]
 	@+0X1C=RCC_APB1ENR
-	@1=TIM3 @4=TIM6 @5=TIM7 @8=TIM14 @11=WWDG @14=SPI @17=USRT2 @18=USART3 @20=USART5 @21=I2C1
-	@22=I2C2 @23=USB @28=PWR
-	
-tim1chushiha:
-	ldr r0, = 0x40012c00 @ tim1_cr1
+	@ 1=TIM3 @ 4=TIM6 @ 5=TIM7 @ 8=TIM14 @ 11=WWDG @ 14=SPI @ 17=USRT2 @ 18=USART3 @ 20=USART5 @ 21=I2C1
+	@ 22=I2C2 @ 23=USB @ 28=PWR
+	movs r2, # 2
+	str r2, [r0, # 0x1c]
+tim1chushiha:				@ 128M
+	ldr r5, = 0x40012c00 @ tim1_cr1
 	movs r1, # 0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 20
-	str r1, [r0, # 0x2c] @ ARR
+	str r1, [r5, # 0x28] @ psc
+	ldr r1, = 35
+	str r1, [r5, # 0x2c] @ ARR
 	ldr r1, = 0x68
-	str r1, [r0, # 0x1c] @ ccmr2  CC3
+	str r1, [r5, # 0x1c] @ ccmr2  CC3
 	ldr r1, = 0x100    @  CC3
-	str r1, [r0, # 0x20] @ ccer
+	str r1, [r5, # 0x20] @ ccer
 	ldr r1, = 0x8000
-	str r1, [r0, # 0x44] @ BDTR
+	str r1, [r5, # 0x44] @ BDTR
 	ldr r1, = 0x800 @ CC3 DMA
-	str r1, [r0, # 0x0c] @ DIER
-	ldr r1, = 0xe1
+	str r1, [r5, # 0x0c] @ DIER
+	ldr r4, = 0xe1
+tim3chushihua:				@ 64M
+	ldr r0, = 0x40000400 @ tim3_cr1
+	movs r1, # 0 
+	str r1, [r0, # 0x28] @ psc
+	ldr r1, = 595
+	str r1, [r0, # 0x2c] @ ARR
+	ldr r1, =   0x3800
+	str r1, [r0, # 0x1c] @ ccmr2
+	ldr r1, =  0x1000
+	str r1, [r0, # 0x20] @ ccer
+	ldr r1, = 595
+	str r1, [r0, # 0x40] @ ccr4
+	movs r1, # 0x81
 	str r1, [r0]
-
+	str r4, [r5]
 
 dmachushihua:
 	@+0=LSR,+4=IFCR,
@@ -112,7 +126,7 @@ dmachushihua:
 	str r1, [r0, # 0x60]
 	ldr r1, = zheng_xian_biao @ 储存器地址
 	str r1, [r0, # 0x64]
-	ldr r1, = 20             @点数
+	ldr r1, = 35             @点数
 	str r1, [r0, # 0x5c]
 	ldr r1, = 0x25b1         @ 储存到外设
 	str r1, [r0, # 0x58]
@@ -143,7 +157,12 @@ io_she_zhi:
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
-
+	
+	ldr r0, = 0x48000400
+	movs r1, # 0x08 @ pb1
+	str r1, [r0]
+	movs r1, # 0x10  @ tim3_4到PB1
+	str r1, [r0, # 0x20] @ ARRL
 shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
