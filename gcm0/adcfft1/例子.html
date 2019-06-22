@@ -1,0 +1,3007 @@
+
+<!-- saved from url=(0093)file:///home/yjmwxwx/xuexi/FFT/FFT%20(%E5%A4%8D%E5%88%B6%201)%20(%E5%A4%8D%E5%88%B6%201).html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head><body onresize="GetSize()">
+
+<style>
+table {
+	font-family: "Arial";
+}
+
+.strip {
+	background-color: #DDDDFF;
+}
+
+.changecolor {
+	color: #0000FF;
+}
+
+.changecolor:hover  {
+	color: #FF0000;
+	cursor: pointer;
+}
+
+textarea {
+	border-width: 3px;
+	border-color: #AAAAFF;
+	text-align: center;
+	font-size: 12pt;
+	resize: none;
+}
+
+th.fft {
+	background-color: rgb(200,200,200);
+	border-style: solid solid none none;
+	border-width: 1px;
+}
+
+td.fft {
+	border-style: solid solid none none;
+	border-width: 1px;
+	text-align: center;
+}
+
+table.fft {
+	border-style: none none solid solid;
+	border-width: 1px;
+	border-color: #000000;
+}
+
+</style>
+<table id="MyTable" width="100%" border="0" style="height: 506.25px;">
+<tbody><tr><td>
+<table class="strip" width="100%" height="25" border="0">
+<tbody><tr>
+<td width="33%" align="left">
+<div style="display: block;" id="Previous" class="ChangeColor" onclick="ClickPrevious();">&lt;&lt; Previous</div>
+</td>
+<th width="33%"><div id="ScreenTitle">Signal Summary</div></th>
+<td width="33%" align="right">
+<div style="display: block;" id="Next" class="ChangeColor" onclick="ClickNext();">Next &gt;&gt;</div>
+</td>
+</tr>
+</tbody></table>
+</td></tr>
+<tr>
+<td height="100%" align="center">
+<div id="ScreenContents">There are 8 samples in your signal.<br>There will be 3 stages in the FFT computation<p></p><table border="0" class="fft" width="100%" cellspacing="0" align="center"><tbody><tr><th class="fft">Stage Index</th><th class="fft">Number of Groups</th><th class="fft">Number of butterflies per group</th><th class="fft">Number of samples per group</th></tr><tr><td class="fft">1</td><td class="fft">4</td><td class="fft">1</td><td class="fft">2</td></tr><tr><td class="fft">2</td><td class="fft">2</td><td class="fft">2</td><td class="fft">4</td></tr><tr><td class="fft">3</td><td class="fft">1</td><td class="fft">4</td><td class="fft">8</td></tr></tbody></table><p style="text-align: left"><b>Select which stage of the computation you would like to view or click next to see the results of the FFT:</b></p><table border="0" class="fft" width="100%" cellspacing="0" align="center"><tbody><tr><th class="fft">Choose Stage</th><th class="fft">Choose Group</th><th class="fft">Choose Butterfly</th><td></td></tr><tr><td class="fft"><select id="MyStageIndex" onchange="GetGroupIndeces()"><option value="0">1</option><option value="1">2</option><option value="2">3</option></select></td><td class="fft"><div id="GroupIndex"><select id="MyGroupIndex"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select></div></td><td class="fft"><div id="ButterflyIndex"><select id="MyButerflyIndex"><option value="0">1</option></select></div></td><td class="fft"><button onclick="ShowButterflyButtonPressed=true; ShowButterfly()">Show Butterfly</button></td></tr></tbody></table></div>
+</td>
+</tr>
+</tbody></table>
+<table id="ButterflyDiagramTable" width="100%" border="0" style="height: 506.25px;">
+<tbody><tr>
+<td align="center">
+<div id="ButterflyDiagramTitle"><h3>Displaying the 1st butterfly in the 1st group of the 1st stage of the FFT</h3></div>
+</td>
+</tr>
+<tr>
+<td height="100%" align="center">
+<div id="ButterflyDiagram"><canvas id="myButterflyDiagram" width="861" height="479" align="center" style="border:1px solid #000000;"></canvas></div>
+</td>
+</tr>
+</tbody></table>
+
+<script>
+
+	var ScreenContents = document.getElementById("ScreenContents");
+	var CurrentScreen;
+	var SampleArray=[];
+	var Magnitude = [];
+	var Phase = [];
+	var FFTSpy;
+	var FFTSize;
+	var NumberOfStages;
+	var NumberOfGroups;
+	var NumberOfButterflies;
+	var NumberOfSamplesInGroup;
+	var ComplexSampleArray=[];
+	var w = window.innerWidth;
+	var h = window.innerHeight;	
+	var SignalGraphCanvas;
+	var SignalGraph;
+	var GraphCanvasWidth=0;
+	var GraphCanvasHeight=0;
+	var ButterflyCanvasWidth=0;
+	var ButterflyCanvasHeight=0;
+	var ShowButterflyButtonPressed=false;
+	var SelectedDemoSignal="";
+	
+	var FFTGraphCanvas;
+	var FFTGraph;
+	var FFTNoTicksX;
+	var FFTNoTicksY;
+	var FFTMaxX = 16;
+	var FFTMinX = -FFTMaxX / 40;
+	var FFTMaxY = 200;
+	var FFTMinY = 0;
+	
+	var SignalNoTicksX = 16;
+	var SignalNoTicksY = 5;
+	var LastX;
+	var LastY;
+	var SignalMaxX = 16;
+	var SignalMinX = -SignalMaxX / 40;
+	var SignalMaxY = 100;
+	var SignalMinY = -100;
+	
+	var CurrentStageIndex=-1;
+	var CurrentGroupIndex=-1;
+	var CurrentButterflyIndex=-1;
+	
+	var ButterflyDiagramTitle = document.getElementById("ButterflyDiagramTitle");
+	var ButterflyDiagram = document.getElementById("ButterflyDiagram");
+	
+	GetSize();
+	SetScreen("InputSamples");
+	
+	function GetSize()
+	{
+		document.getElementById("MyTable").style.height = w * 9 / 16;
+		document.getElementById("ButterflyDiagramTable").style.height = document.getElementById("MyTable").style.height;
+	}
+	
+	function SetScreen(WhichScreen)
+	{
+		var HTMLCode;
+
+		CurrentScreen = WhichScreen;
+		switch (CurrentScreen)
+		{
+			case "InputSamples" :
+			{
+				document.getElementById("ScreenTitle").innerHTML = "Input Samples"
+				document.getElementById("Previous").style.display = "none";
+				document.getElementById("Next").innerHTML = "Next >>";
+				document.getElementById("Next").style.display = "none";
+				HTMLCode = "Input your signal values in the box below:<BR>or <select id='DemoSignal' onchange='UseTestSignal()'><option value=''>choose a demo signal</option><option value='Signal1'>Sine Wave</option><option value='Signal2'>Cosine Wave</option><option value='Signal3'>Shifted Cosine</option><option value='Signal4'>Complex Wave</option><option value='Signal5'>Straight Line</option><option value='Signal6'>Bell Curve</option><option value='Signal7'>Real Life Signal</option></select><BR><BR>";
+				HTMLCode = HTMLCode + "<textarea id='Samples' rows='15' cols='20' oninput='NewSamples();'>";
+				
+				if (SampleArray.length > 0)
+				{
+					for (i=0; i<SampleArray.length; i++)
+					{
+						HTMLCode = HTMLCode + SampleArray[i] + "\n";
+					}
+				}
+				HTMLCode = HTMLCode + "</textarea>";
+				HTMLCode = HTMLCode + "<div id='SampleCounter'>&nbsp;<BR>&nbsp;<BR>&nbsp;</div>";
+				ScreenContents.innerHTML = HTMLCode;
+				
+				if (SelectedDemoSignal != "")
+				{
+					document.getElementById("DemoSignal").value = SelectedDemoSignal;
+				}
+				
+				if (SampleArray.length > 0)
+					NewSamples();
+								
+				break;
+			}
+			case "TimeGraph" :
+			{
+				if (GraphCanvasWidth == 0)
+					GraphCanvasWidth = document.getElementById("ScreenContents").clientWidth;
+					
+				if (GraphCanvasHeight == 0)
+					GraphCanvasHeight = document.getElementById("ScreenContents").clientHeight;
+				
+				document.getElementById("ScreenTitle").innerHTML = "Time Domain Graph of Signal";
+				document.getElementById("Previous").style.display = "block";
+				document.getElementById("Next").style.display = "block";
+				
+				HTMLCode = "<canvas id='mySignalGraph' width='" + GraphCanvasWidth + "' height='" + GraphCanvasHeight + "' align='center' style='border:1px solid #000000;'></canvas>";
+				
+				ScreenContents.innerHTML = HTMLCode;
+				
+				SignalGraphCanvas = document.getElementById("mySignalGraph");
+				SignalGraph = SignalGraphCanvas.getContext("2d");
+				PlotSignalGraph(SampleArray, FFTSize);
+				
+				break;
+			}
+			case "SignalSummary" :
+			{
+				var StageSelectItems="";
+				document.getElementById("ScreenTitle").innerHTML = "Signal Summary";
+				document.getElementById("Previous").style.display = "block";
+				document.getElementById("Next").innerHTML = "Next >>";
+				document.getElementById("Next").style.display = "block";
+				
+				ComplexSampleArray = [];
+				for (i=0; i<FFTSize; i++)
+				{
+					var ComplexNumber = {Real: 0, Imaginary: 0};
+					
+					ComplexNumber.Real = Number(SampleArray[i]);
+					ComplexNumber.Imaginary = 0;
+					ComplexSampleArray[i] = ComplexNumber;
+				}
+				
+				ComplexSampleArray = FFT(ComplexSampleArray, FFTSize);
+				
+				HTMLCode = "There are " + FFTSize + " samples in your signal.";
+				HTMLCode = HTMLCode + "<BR>There will be " + NumberOfStages + " stages in the FFT computation<p></p>"
+				
+				HTMLCode = HTMLCode + "<table border='0' class='fft' width='100%' cellspacing='0' align='center'>"
+				HTMLCode = HTMLCode + "<tr>"
+				HTMLCode = HTMLCode + "<th class='fft'>Stage Index</th><th class='fft'>Number of Groups</th><th class='fft'>Number of butterflies per group</th><th class='fft'>Number of samples per group</th>"
+				HTMLCode = HTMLCode + "</tr>"
+				
+				for (i=0; i<NumberOfStages; i++)
+				{
+					NumberOfSamplesInGroup = Math.pow(2,i+1)
+					NumberOfGroups = FFTSize / NumberOfSamplesInGroup;
+					NumberOfButterflies = NumberOfSamplesInGroup / 2;
+					StageSelectItems = StageSelectItems + "<option value='" + i + "'>" + Number(i+1) + "</option>"
+					
+					HTMLCode = HTMLCode + "<tr>"
+					HTMLCode = HTMLCode + "<td class='fft'>" + Number(i+1) + "</td><td class='fft'>" + NumberOfGroups + "</td><td class='fft'>" + NumberOfButterflies + "</td><td class='fft'>" + NumberOfSamplesInGroup + "</td>"
+					HTMLCode = HTMLCode + "</tr>"
+				}
+				
+				HTMLCode = HTMLCode + "</table>"
+				
+				HTMLCode = HTMLCode + "<p style='text-align: left'><B>Select which stage of the computation you would like to view or click next to see the results of the FFT:</B></p>"
+				HTMLCode = HTMLCode + "<table border='0' class='fft' width='100%' cellspacing='0' align='center'>"
+				HTMLCode = HTMLCode + "<tr>"
+				HTMLCode = HTMLCode + "<th class='fft'>Choose Stage</th><th class='fft'>Choose Group</th><th class='fft'>Choose Butterfly</th><td></td>"
+				HTMLCode = HTMLCode + "</tr>"
+				HTMLCode = HTMLCode + "<tr>"
+				HTMLCode = HTMLCode + "<td class='fft'><select id='MyStageIndex' onchange='GetGroupIndeces()'>" + StageSelectItems + "</select></td><td class='fft'><div id='GroupIndex'></div></td><td class='fft'><div id='ButterflyIndex'></div></td><td class='fft'><button onclick='ShowButterflyButtonPressed=true; ShowButterfly()'>Show Butterfly</button></td>"
+				HTMLCode = HTMLCode + "</tr>"
+				HTMLCode = HTMLCode + "</table>"
+				
+				
+				ScreenContents.innerHTML = HTMLCode;
+				
+				if (ShowButterflyButtonPressed == false)
+				{
+					HTMLCode = "<img src='http://www.themobilestudio.net/wp-content/uploads/2016/06/16-Point-FFT-Butterfly-Javascript-Demo.png' width='" + GraphCanvasWidth + "'>";/////
+					ButterflyDiagram.innerHTML = HTMLCode;
+				}
+				
+				
+				GetGroupIndeces();
+				break;
+			}
+			case "ResultsTable" :
+			{
+				document.getElementById("ScreenTitle").innerHTML = "FFT Results";
+				document.getElementById("Previous").style.display = "block";
+				document.getElementById("Next").innerHTML = "Next >>";
+				document.getElementById("Next").style.display = "block";
+				
+				HTMLCode = "<TABLE class='fft' Border='0' cellspacing='0' cellpadding='0'><col width='20%'><col width='20%'><col width='20%'><col width='20%'><col width='20%'><TR><TH class='fft'>Frequency Index</TH><TH class='fft'>Real (Cosine)</TH><TH class='fft'>Imaginary (Sine)</TH><TH class='fft'>Magnitude</TH><TH class='fft'>Phase</TH></TR>";
+
+				for (i=0; i<FFTSize; i++)
+				{
+					if (Math.abs(ComplexSampleArray[i].Real) < 0.01)
+						ComplexSampleArray[i].Real = 0;
+						
+					if (Math.abs(ComplexSampleArray[i].Imaginary) < 0.01)
+						ComplexSampleArray[i].Imaginary = 0;
+				}
+				
+				Magnitude = CalculateMagnitude(ComplexSampleArray, FFTSize);
+				Phase = CalculatePhase(ComplexSampleArray, FFTSize);
+
+				for (i=0; i<FFTSize; i++)
+				{
+					
+					Real = Number(Number(ComplexSampleArray[i].Real).toFixed(3));
+					Imaginary = Number(Number(ComplexSampleArray[i].Imaginary).toFixed(3));
+					Magnitude[i] = Number(Magnitude[i].toFixed(3));
+				
+					if (isNaN(Number(Phase[i])) == true)
+						Phase[i] = 0;
+				
+					Phase[i] = Number(Phase[i].toFixed(3));
+					
+					HTMLCode = HTMLCode + TableRow(i,Real,Imaginary,Magnitude[i],Phase[i]);
+				}
+				
+				HTMLCode = HTMLCode + "</TABLE>"
+				
+				ScreenContents.innerHTML = HTMLCode;
+				
+				break;
+			}
+			case "FFTGraphMagnitude" :
+			{
+				document.getElementById("ScreenTitle").innerHTML = "Magnitude Graph";
+				document.getElementById("Previous").style.display = "block"; 
+				document.getElementById("Next").innerHTML = "Next >>";
+				document.getElementById("Next").style.display = "block";
+				
+				HTMLCode = "<canvas id='myFFTGraph' width='" + GraphCanvasWidth + "' height='" + GraphCanvasHeight + "' align='center' style='border:1px solid #000000;'></canvas>";
+				
+				ScreenContents.innerHTML = HTMLCode;
+				
+				FFTGraphCanvas = document.getElementById("myFFTGraph");
+				FFTGraph = FFTGraphCanvas.getContext("2d");
+				
+				PlotFFTGraph("Magnitude", "Frequency Index", "Magnitude", Magnitude, FFTSize);
+				
+				break;
+			}
+			case "FFTGraphPhase" :
+			{
+				document.getElementById("ScreenTitle").innerHTML = "Phase Graph";
+				document.getElementById("Previous").style.display = "block"; 
+				document.getElementById("Next").innerHTML = "Back to Start >>";
+				document.getElementById("Next").style.display = "block";
+				
+				HTMLCode = "<canvas id='myFFTGraph' width='" + GraphCanvasWidth + "' height='" + GraphCanvasHeight + "' align='center' style='border:1px solid #000000;'></canvas>";
+				
+				ScreenContents.innerHTML = HTMLCode;
+				
+				FFTGraphCanvas = document.getElementById("myFFTGraph");
+				FFTGraph = FFTGraphCanvas.getContext("2d");
+				
+				PlotFFTGraph("Phase", "Frequency Index", "Phase", Phase, FFTSize);
+				
+				break;
+			}
+		}
+	}
+	
+	function TableRow(FreqIndex,Real,Imag,Magnitude,Phase)
+	{
+		var TableHTML;
+		
+		TableHTML = "<TR>";
+		TableHTML = TableHTML + "<TD class='fft' align='center'>" + FreqIndex + "</TD>";
+		TableHTML = TableHTML + "<TD class='fft' align='center'>" + Real + "</TD>";
+		TableHTML = TableHTML + "<TD class='fft' align='center'>" + Imag + "</TD>";
+		TableHTML = TableHTML + "<TD class='fft' align='center'>" + Magnitude + "</TD>";
+		TableHTML = TableHTML + "<TD class='fft' align='center'>" + Phase + "</TD>";
+		TableHTML = TableHTML + "</TR>"
+		
+		return TableHTML;
+	}
+	
+	function GetGroupIndeces()
+	{
+		CurrentStageIndex = Number(document.getElementById("MyStageIndex").value);
+		var HTMLCodeGroup = "";
+		var HTMLCodeButterfly = "";
+		NumberOfSamplesInGroup = Math.pow(2,CurrentStageIndex+1);
+		NumberOfGroups = FFTSize / NumberOfSamplesInGroup;
+		NumberOfButterflies = NumberOfSamplesInGroup / 2;
+		
+		HTMLCodeGroup = "<select id='MyGroupIndex'>"
+		for (i=0; i<NumberOfGroups; i++)
+		{
+			HTMLCodeGroup = HTMLCodeGroup + "<option value='" + i + "'>" + Number(i+1) + "</option>"
+		}
+		HTMLCodeGroup = HTMLCodeGroup + "</select>";
+		document.getElementById("GroupIndex").innerHTML = HTMLCodeGroup;
+		
+		HTMLCodeButterfly = "<select id='MyButerflyIndex'>"
+		for (i=0; i<NumberOfButterflies; i++)
+		{
+			HTMLCodeButterfly = HTMLCodeButterfly + "<option value='" + i + "'>" + Number(i+1) + "</option>"
+		}
+		HTMLCodeButterfly = HTMLCodeButterfly + "</select>";
+		document.getElementById("ButterflyIndex").innerHTML = HTMLCodeButterfly;
+		
+	}
+	
+	function HideButterfly()
+	{
+		ButterflyDiagramTitle.innerHTML = "&nbsp;";
+		ButterflyDiagram.innerHTML = "";
+	}
+	
+	function ShowButterfly()
+	{
+		CurrentGroupIndex = Number(document.getElementById("MyGroupIndex").value);
+		CurrentButterflyIndex = Number(document.getElementById("MyButerflyIndex").value);
+		
+		ButterflyDiagramTitle.innerHTML = "<h3>Displaying the " + GetDegreeText(CurrentButterflyIndex) + " butterfly in the " + GetDegreeText(CurrentGroupIndex) + " group of the " + GetDegreeText(CurrentStageIndex) + " stage of the FFT</h3>"
+		DrawButterflyDiagram();
+	}
+
+	function DrawButterflyDiagram()
+	{
+		var canvas;
+		var context;
+		var MidX;
+		var MidY;
+		var BlueCircle = {X: 0, Y: 0};
+		var RedCircle = {X: 0, Y: 0};
+		var TwiddleTextStart = {X: 0, Y: 0};
+		var TwiddleTextTitle = {X: 0, Y: 0};
+		var MinusOnePosition = {X: 0, Y: 0};
+		var TwiddleFactorFontHeight = 12;
+		var SampleFontHeight = Number(TwiddleFactorFontHeight + 2);
+		var TwiddleFactor;
+		var TwiddleFactorTitle;
+		var Radius=20;
+		var ArrowHeadLength = 10;
+		var ButterflyWidth;
+		var BlueLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var RedLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var TopInputLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var BottomInputLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var TopOutputLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var BottomOutputLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var BlueDiagonalLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var RedDiagonalLine={FromX: 0, FromY: 0, ToX: 0, ToY: 0};
+		var InputSample=[];
+		var InputSamplePosition=[];
+		var OutputSample=[];
+		var OutputSamplePosition=[];
+		
+		FFTSpyIndex = Number(NumberOfButterflies * CurrentGroupIndex + CurrentButterflyIndex);
+		
+		ButterflyCanvasWidth = GraphCanvasWidth
+		ButterflyCanvasHeight = GraphCanvasHeight
+		
+		MidX = ButterflyCanvasWidth / 2;
+		MidY = ButterflyCanvasHeight / 2;
+		ButterflyWidth = GraphCanvasWidth * 0.2;
+		ButterflyHeight = ButterflyCanvasHeight * 0.5;
+		
+		HTMLCode = "<canvas id='myButterflyDiagram' width='" + ButterflyCanvasWidth + "' height='" + ButterflyCanvasHeight + "' align='center' style='border:1px solid #000000;'></canvas>";
+		ButterflyDiagram.innerHTML = HTMLCode;
+		
+		canvas = document.getElementById("myButterflyDiagram");
+		context = canvas.getContext('2d');
+		
+		// Draw Blue Line
+		BlueLine.FromX = MidX - ButterflyWidth/2;
+		BlueLine.FromY = MidY - ButterflyHeight/2;
+		BlueLine.ToX = MidX + ButterflyWidth/2;
+		BlueLine.ToY = MidY - ButterflyHeight/2;
+		context.beginPath();
+		context.lineWidth=10;
+		context.strokeStyle = '#0000FF';
+		drawArrow(context, BlueLine.FromX, BlueLine.FromY, BlueLine.ToX, BlueLine.ToY, ArrowHeadLength);
+		
+		// Draw Add Circle 1
+		context.lineWidth=3;
+		context.strokeStyle = '#000000';
+		context.beginPath();
+		BlueCircle.X = BlueLine.ToX + Radius + ArrowHeadLength;
+		BlueCircle.Y = BlueLine.ToY;
+		context.arc(BlueCircle.X, BlueCircle.Y, Radius, 0, 2*Math.PI);
+		context.stroke();
+		context.beginPath();
+		context.moveTo(BlueCircle.X - Radius * 0.6, BlueCircle.Y);
+		context.lineTo(BlueCircle.X + Radius * 0.6, BlueCircle.Y);
+		context.moveTo(BlueCircle.X, BlueCircle.Y - Radius * 0.6);
+		context.lineTo(BlueCircle.X, BlueCircle.Y + Radius * 0.6);
+		context.stroke();
+		
+		// Draw Red Line
+		RedLine.FromX = MidX - ButterflyWidth/2;
+		RedLine.FromY = MidY + ButterflyHeight/2;
+		RedLine.ToX = MidX + ButterflyWidth/2;
+		RedLine.ToY = MidY + ButterflyHeight/2;
+		context.beginPath();
+		context.lineWidth=10;
+		context.strokeStyle = '#FF0000';
+		drawArrow(context, RedLine.FromX, RedLine.FromY, RedLine.ToX, RedLine.ToY, ArrowHeadLength);
+		
+		// Draw Add Circle 2
+		context.lineWidth=3;
+		context.strokeStyle = '#000000';
+		context.beginPath();
+		RedCircle.X = RedLine.ToX + Radius + ArrowHeadLength;
+		RedCircle.Y = RedLine.ToY;
+		context.arc(RedCircle.X, RedCircle.Y, Radius, 0, 2*Math.PI);
+		context.stroke();
+		context.beginPath();
+		context.moveTo(RedCircle.X - Radius * 0.6, RedCircle.Y);
+		context.lineTo(RedCircle.X + Radius * 0.6, RedCircle.Y);
+		context.moveTo(RedCircle.X, RedCircle.Y - Radius * 0.6);
+		context.lineTo(RedCircle.X, RedCircle.Y + Radius * 0.6);
+		context.stroke();
+		
+		// Draw Red Diagonal Line
+		RedDiagonalLine.FromX = RedLine.FromX;
+		RedDiagonalLine.FromY = RedLine.FromY;
+		RedDiagonalLine.ToX = BlueCircle.X - (Radius + ArrowHeadLength) * Math.cos(45 * Math.PI / 180);
+		RedDiagonalLine.ToY = BlueCircle.Y + (Radius + ArrowHeadLength) * Math.sin(45 * Math.PI / 180);
+		context.beginPath();
+		context.lineWidth=10;
+		context.strokeStyle = '#FF0000';
+		drawArrow(context, RedDiagonalLine.FromX, RedDiagonalLine.FromY, RedDiagonalLine.ToX, RedDiagonalLine.ToY, ArrowHeadLength);
+		
+		// Draw Blue Diagonal Line
+		BlueDiagonalLine.FromX = BlueLine.FromX;
+		BlueDiagonalLine.FromY = BlueLine.FromY;
+		BlueDiagonalLine.ToX = RedCircle.X - (Radius + ArrowHeadLength) * Math.cos(45 * Math.PI / 180);
+		BlueDiagonalLine.ToY = RedCircle.Y - (Radius + ArrowHeadLength) * Math.sin(45 * Math.PI / 180);
+		context.beginPath();
+		context.lineWidth=10;
+		context.strokeStyle = '#0000FF';
+		drawArrow(context, BlueDiagonalLine.FromX, BlueDiagonalLine.FromY, BlueDiagonalLine.ToX, BlueDiagonalLine.ToY, ArrowHeadLength);
+		
+		// Minus One
+		MinusOnePosition.X = RedLine.FromX + (RedLine.ToX - RedLine.FromX)/2 - context.measureText("-1").width / 2;
+		MinusOnePosition.Y = RedLine.FromY + context.lineWidth + 10;
+		context.fillStyle = "#000000";
+		context.font = TwiddleFactorFontHeight + "px Arial";
+		context.fillText("-1", MinusOnePosition.X, MinusOnePosition.Y);
+		
+		// Position Twiddle Factor and Title
+		TwiddleFactorTitle = "Twiddle Factor";
+		TwiddleFactor = DisplayComplexNumber(FFTSpy[CurrentStageIndex][FFTSpyIndex].TwiddleFactor, 4); 
+		context.fillStyle = "#FF0000";
+		context.lineWidth=1;
+		context.font = "bold " + SampleFontHeight + "px Arial";
+		
+		// Position Twiddle factor and Black Box around Twiddle Factor
+		var BoxWidth;
+		var BoxStart;
+		
+		context.fillStyle = "#000000";
+		
+		if (context.measureText(TwiddleFactor).width > context.measureText(TwiddleFactorTitle).width)
+		{
+			TwiddleTextStart.X = RedLine.FromX - context.measureText(TwiddleFactor).width - 30;
+			TwiddleTextTitle.X = TwiddleTextStart.X + context.measureText(TwiddleFactor).width / 2;
+			TwiddleTextTitle.X = TwiddleTextTitle.X - context.measureText(TwiddleFactorTitle).width / 2;
+			BoxWidth = context.measureText(TwiddleFactor).width + 10;
+			BoxStart = TwiddleTextStart.X -5;
+		}
+		else
+		{
+			TwiddleTextTitle.X = RedLine.FromX - context.measureText(TwiddleFactorTitle).width - 30;
+			TwiddleTextStart.X = TwiddleTextTitle.X + context.measureText(TwiddleFactorTitle).width / 2;
+			TwiddleTextStart.X = TwiddleTextStart.X - context.measureText(TwiddleFactor).width / 2;
+			BoxWidth = context.measureText(TwiddleFactorTitle).width + 10;
+			BoxStart = TwiddleTextTitle.X -5;
+		}
+		
+		TwiddleTextStart.Y = RedLine.FromY + TwiddleFactorFontHeight/2 - context.lineWidth / 2;
+		TwiddleTextTitle.Y = TwiddleTextStart.Y - 15;
+		context.fillRect(BoxStart,TwiddleTextStart.Y-TwiddleFactorFontHeight-15,BoxWidth,TwiddleFactorFontHeight+20);
+		
+		// Draw Top Input Line
+		context.lineWidth=10;
+		TopInputLine.FromX = BoxStart - 20;
+		TopInputLine.ToX = BlueLine.FromX;
+		TopInputLine.FromY = BlueLine.FromY;
+		TopInputLine.ToY = BlueLine.ToY;
+		context.lineWidth=10;
+		context.strokeStyle = '#000000';
+		drawArrow(context, TopInputLine.FromX, TopInputLine.FromY, TopInputLine.ToX, TopInputLine.ToY, ArrowHeadLength);
+		
+		// Draw Top Output Line
+		context.lineWidth=10;
+		TopOutputLine.FromX = BlueLine.ToX + 2*Radius + ArrowHeadLength;
+		TopOutputLine.ToX = TopOutputLine.FromX + 30;
+		TopOutputLine.FromY = BlueLine.FromY;
+		TopOutputLine.ToY = BlueLine.ToY;
+		context.lineWidth=10;
+		context.strokeStyle = '#000000';
+		drawArrow(context, TopOutputLine.FromX, TopOutputLine.FromY, TopOutputLine.ToX, TopOutputLine.ToY, ArrowHeadLength);
+		
+		// Draw Bottom Input Input Line
+		context.lineWidth=10;
+		BottomInputLine.FromX = BoxStart - 20;
+		BottomInputLine.ToX = RedLine.FromX;
+		BottomInputLine.FromY = RedLine.FromY;
+		BottomInputLine.ToY = RedLine.ToY;
+		context.lineWidth=10;
+		context.strokeStyle = '#000000';
+		drawArrow(context, BottomInputLine.FromX, BottomInputLine.FromY, BottomInputLine.ToX, BottomInputLine.ToY, ArrowHeadLength);
+
+		// Draw Bottom Output Line
+		context.lineWidth=10;
+		BottomOutputLine.FromX = RedLine.ToX + 2*Radius + ArrowHeadLength;
+		BottomOutputLine.ToX = BottomOutputLine.FromX + 30;
+		BottomOutputLine.FromY = RedLine.FromY;
+		BottomOutputLine.ToY = RedLine.ToY;
+		context.lineWidth=10;
+		context.strokeStyle = '#000000';
+		drawArrow(context, BottomOutputLine.FromX, BottomOutputLine.FromY, BottomOutputLine.ToX, BottomOutputLine.ToY, ArrowHeadLength);
+		
+		// Display Twiddle Factor Title and Twiddle Factor
+		context.fillStyle = "#FFFFFF";
+		context.fillText(TwiddleFactor, TwiddleTextStart.X, TwiddleTextStart.Y);
+		context.fillText(TwiddleFactorTitle, TwiddleTextTitle.X, TwiddleTextTitle.Y);
+		
+		// Display First Input Sample
+		var PositionType={X: 0, Y: 0};
+		context.fillStyle = "#0000FF";
+		InputSample[0] = DisplayComplexNumber(FFTSpy[CurrentStageIndex][FFTSpyIndex].Sample0, 4)
+		context.font = "bold " + SampleFontHeight + "px Arial";
+		PositionType.X = TopInputLine.FromX - 5 - context.measureText(InputSample[0]).width;
+		PositionType.Y = BlueLine.FromY + TwiddleFactorFontHeight/2 - context.lineWidth / 2;
+		InputSamplePosition[0] = PositionType;
+		context.fillText(InputSample[0], InputSamplePosition[0].X, InputSamplePosition[0].Y);
+		
+		// Display Second Input Sample
+		var PositionType={X: 0, Y: 0};
+		context.fillStyle = "#FF0000";
+		InputSample[1] = DisplayComplexNumber(FFTSpy[CurrentStageIndex][FFTSpyIndex].Sample1, 4)
+		context.font = "bold " + SampleFontHeight + "px Arial";
+		PositionType.X = BottomInputLine.FromX - 5 - context.measureText(InputSample[1]).width;
+		PositionType.Y = RedLine.FromY + TwiddleFactorFontHeight/2 - context.lineWidth / 2;
+		InputSamplePosition[1] = PositionType;
+		context.fillText(InputSample[1], InputSamplePosition[1].X, InputSamplePosition[1].Y);
+		
+		// Display First Output Sample
+		var PositionType={X: 0, Y: 0};
+		context.fillStyle = "#0000FF";
+		OutputSample[0] = DisplayComplexNumber(FFTSpy[CurrentStageIndex][FFTSpyIndex].Result0, 4)
+		context.font = "bold " + SampleFontHeight + "px Arial";
+		PositionType.X = TopOutputLine.ToX + 5 + ArrowHeadLength;
+		PositionType.Y = BlueLine.FromY + TwiddleFactorFontHeight/2 - context.lineWidth / 2;
+		OutputSamplePosition[0] = PositionType;
+		context.fillText(OutputSample[0], OutputSamplePosition[0].X, OutputSamplePosition[0].Y);
+		
+		// Display Second Output Sample
+		var PositionType={X: 0, Y: 0};
+		context.fillStyle = "#FF0000";
+		OutputSample[1] = DisplayComplexNumber(FFTSpy[CurrentStageIndex][FFTSpyIndex].Result1, 4)
+		context.font = "bold " + SampleFontHeight + "px Arial";
+		PositionType.X = TopOutputLine.ToX + 5 + ArrowHeadLength;
+		PositionType.Y = RedLine.FromY + TwiddleFactorFontHeight/2 - context.lineWidth / 2;
+		OutputSamplePosition[1] = PositionType;
+		context.fillText(OutputSample[1], OutputSamplePosition[1].X, OutputSamplePosition[1].Y);
+	}
+	
+	function DisplayComplexNumber(ComplexNumber, Precision)
+	{
+		var ComplexNumberText;
+		
+		if (ComplexNumber.Imaginary < 0)
+			ComplexNumberText = Number(ComplexNumber.Real).toFixed(Precision) + " - " + Number(Math.abs(ComplexNumber.Imaginary)).toFixed(Precision) + "i";
+		else
+			ComplexNumberText = Number(ComplexNumber.Real).toFixed(Precision) + " + " + Number(ComplexNumber.Imaginary).toFixed(Precision) + "i";
+			
+		return ComplexNumberText;
+	}
+	
+	function drawArrow(ctx, fromx, fromy, tox, toy, headlen)
+	{
+		//variables to be used when creating the arrow
+
+		var angle = Math.atan2(toy-fromy,tox-fromx);
+
+		//starting path of the arrow from the start square to the end square and drawing the stroke
+		ctx.beginPath();
+		ctx.moveTo(fromx, fromy);
+		ctx.lineTo(tox, toy);
+		//ctx.strokeStyle = "#cc0000";
+		ctx.stroke();
+
+		//starting a new path from the head of the arrow to one of the sides of the point
+		ctx.beginPath();
+		ctx.moveTo(tox, toy);
+		ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+		//path from the side point of the arrow, to the other side point
+		ctx.lineTo(tox-headlen*Math.cos(angle+Math.PI/7),toy-headlen*Math.sin(angle+Math.PI/7));
+
+		//path from the side point back to the tip of the arrow, and then again to the opposite side point
+		ctx.lineTo(tox, toy);
+		ctx.lineTo(tox-headlen*Math.cos(angle-Math.PI/7),toy-headlen*Math.sin(angle-Math.PI/7));
+
+		//draws the paths created above
+		//ctx.strokeStyle = "#cc0000";
+		//ctx.lineWidth = 22;
+		ctx.stroke();
+		ctx.fillStyle = ctx.strokeStyle;
+		ctx.fill();
+	}
+	
+	function ButterflyDiagramTitle()
+	{
+		ButterflyDiagram.innerHTML = "";
+	}
+	
+	function ReShowButterfly()
+	{
+		var MyStageIndex = CurrentStageIndex;
+		var MyGroupIndex = CurrentGroupIndex;
+		var MyButterflyIndex = CurrentButterflyIndex;
+		
+		SetScreen("SignalSummary");
+		
+		if (ShowButterflyButtonPressed == true)
+		{
+			document.getElementById("MyStageIndex").value = MyStageIndex;
+		}
+		
+		GetGroupIndeces();
+		
+		if (ShowButterflyButtonPressed == true)
+		{
+			document.getElementById("MyGroupIndex").value = MyGroupIndex;
+			document.getElementById("MyButerflyIndex").value = MyButterflyIndex;
+			ShowButterfly();
+		}
+		
+	}
+	
+	function GetDegreeText(Index)
+	{
+		var ReturnText="";
+		
+		Index = Number(Index) + 1;
+		
+		switch (Index)
+		{
+			case 1 :
+			{
+				ReturnText = Index + "st";
+				break;
+			}
+			case 2 :
+			{
+				ReturnText = Index + "nd";
+				break;
+			}
+			case 3 :
+			{
+				ReturnText = Index + "rd";
+				break;
+			}
+			default :
+			{
+				ReturnText = Index + "th";
+				break;
+			}
+		}
+		
+		return ReturnText;
+	}
+	
+	function PlotSignalGraph(YValues, NumberOfPoints)
+	{
+		SignalMaxX = NumberOfPoints;
+		SignalMinX = -SignalMaxX / 40;
+		SignalMaxY = 100 * getSignalYLimits(YValues, NumberOfPoints);
+		SignalMinY = -SignalMaxY;
+		
+		SignalGraph.clearRect(0, 0, SignalGraphCanvas.width, SignalGraphCanvas.height);
+		DrawGridLines(SignalGraph, SignalMinX, SignalMaxX, SignalMinY, SignalMaxY, SignalGraphCanvas.width, SignalGraphCanvas.height, SignalNoTicksX, SignalNoTicksY);
+		for (i=0; i<NumberOfPoints; i++)
+		{
+			if (i==0)
+				FirstPoint = true;
+			else
+				FirstPoint = false;
+	
+			DrawPoint(i, YValues[i] * 100, FirstPoint, SignalGraph, SignalMinX, SignalMaxX, SignalMinY, SignalMaxY, SignalGraphCanvas.width, SignalGraphCanvas.height);
+		}
+
+		DrawGraphAxes("Signal", "Sample Index", "Amplitude", SignalGraph, SignalMinX, SignalMaxX, SignalMinY, SignalMaxY, SignalGraphCanvas.width, SignalGraphCanvas.height, SignalNoTicksX, SignalNoTicksY);
+	}
+	
+	function PlotFFTGraph(GraphName, XAxisTitle, YAxisTitle, YValues, NumberOfPoints)
+	{
+		var BarColor;
+		
+		FFTNoTicksX = 16;
+		FFTMaxX = NumberOfPoints;
+		FFTMinX = -FFTMaxX / 40;
+		FFTMaxY = 100 * getSignalYLimits(YValues, NumberOfPoints);
+		if (FFTMaxY == 0)
+		{
+			FFTMaxY = 90;
+		}
+		
+		switch (GraphName)
+		{
+			case "Magnitude" :
+			{
+				FFTMinY = 0;
+				FFTNoTicksY = 10;
+				BarColor = "#008800";
+				break;
+			}
+			case "Phase" :
+			{
+				FFTMinY = -FFTMaxY;
+				FFTNoTicksY = 5;
+				BarColor = "#AA0000";
+				break;
+			}
+		}
+		
+		FFTGraph.clearRect(0, 0, FFTGraphCanvas.width, FFTGraphCanvas.height);
+		DrawGridLines(FFTGraph, FFTMinX, FFTMaxX, FFTMinY, FFTMaxY, FFTGraphCanvas.width, FFTGraphCanvas.height, FFTNoTicksX, FFTNoTicksY);
+		for (i=0; i<NumberOfPoints; i++)
+		{
+			DrawBar(BarColor, i,YValues[i], FFTGraph, FFTMinX, FFTMaxX, FFTMinY, FFTMaxY, FFTGraphCanvas.width, FFTGraphCanvas.height);
+		}
+		
+		DrawGraphAxes(GraphName, XAxisTitle, YAxisTitle, FFTGraph, FFTMinX, FFTMaxX, FFTMinY, FFTMaxY, FFTGraphCanvas.width, FFTGraphCanvas.height, FFTNoTicksX, FFTNoTicksY);
+	}
+	
+	function DrawBar(BarColor, X, Y, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var BarBottomLeft = {X: 0, Y: 0};
+		var BarTopRight = {X: 0, Y: 0};
+		var BarWidth;
+		var BarHeight;
+		
+		BarBottomLeft = Point2GraphScale(X, 0, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		BarTopRight = Point2GraphScale(X+1, 100*Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		BarWidth = BarTopRight.X - BarBottomLeft.X;
+		BarHeight = BarTopRight.Y - BarBottomLeft.Y;
+		
+		GraphContext.fillStyle = BarColor;
+		GraphContext.fillRect(BarBottomLeft.X, BarBottomLeft.Y, BarWidth, BarHeight);	
+	}
+	
+	function DrawPoint(X, Y, FirstPoint, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var PointOnGraph = {X: 0, Y: 0};
+		
+		PointOnGraph = Point2GraphScale(X, Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		if (FirstPoint == true)
+		{
+			LastX = PointOnGraph.X;
+			LastY = PointOnGraph.Y;
+		}
+		
+		GraphContext.beginPath();
+		GraphContext.moveTo(LastX,LastY);
+		GraphContext.lineTo(PointOnGraph.X,PointOnGraph.Y);
+		GraphContext.strokeStyle = "#0000FF";
+		GraphContext.stroke();
+		
+		LastX = PointOnGraph.X;
+		LastY = PointOnGraph.Y;
+	}
+	
+	function getSignalYLimits(YValues, NumberOfPoints)
+	{
+		var MinValue = Math.floor(Math.min.apply(Math, YValues));
+		var MaxValue = Math.ceil(Math.max.apply(Math, YValues));
+		var MinMax = [Math.abs(MinValue), Math.abs(MaxValue)];
+		var YLimit = Math.max.apply(Math, MinMax);
+		
+		return YLimit;
+	}
+	
+	function DrawGraphAxes(GraphTitle, XAxisTitle, YAxisTitle, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight, NoTicksX, NoTicksY)
+	{
+		WriteGraphTitle(GraphTitle, GraphContext, GraphWidth);
+		
+		DrawLine(0, 0, MyMaxX, 0, "#000000", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		DrawLine(0, MyMinY, 0, MyMaxY, "#000000", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		// XTicks 
+		for (i=0; i<=MyMaxX; i+=(MyMaxX / NoTicksX))
+		{
+			if (i != 0)
+			{
+				DrawTextX(i, 0, i.toFixed(0), GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+			}
+			DrawLine(i, -MyMaxY/80, i, MyMaxY/80,"#000000", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		}
+		
+		// X-Axis Title
+		DrawTextXTitle(XAxisTitle, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight); /////
+		
+		// YTicks
+		for (i=MyMinY; i<=MyMaxY; i+=(MyMaxY / NoTicksY))
+		{
+			DrawTextY(-MyMaxX/200, i, Number(i/100).toFixed(1), GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+			DrawLine(-MyMaxX/200, i, MyMaxX/200, i,"#000000", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		}
+	}
+	
+	function DrawGridLines(GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight, NoTicksX, NoTicksY)
+	{
+		// XLines
+		for (i=0; i<=MyMaxX; i+=(MyMaxX / NoTicksX))
+		{
+			DrawLine(i, MyMinY, i, MyMaxY,"#CCCCCC", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		}
+		
+		// YTicks
+		for (i=MyMinY; i<=MyMaxY; i+=(MyMaxY / NoTicksY))
+		{
+			if (i != 0)
+				DrawLine(MyMaxX/200, i, MyMaxX, i,"#CCCCCC", GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		}
+	}
+	
+	function WriteGraphTitle(GraphTitle, GraphContext, GraphWidth)
+	{
+		var TextStart = {X: 0, Y: 0};
+		var FontHeight = 25;
+		
+		GraphContext.font = "bold " + FontHeight + "px Arial";
+		
+		GraphContext.fillStyle = "#000000";
+		TextStart.X = (GraphWidth / 2) - (GraphContext.measureText(GraphTitle).width / 2);
+		TextStart.Y = FontHeight;
+		GraphContext.fillText(GraphTitle, TextStart.X, TextStart.Y);		
+	}
+	
+	function DrawTextX(X, Y, txt, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var FontHeight = 12;
+		var LineStart = {X: 0, Y: 0};
+		
+		GraphContext.font = FontHeight + "px Arial";
+		
+		TextStart = Point2GraphScale(X, Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		TextStart.X = TextStart.X - GraphContext.measureText(txt).width / 2;
+		TextStart.Y = TextStart.Y + FontHeight/2 + 10;
+		GraphContext.fillStyle = "#000000";
+		GraphContext.strokeStyle = "#FFFFFF";
+		GraphContext.lineWidth=5;
+		GraphContext.strokeText(txt, TextStart.X, TextStart.Y);
+		GraphContext.fillText(txt, TextStart.X, TextStart.Y);
+		GraphContext.lineWidth=1;
+	}
+	
+	function DrawTextXTitle(txt, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var FontHeight = 12;
+		var LineStart = {X: 0, Y: 0};
+		var X = MyMaxX / 2;
+		var Y = 0;
+		
+		GraphContext.font = FontHeight + "px Arial";
+		TextStart = Point2GraphScale(X, Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		TextStart.X = TextStart.X - GraphContext.measureText(txt).width / 2;
+		
+		TextStart.Y = TextStart.Y + FontHeight / 2 - 15;
+		
+		GraphContext.fillStyle = "#000000";
+		GraphContext.strokeStyle = "#FFFFFF";
+		GraphContext.lineWidth=5;
+		GraphContext.strokeText(txt, TextStart.X, TextStart.Y);
+		GraphContext.fillText(txt, TextStart.X, TextStart.Y);
+		GraphContext.lineWidth=1;
+	}
+	
+	function DrawTextY(X, Y, txt, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var FontHeight = 12;
+		var LineStart = {X: 0, Y: 0};
+		
+		GraphContext.font = FontHeight + "px Arial";
+		
+		TextStart = Point2GraphScale(X, Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		TextStart.X = TextStart.X - GraphContext.measureText(txt).width - 5;
+		TextStart.Y = TextStart.Y + FontHeight/2 - 2;
+		GraphContext.fillStyle = "#000000";
+		GraphContext.fillText(txt, TextStart.X, TextStart.Y);
+	}
+	
+	function DrawLine(FromX, FromY, ToX, ToY, Color, GraphContext, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var LineStart = {X: 0, Y: 0};
+		var LineEnd = {X: 0, Y: 0};
+		
+		LineStart = Point2GraphScale(FromX,FromY, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		LineEnd = Point2GraphScale(ToX,ToY, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight);
+		
+		GraphContext.beginPath();
+		GraphContext.moveTo(LineStart.X,LineStart.Y);
+		GraphContext.lineTo(LineEnd.X,LineEnd.Y);
+		GraphContext.strokeStyle = Color;
+		GraphContext.stroke();
+	}
+	
+	function Point2GraphScale(X, Y, MyMinX, MyMaxX, MyMinY, MyMaxY, GraphWidth, GraphHeight)
+	{
+		var PointOnGraph = {X: 0, Y: 0};
+		var BorderXLeft = 60;
+		var BorderXRight = 25;
+		var BorderYTop = 40;
+		var BorderYBottom = 30;
+		
+		Y = FlipYCoord(Y, MyMinY, MyMaxY);
+		
+		//PointOnGraph.X = BorderX + (GraphWidth - (2*BorderX)) * (X - MyMinX) / (MyMaxX - MyMinX);
+		PointOnGraph.X = BorderXLeft + (GraphWidth - (BorderXLeft + BorderXRight)) * (X - MyMinX) / (MyMaxX - MyMinX);
+		//PointOnGraph.X = BorderXLeft + (GraphWidth - (BorderXLeft + BorderXRight)) / (MyMaxX - MyMinX);
+		PointOnGraph.Y = BorderYTop + (GraphHeight - (BorderYTop + BorderYBottom)) * (Y - MyMinY) / (MyMaxY - MyMinY);
+		
+		return PointOnGraph;
+	}
+	
+	function FlipYCoord(Y, MyMinY, MyMaxY)
+	{
+		return MyMaxY - Y + MyMinY;
+	}
+	
+	function ClickNext()
+	{
+		switch (CurrentScreen)
+		{
+			case "InputSamples" :
+			{
+				SetScreen("TimeGraph");
+				break;
+			}
+			case "TimeGraph" :
+			{
+				ReShowButterfly();
+				break;
+			}
+			case "SignalSummary" :
+			{
+				HideButterfly();
+				SetScreen("ResultsTable");
+				break;
+			}
+			case "ResultsTable" :
+			{
+				SetScreen("FFTGraphMagnitude");
+				break;
+			}
+			case "FFTGraphMagnitude" :
+			{
+				SetScreen("FFTGraphPhase");
+				break;
+			}
+			case "FFTGraphPhase" :
+			{
+				location.reload();
+				break;
+			}
+		}
+	}
+	
+	function ClickPrevious()
+	{
+		switch (CurrentScreen)
+		{
+			case "TimeGraph" :
+			{
+				SetScreen("InputSamples");
+				break;
+			}
+			case "SignalSummary" :
+			{
+				HideButterfly();
+				SetScreen("TimeGraph");
+				break;
+			}
+			case "ResultsTable" :
+			{
+				ReShowButterfly();
+				break;
+			}
+			case "FFTGraphMagnitude" :
+			{	
+				SetScreen("ResultsTable");
+				break;
+			}
+			case "FFTGraphPhase" :
+			{
+				SetScreen("FFTGraphMagnitude");
+				break;
+			}
+		}
+	}
+	
+	function UseTestSignal()
+	{
+		var i;
+		var Samples;
+		var HTMLCode="";
+		
+		Samples = GetSamples()
+		for (i=0; i<Samples.length; i++)
+		{
+			HTMLCode = HTMLCode + Samples[i] + "\n";
+		}
+		document.getElementById("Samples").value = HTMLCode;
+		NewSamples();
+	}
+	
+	function NewSamples()
+	{
+		
+		var NoSamples=[];
+		var Samples = document.getElementById("Samples").value;
+
+		ShowButterflyButtonPressed = false;
+		CurrentStageIndex=-1;
+		CurrentGroupIndex=-1;
+		CurrentButterflyIndex=-1;
+	
+		SampleArray = [];
+		SampleArray = Samples.split('\n');
+		NoSamples = GetFFTSize(SampleArray);
+		FFTSize = NoSamples[0];
+	
+		if (NoSamples[0] > 0)
+		{
+			document.getElementById("SampleCounter").innerHTML = "<BR>You have input " + NoSamples[0] + " samples. <BR>Click Next to continue.";
+			document.getElementById("Next").style.display = "block";
+			// Prepare the samples for processing
+			for (i=0; i<FFTSize; i++)
+			{
+				var ComplexNumber = {Real: 0, Imaginary: 0};
+				ComplexNumber.Real = Number(SampleArray[i]);
+				ComplexNumber.Imaginary = 0;
+				ComplexSampleArray[i] = ComplexNumber;
+			}
+		}
+		else
+		{
+			document.getElementById("SampleCounter").innerHTML = "<BR>You have input " + NoSamples[1] + " samples.<BR>Number of samples is not a power of 2. The FFT cannot be performed.";
+			document.getElementById("Next").style.display = "none";
+		}
+	}
+	
+	function GetFFTSize(nSampleArray)
+	{
+		var NumberOfSamples = [0,0];
+		var i;
+		
+		// Count the number of numeric samples in the signal
+		for (i=0; i<nSampleArray.length; i++)
+		{
+			if (isNumeric(nSampleArray[i]) == true)
+				NumberOfSamples[0]++;
+		}
+		
+		// Check to see if the number of samples in the signal is a power of 2
+		NumberOfStages = Math.log(NumberOfSamples[0]) / Math.log(2);
+		if (isInteger(NumberOfStages) == false)
+		{
+			NumberOfSamples[1] = NumberOfSamples[0];
+			NumberOfSamples[0] = 0;
+		}
+		
+		return NumberOfSamples;
+	}
+	
+	function isNumeric(n)
+	{
+		return !isNaN(parseFloat(n)) && isFinite(n);
+	}
+	
+	function isInteger(n)
+	{
+		return n % 1 === 0;
+	}
+	
+	function FFT(MySampleArray, FFTSize)
+	{
+		var NumberOfStages = Math.log(FFTSize) / Math.log(2);
+		var DFTStage;
+		var SampleIndex;
+		var GroupIndex;
+		var NumberOfSamplesInGroup;
+		var NumberOfGroups;
+		var CombinedIndex;
+		var HalfOfSamplesInGroup;
+		var TwiddleFactors=[];
+		var Sample0;
+		var Sample1;
+		var TwiddleFactor;
+		var FFTSpyIndex;
+		
+		// Reorder the Samples usinge bit reversal technique
+		MySampleArray = BitReversal(MySampleArray, FFTSize);
+		
+		// Main FFT calculation loop
+		FFTSpy = createArray(NumberOfStages, FFTSize/2);
+		for (DFTStage=0; DFTStage<NumberOfStages; DFTStage++)
+		{
+			// Calculate the twiddle factors for this stage of the DFT
+			TwiddleFactors = CalculateTwiddleFactors(DFTStage);
+			
+			// Prepare to organize the samples into groups
+			NumberOfSamplesInGroup = Math.pow(2,DFTStage+1)
+			NumberOfGroups = FFTSize / NumberOfSamplesInGroup;
+			HalfOfSamplesInGroup = NumberOfSamplesInGroup / 2;
+			
+			// Perform the Butterfly calculation on each group
+			for (GroupIndex=0; GroupIndex<NumberOfGroups; GroupIndex++)
+			{
+				for (SampleIndex=0; SampleIndex<(NumberOfSamplesInGroup/2); SampleIndex++)
+				{
+					CombinedIndex = NumberOfSamplesInGroup * GroupIndex + SampleIndex;
+					
+					// Prepare samples and twiddle factor for input into the butterfly
+					Sample0 = MySampleArray[CombinedIndex];
+					Sample1 = MySampleArray[CombinedIndex + HalfOfSamplesInGroup];
+					TwiddleFactor = TwiddleFactors[SampleIndex];
+					
+					// Do the butterfly calculation
+					Results = Butterfly(Sample0, Sample1, TwiddleFactor); 
+					
+					// Place results back into the sample array ready for the next stage
+					MySampleArray[CombinedIndex] = Results[0];
+					MySampleArray[CombinedIndex + HalfOfSamplesInGroup] = Results[1];
+					
+					var FFTSpyElement={Sample0: 0, Sample1: 0, TwiddleFactor: 0, Result0: 0, Result1: 0};
+					FFTSpyIndex = Number((NumberOfSamplesInGroup/2) * GroupIndex + SampleIndex);
+					
+					FFTSpyElement.Sample0 = Sample0;
+					
+					FFTSpyElement.Sample1 = Sample1;
+					FFTSpyElement.TwiddleFactor = TwiddleFactor;
+					FFTSpyElement.Result0 = Results[0];
+					FFTSpyElement.Result1 = Results[1];
+					FFTSpy[DFTStage][FFTSpyIndex] = FFTSpyElement;
+				}	
+			}
+		}
+		
+		return MySampleArray;
+	}
+	
+	function createArray(length) 
+	{
+		var arr = new Array(length || 0),
+			i = length;
+
+		if (arguments.length > 1) {
+			var args = Array.prototype.slice.call(arguments, 1);
+			while(i--) arr[length-1 - i] = createArray.apply(this, args);
+		}
+
+		return arr;
+	}
+	
+	function BitReversal(SamplesIn, NumberOfSamples)
+	{
+		var NewOrder;
+		var SamplesOut=[];
+		var NumberOfBits;
+		var SampleIndex;
+
+		NumberOfBits = Math.log(NumberOfSamples) / Math.log(2);
+		
+		for (SampleIndex=0; SampleIndex<NumberOfSamples; SampleIndex++)
+		{
+			NewOrder = 0;
+			for (BitIndex=0; BitIndex<NumberOfBits; BitIndex++)
+			{	
+				if ((SampleIndex & Math.pow(2, BitIndex)) == Math.pow(2, BitIndex))
+						NewOrder = NewOrder + Math.pow(2, (NumberOfBits - 1 - BitIndex));
+			}
+			SamplesOut[SampleIndex] = SamplesIn[NewOrder];
+		}
+		return SamplesOut;
+	}
+	
+	function CalculateTwiddleFactors(StageIndex)
+	{
+		var NumberOfTwiddleFactors = Math.pow(2,StageIndex);
+		var TwiddleFactors=Array(NumberOfTwiddleFactors);
+		var NumberOfSamples = Math.pow(2,StageIndex+1);
+		var i;
+		
+		for (i=0; i<NumberOfTwiddleFactors; i++)
+		{
+			var ComplexNumber = {Real: 0, Imaginary: 0};
+			
+			ComplexNumber.Real = Math.cos(2 * Math.PI * i / NumberOfSamples);
+			ComplexNumber.Imaginary = -1 * Math.sin(2 * Math.PI * i / NumberOfSamples);
+			TwiddleFactors[i] = ComplexNumber;
+		}
+
+		return TwiddleFactors;
+	}
+	
+	function Butterfly(Sample0, Sample1, TwiddleFactor) 
+	{
+		var Frequency=[];
+		var TwiddledSample1=ComplexMultiply(Sample1, TwiddleFactor);
+
+		Frequency[0] = ComplexAdd(Sample0, TwiddledSample1);
+		Frequency[1] = ComplexSubtract(Sample0, TwiddledSample1);
+		
+		return Frequency;
+	}
+	
+	function ComplexAdd(ComplexNumber0, ComplexNumber1)
+	{
+		var ComplexResult = {Real: 0, Imaginary: 0};
+		
+		ComplexResult.Real = ComplexNumber0.Real + ComplexNumber1.Real;
+		ComplexResult.Imaginary = ComplexNumber0.Imaginary + ComplexNumber1.Imaginary;
+		
+		return ComplexResult;
+	}
+	
+	function ComplexSubtract(ComplexNumber0, ComplexNumber1)
+	{
+		var ComplexResult = {Real: 0, Imaginary: 0};
+		
+		ComplexResult.Real = ComplexNumber0.Real - ComplexNumber1.Real;
+		ComplexResult.Imaginary = ComplexNumber0.Imaginary - ComplexNumber1.Imaginary;
+		
+		return ComplexResult;
+	}
+	
+	function ComplexMultiply(ComplexNumber0, ComplexNumber1)
+	{
+		var ComplexResult = {Real: 0, Imaginary: 0};
+		var First;
+		var Inside;
+		var Outside;
+		var Last;
+		
+		// First - Produces real result
+		First = ComplexNumber0.Real * ComplexNumber1.Real;
+		// Inside - Produces imaginary result
+		Inside = ComplexNumber0.Imaginary * ComplexNumber1.Real;
+		// Outside - Produces imaginary result
+		Outside = ComplexNumber0.Real * ComplexNumber1.Imaginary;
+		// Last - Produces real result multiplied by i-squared (i-squared = -1)
+		Last = -1 * ComplexNumber0.Imaginary * ComplexNumber1.Imaginary;
+		
+		ComplexResult.Real = First + Last;
+		ComplexResult.Imaginary = Inside + Outside;
+		
+		return ComplexResult;
+	}
+	
+	function CalculateMagnitude(MySampleArray, FFTSize)
+	{	
+		var Magnitude=[];
+		var Real;
+		var Imaginary;
+		
+		for (i=0; i < FFTSize; i++)
+		{
+			Real = MySampleArray[i].Real;
+			Imaginary = MySampleArray[i].Imaginary;
+			Magnitude[i] = Math.pow(Math.pow(Real, 2) + Math.pow(Imaginary, 2), 0.5);
+		}
+		
+		return Magnitude;
+	}
+	
+	function CalculatePhase(MySampleArray, FFTSize)
+	{	
+		var Phase=[];
+		var Real;
+		var Imaginary;
+		
+		for (i=0; i < FFTSize; i++)
+		{
+			Real = Number(MySampleArray[i].Real); //Number(Number(MySampleArray[i].Real).toFixed(5));
+			Imaginary = Number(MySampleArray[i].Imaginary); //Number(Number(MySampleArray[i].Imaginary).toFixed(5));
+			
+			Phase[i] = 180 * Math.atan(Imaginary / Real) / Math.PI;
+		}
+		
+		return Phase;
+	}
+	
+	function GetSamples()
+	{
+		var TheSamples=[];
+		SelectedDemoSignal = document.getElementById("DemoSignal").value;
+		
+		switch (SelectedDemoSignal)
+		{
+			case "Signal1" :
+			{
+				TheSamples[0]=0;
+				TheSamples[1]=0.243;
+				TheSamples[2]=0.4714;
+				TheSamples[3]=0.6716;
+				TheSamples[4]=0.8315;
+				TheSamples[5]=0.9415;
+				TheSamples[6]=0.9952;
+				TheSamples[7]=0.9892;
+				TheSamples[8]=0.9239;
+				TheSamples[9]=0.8032;
+				TheSamples[10]=0.6344;
+				TheSamples[11]=0.4276;
+				TheSamples[12]=0.1951;
+				TheSamples[13]=-0.0491;
+				TheSamples[14]=-0.2903;
+				TheSamples[15]=-0.5141;
+				TheSamples[16]=-0.7071;
+				TheSamples[17]=-0.8577;
+				TheSamples[18]=-0.9569;
+				TheSamples[19]=-0.9988;
+				TheSamples[20]=-0.9808;
+				TheSamples[21]=-0.904;
+				TheSamples[22]=-0.773;
+				TheSamples[23]=-0.5957;
+				TheSamples[24]=-0.3827;
+				TheSamples[25]=-0.1467;
+				TheSamples[26]=0.098;
+				TheSamples[27]=0.3369;
+				TheSamples[28]=0.5556;
+				TheSamples[29]=0.741;
+				TheSamples[30]=0.8819;
+				TheSamples[31]=0.97;
+				TheSamples[32]=1;
+				TheSamples[33]=0.97;
+				TheSamples[34]=0.8819;
+				TheSamples[35]=0.741;
+				TheSamples[36]=0.5556;
+				TheSamples[37]=0.3369;
+				TheSamples[38]=0.098;
+				TheSamples[39]=-0.1467;
+				TheSamples[40]=-0.3827;
+				TheSamples[41]=-0.5957;
+				TheSamples[42]=-0.773;
+				TheSamples[43]=-0.904;
+				TheSamples[44]=-0.9808;
+				TheSamples[45]=-0.9988;
+				TheSamples[46]=-0.9569;
+				TheSamples[47]=-0.8577;
+				TheSamples[48]=-0.7071;
+				TheSamples[49]=-0.5141;
+				TheSamples[50]=-0.2903;
+				TheSamples[51]=-0.0491;
+				TheSamples[52]=0.1951;
+				TheSamples[53]=0.4276;
+				TheSamples[54]=0.6344;
+				TheSamples[55]=0.8032;
+				TheSamples[56]=0.9239;
+				TheSamples[57]=0.9892;
+				TheSamples[58]=0.9952;
+				TheSamples[59]=0.9415;
+				TheSamples[60]=0.8315;
+				TheSamples[61]=0.6716;
+				TheSamples[62]=0.4714;
+				TheSamples[63]=0.243;
+				TheSamples[64]=0;
+				TheSamples[65]=-0.243;
+				TheSamples[66]=-0.4714;
+				TheSamples[67]=-0.6716;
+				TheSamples[68]=-0.8315;
+				TheSamples[69]=-0.9415;
+				TheSamples[70]=-0.9952;
+				TheSamples[71]=-0.9892;
+				TheSamples[72]=-0.9239;
+				TheSamples[73]=-0.8032;
+				TheSamples[74]=-0.6344;
+				TheSamples[75]=-0.4276;
+				TheSamples[76]=-0.1951;
+				TheSamples[77]=0.0491;
+				TheSamples[78]=0.2903;
+				TheSamples[79]=0.5141;
+				TheSamples[80]=0.7071;
+				TheSamples[81]=0.8577;
+				TheSamples[82]=0.9569;
+				TheSamples[83]=0.9988;
+				TheSamples[84]=0.9808;
+				TheSamples[85]=0.904;
+				TheSamples[86]=0.773;
+				TheSamples[87]=0.5957;
+				TheSamples[88]=0.3827;
+				TheSamples[89]=0.1467;
+				TheSamples[90]=-0.098;
+				TheSamples[91]=-0.3369;
+				TheSamples[92]=-0.5556;
+				TheSamples[93]=-0.741;
+				TheSamples[94]=-0.8819;
+				TheSamples[95]=-0.97;
+				TheSamples[96]=-1;
+				TheSamples[97]=-0.97;
+				TheSamples[98]=-0.8819;
+				TheSamples[99]=-0.741;
+				TheSamples[100]=-0.5556;
+				TheSamples[101]=-0.3369;
+				TheSamples[102]=-0.098;
+				TheSamples[103]=0.1467;
+				TheSamples[104]=0.3827;
+				TheSamples[105]=0.5957;
+				TheSamples[106]=0.773;
+				TheSamples[107]=0.904;
+				TheSamples[108]=0.9808;
+				TheSamples[109]=0.9988;
+				TheSamples[110]=0.9569;
+				TheSamples[111]=0.8577;
+				TheSamples[112]=0.7071;
+				TheSamples[113]=0.5141;
+				TheSamples[114]=0.2903;
+				TheSamples[115]=0.0491;
+				TheSamples[116]=-0.1951;
+				TheSamples[117]=-0.4276;
+				TheSamples[118]=-0.6344;
+				TheSamples[119]=-0.8032;
+				TheSamples[120]=-0.9239;
+				TheSamples[121]=-0.9892;
+				TheSamples[122]=-0.9952;
+				TheSamples[123]=-0.9415;
+				TheSamples[124]=-0.8315;
+				TheSamples[125]=-0.6716;
+				TheSamples[126]=-0.4714;
+				TheSamples[127]=-0.243;
+				break;
+			}
+			case "Signal2" :
+			{
+				TheSamples[0]=1;
+				TheSamples[1]=0.97;
+				TheSamples[2]=0.8819;
+				TheSamples[3]=0.741;
+				TheSamples[4]=0.5556;
+				TheSamples[5]=0.3369;
+				TheSamples[6]=0.098;
+				TheSamples[7]=-0.1467;
+				TheSamples[8]=-0.3827;
+				TheSamples[9]=-0.5957;
+				TheSamples[10]=-0.773;
+				TheSamples[11]=-0.904;
+				TheSamples[12]=-0.9808;
+				TheSamples[13]=-0.9988;
+				TheSamples[14]=-0.9569;
+				TheSamples[15]=-0.8577;
+				TheSamples[16]=-0.7071;
+				TheSamples[17]=-0.5141;
+				TheSamples[18]=-0.2903;
+				TheSamples[19]=-0.0491;
+				TheSamples[20]=0.1951;
+				TheSamples[21]=0.4276;
+				TheSamples[22]=0.6344;
+				TheSamples[23]=0.8032;
+				TheSamples[24]=0.9239;
+				TheSamples[25]=0.9892;
+				TheSamples[26]=0.9952;
+				TheSamples[27]=0.9415;
+				TheSamples[28]=0.8315;
+				TheSamples[29]=0.6716;
+				TheSamples[30]=0.4714;
+				TheSamples[31]=0.243;
+				TheSamples[32]=0;
+				TheSamples[33]=-0.243;
+				TheSamples[34]=-0.4714;
+				TheSamples[35]=-0.6716;
+				TheSamples[36]=-0.8315;
+				TheSamples[37]=-0.9415;
+				TheSamples[38]=-0.9952;
+				TheSamples[39]=-0.9892;
+				TheSamples[40]=-0.9239;
+				TheSamples[41]=-0.8032;
+				TheSamples[42]=-0.6344;
+				TheSamples[43]=-0.4276;
+				TheSamples[44]=-0.1951;
+				TheSamples[45]=0.0491;
+				TheSamples[46]=0.2903;
+				TheSamples[47]=0.5141;
+				TheSamples[48]=0.7071;
+				TheSamples[49]=0.8577;
+				TheSamples[50]=0.9569;
+				TheSamples[51]=0.9988;
+				TheSamples[52]=0.9808;
+				TheSamples[53]=0.904;
+				TheSamples[54]=0.773;
+				TheSamples[55]=0.5957;
+				TheSamples[56]=0.3827;
+				TheSamples[57]=0.1467;
+				TheSamples[58]=-0.098;
+				TheSamples[59]=-0.3369;
+				TheSamples[60]=-0.5556;
+				TheSamples[61]=-0.741;
+				TheSamples[62]=-0.8819;
+				TheSamples[63]=-0.97;
+				TheSamples[64]=-1;
+				TheSamples[65]=-0.97;
+				TheSamples[66]=-0.8819;
+				TheSamples[67]=-0.741;
+				TheSamples[68]=-0.5556;
+				TheSamples[69]=-0.3369;
+				TheSamples[70]=-0.098;
+				TheSamples[71]=0.1467;
+				TheSamples[72]=0.3827;
+				TheSamples[73]=0.5957;
+				TheSamples[74]=0.773;
+				TheSamples[75]=0.904;
+				TheSamples[76]=0.9808;
+				TheSamples[77]=0.9988;
+				TheSamples[78]=0.9569;
+				TheSamples[79]=0.8577;
+				TheSamples[80]=0.7071;
+				TheSamples[81]=0.5141;
+				TheSamples[82]=0.2903;
+				TheSamples[83]=0.0491;
+				TheSamples[84]=-0.1951;
+				TheSamples[85]=-0.4276;
+				TheSamples[86]=-0.6344;
+				TheSamples[87]=-0.8032;
+				TheSamples[88]=-0.9239;
+				TheSamples[89]=-0.9892;
+				TheSamples[90]=-0.9952;
+				TheSamples[91]=-0.9415;
+				TheSamples[92]=-0.8315;
+				TheSamples[93]=-0.6716;
+				TheSamples[94]=-0.4714;
+				TheSamples[95]=-0.243;
+				TheSamples[96]=0;
+				TheSamples[97]=0.243;
+				TheSamples[98]=0.4714;
+				TheSamples[99]=0.6716;
+				TheSamples[100]=0.8315;
+				TheSamples[101]=0.9415;
+				TheSamples[102]=0.9952;
+				TheSamples[103]=0.9892;
+				TheSamples[104]=0.9239;
+				TheSamples[105]=0.8032;
+				TheSamples[106]=0.6344;
+				TheSamples[107]=0.4276;
+				TheSamples[108]=0.1951;
+				TheSamples[109]=-0.0491;
+				TheSamples[110]=-0.2903;
+				TheSamples[111]=-0.5141;
+				TheSamples[112]=-0.7071;
+				TheSamples[113]=-0.8577;
+				TheSamples[114]=-0.9569;
+				TheSamples[115]=-0.9988;
+				TheSamples[116]=-0.9808;
+				TheSamples[117]=-0.904;
+				TheSamples[118]=-0.773;
+				TheSamples[119]=-0.5957;
+				TheSamples[120]=-0.3827;
+				TheSamples[121]=-0.1467;
+				TheSamples[122]=0.098;
+				TheSamples[123]=0.3369;
+				TheSamples[124]=0.5556;
+				TheSamples[125]=0.741;
+				TheSamples[126]=0.8819;
+				TheSamples[127]=0.97;
+				TheSamples[128]=1;
+				TheSamples[129]=0.97;
+				TheSamples[130]=0.8819;
+				TheSamples[131]=0.741;
+				TheSamples[132]=0.5556;
+				TheSamples[133]=0.3369;
+				TheSamples[134]=0.098;
+				TheSamples[135]=-0.1467;
+				TheSamples[136]=-0.3827;
+				TheSamples[137]=-0.5957;
+				TheSamples[138]=-0.773;
+				TheSamples[139]=-0.904;
+				TheSamples[140]=-0.9808;
+				TheSamples[141]=-0.9988;
+				TheSamples[142]=-0.9569;
+				TheSamples[143]=-0.8577;
+				TheSamples[144]=-0.7071;
+				TheSamples[145]=-0.5141;
+				TheSamples[146]=-0.2903;
+				TheSamples[147]=-0.0491;
+				TheSamples[148]=0.1951;
+				TheSamples[149]=0.4276;
+				TheSamples[150]=0.6344;
+				TheSamples[151]=0.8032;
+				TheSamples[152]=0.9239;
+				TheSamples[153]=0.9892;
+				TheSamples[154]=0.9952;
+				TheSamples[155]=0.9415;
+				TheSamples[156]=0.8315;
+				TheSamples[157]=0.6716;
+				TheSamples[158]=0.4714;
+				TheSamples[159]=0.243;
+				TheSamples[160]=0;
+				TheSamples[161]=-0.243;
+				TheSamples[162]=-0.4714;
+				TheSamples[163]=-0.6716;
+				TheSamples[164]=-0.8315;
+				TheSamples[165]=-0.9415;
+				TheSamples[166]=-0.9952;
+				TheSamples[167]=-0.9892;
+				TheSamples[168]=-0.9239;
+				TheSamples[169]=-0.8032;
+				TheSamples[170]=-0.6344;
+				TheSamples[171]=-0.4276;
+				TheSamples[172]=-0.1951;
+				TheSamples[173]=0.0491;
+				TheSamples[174]=0.2903;
+				TheSamples[175]=0.5141;
+				TheSamples[176]=0.7071;
+				TheSamples[177]=0.8577;
+				TheSamples[178]=0.9569;
+				TheSamples[179]=0.9988;
+				TheSamples[180]=0.9808;
+				TheSamples[181]=0.904;
+				TheSamples[182]=0.773;
+				TheSamples[183]=0.5957;
+				TheSamples[184]=0.3827;
+				TheSamples[185]=0.1467;
+				TheSamples[186]=-0.098;
+				TheSamples[187]=-0.3369;
+				TheSamples[188]=-0.5556;
+				TheSamples[189]=-0.741;
+				TheSamples[190]=-0.8819;
+				TheSamples[191]=-0.97;
+				TheSamples[192]=-1;
+				TheSamples[193]=-0.97;
+				TheSamples[194]=-0.8819;
+				TheSamples[195]=-0.741;
+				TheSamples[196]=-0.5556;
+				TheSamples[197]=-0.3369;
+				TheSamples[198]=-0.098;
+				TheSamples[199]=0.1467;
+				TheSamples[200]=0.3827;
+				TheSamples[201]=0.5957;
+				TheSamples[202]=0.773;
+				TheSamples[203]=0.904;
+				TheSamples[204]=0.9808;
+				TheSamples[205]=0.9988;
+				TheSamples[206]=0.9569;
+				TheSamples[207]=0.8577;
+				TheSamples[208]=0.7071;
+				TheSamples[209]=0.5141;
+				TheSamples[210]=0.2903;
+				TheSamples[211]=0.0491;
+				TheSamples[212]=-0.1951;
+				TheSamples[213]=-0.4276;
+				TheSamples[214]=-0.6344;
+				TheSamples[215]=-0.8032;
+				TheSamples[216]=-0.9239;
+				TheSamples[217]=-0.9892;
+				TheSamples[218]=-0.9952;
+				TheSamples[219]=-0.9415;
+				TheSamples[220]=-0.8315;
+				TheSamples[221]=-0.6716;
+				TheSamples[222]=-0.4714;
+				TheSamples[223]=-0.243;
+				TheSamples[224]=0;
+				TheSamples[225]=0.243;
+				TheSamples[226]=0.4714;
+				TheSamples[227]=0.6716;
+				TheSamples[228]=0.8315;
+				TheSamples[229]=0.9415;
+				TheSamples[230]=0.9952;
+				TheSamples[231]=0.9892;
+				TheSamples[232]=0.9239;
+				TheSamples[233]=0.8032;
+				TheSamples[234]=0.6344;
+				TheSamples[235]=0.4276;
+				TheSamples[236]=0.1951;
+				TheSamples[237]=-0.0491;
+				TheSamples[238]=-0.2903;
+				TheSamples[239]=-0.5141;
+				TheSamples[240]=-0.7071;
+				TheSamples[241]=-0.8577;
+				TheSamples[242]=-0.9569;
+				TheSamples[243]=-0.9988;
+				TheSamples[244]=-0.9808;
+				TheSamples[245]=-0.904;
+				TheSamples[246]=-0.773;
+				TheSamples[247]=-0.5957;
+				TheSamples[248]=-0.3827;
+				TheSamples[249]=-0.1467;
+				TheSamples[250]=0.098;
+				TheSamples[251]=0.3369;
+				TheSamples[252]=0.5556;
+				TheSamples[253]=0.741;
+				TheSamples[254]=0.8819;
+				TheSamples[255]=0.97;
+				break;
+			}
+			case "Signal3" :
+			{
+				TheSamples[0]=0.5;
+				TheSamples[1]=0.9659;
+				TheSamples[2]=0.866;
+				TheSamples[3]=0.2588;
+				TheSamples[4]=-0.5;
+				TheSamples[5]=-0.9659;
+				TheSamples[6]=-0.866;
+				TheSamples[7]=-0.2588;
+				TheSamples[8]=0.5;
+				TheSamples[9]=0.9659;
+				TheSamples[10]=0.866;
+				TheSamples[11]=0.2588;
+				TheSamples[12]=-0.5;
+				TheSamples[13]=-0.9659;
+				TheSamples[14]=-0.866;
+				TheSamples[15]=-0.2588;
+				break;	
+			}
+			case "Signal4" :
+			{
+				TheSamples[0]=6.6021;
+				TheSamples[1]=5.6868;
+				TheSamples[2]=2.877;
+				TheSamples[3]=11.2711;
+				TheSamples[4]=8.4599;
+				TheSamples[5]=-1.6936;
+				TheSamples[6]=1.1869;
+				TheSamples[7]=-0.5382;
+				TheSamples[8]=-11.4597;
+				TheSamples[9]=-8.2138;
+				TheSamples[10]=-2.4765;
+				TheSamples[11]=-8.0378;
+				TheSamples[12]=-3.1573;
+				TheSamples[13]=7.8132;
+				TheSamples[14]=4.3046;
+				TheSamples[15]=4.1046;
+				TheSamples[16]=12.2589;
+				TheSamples[17]=6.057;
+				TheSamples[18]=-2.1269;
+				TheSamples[19]=2.0748;
+				TheSamples[20]=-2.757;
+				TheSamples[21]=-12.2822;
+				TheSamples[22]=-6.2728;
+				TheSamples[23]=-3.1072;
+				TheSamples[24]=-8.5315;
+				TheSamples[25]=-0.4798;
+				TheSamples[26]=8.2368;
+				TheSamples[27]=3.1248;
+				TheSamples[28]=5.8185;
+				TheSamples[29]=12.4825;
+				TheSamples[30]=3.5647;
+				TheSamples[31]=-1.8698;
+				TheSamples[32]=2.461;
+				TheSamples[33]=-5.2506;
+				TheSamples[34]=-12.2739;
+				TheSamples[35]=-4.5152;
+				TheSamples[36]=-4.2337;
+				TheSamples[37]=-8.2969;
+				TheSamples[38]=2.2333;
+				TheSamples[39]=7.9109;
+				TheSamples[40]=2.3967;
+				TheSamples[41]=7.7776;
+				TheSamples[42]=11.8734;
+				TheSamples[43]=1.2819;
+				TheSamples[44]=-1.0689;
+				TheSamples[45]=2.1772;
+				TheSamples[46]=-7.7248;
+				TheSamples[47]=-11.4774;
+				TheSamples[48]=-3.1959;
+				TheSamples[49]=-5.6208;
+				TheSamples[50]=-7.27;
+				TheSamples[51]=4.6811;
+				TheSamples[52]=6.9832;
+				TheSamples[53]=2.2917;
+				TheSamples[54]=9.693;
+				TheSamples[55]=10.48;
+				TheSamples[56]=-0.5315;
+				TheSamples[57]=0.0437;
+				TheSamples[58]=1.1602;
+				TheSamples[59]=-9.8807;
+				TheSamples[60]=-10.0447;
+				TheSamples[61]=-2.492;
+				TheSamples[62]=-6.9849;
+				TheSamples[63]=-5.503;
+				break;
+			}
+			case "Signal5" :
+			{
+				TheSamples[0]=-31;
+				TheSamples[1]=-29;
+				TheSamples[2]=-27;
+				TheSamples[3]=-25;
+				TheSamples[4]=-23;
+				TheSamples[5]=-21;
+				TheSamples[6]=-19;
+				TheSamples[7]=-17;
+				TheSamples[8]=-15;
+				TheSamples[9]=-13;
+				TheSamples[10]=-11;
+				TheSamples[11]=-9;
+				TheSamples[12]=-7;
+				TheSamples[13]=-5;
+				TheSamples[14]=-3;
+				TheSamples[15]=-1;
+				TheSamples[16]=1;
+				TheSamples[17]=3;
+				TheSamples[18]=5;
+				TheSamples[19]=7;
+				TheSamples[20]=9;
+				TheSamples[21]=11;
+				TheSamples[22]=13;
+				TheSamples[23]=15;
+				TheSamples[24]=17;
+				TheSamples[25]=19;
+				TheSamples[26]=21;
+				TheSamples[27]=23;
+				TheSamples[28]=25;
+				TheSamples[29]=27;
+				TheSamples[30]=29;
+				TheSamples[31]=31;
+				break;
+			}
+			case "Signal6" :
+			{
+				TheSamples[0] = 0.0538
+				TheSamples[1] = 0.0742
+				TheSamples[2] = 0.1013
+				TheSamples[3] = 0.1369
+				TheSamples[4] = 0.1832
+				TheSamples[5] = 0.2425
+				TheSamples[6] = 0.3178
+				TheSamples[7] = 0.4122
+				TheSamples[8] = 0.5293
+				TheSamples[9] = 0.6727
+				TheSamples[10] = 0.8464
+				TheSamples[11] = 1.054
+				TheSamples[12] = 1.2992
+				TheSamples[13] = 1.5853
+				TheSamples[14] = 1.9146
+				TheSamples[15] = 2.289
+				TheSamples[16] = 2.7087
+				TheSamples[17] = 3.1728
+				TheSamples[18] = 3.6788
+				TheSamples[19] = 4.2221
+				TheSamples[20] = 4.7965
+				TheSamples[21] = 5.3937
+				TheSamples[22] = 6.0037
+				TheSamples[23] = 6.6149
+				TheSamples[24] = 7.2142
+				TheSamples[25] = 7.788
+				TheSamples[26] = 8.3221
+				TheSamples[27] = 8.8025
+				TheSamples[28] = 9.2161
+				TheSamples[29] = 9.5512
+				TheSamples[30] = 9.798
+				TheSamples[31] = 9.9491
+				TheSamples[32] = 10
+				TheSamples[33] = 9.9491
+				TheSamples[34] = 9.798
+				TheSamples[35] = 9.5512
+				TheSamples[36] = 9.2161
+				TheSamples[37] = 8.8025
+				TheSamples[38] = 8.3221
+				TheSamples[39] = 7.788
+				TheSamples[40] = 7.2142
+				TheSamples[41] = 6.6149
+				TheSamples[42] = 6.0037
+				TheSamples[43] = 5.3937
+				TheSamples[44] = 4.7965
+				TheSamples[45] = 4.2221
+				TheSamples[46] = 3.6788
+				TheSamples[47] = 3.1728
+				TheSamples[48] = 2.7087
+				TheSamples[49] = 2.289
+				TheSamples[50] = 1.9146
+				TheSamples[51] = 1.5853
+				TheSamples[52] = 1.2992
+				TheSamples[53] = 1.054
+				TheSamples[54] = 0.8464
+				TheSamples[55] = 0.6727
+				TheSamples[56] = 0.5293
+				TheSamples[57] = 0.4122
+				TheSamples[58] = 0.3178
+				TheSamples[59] = 0.2425
+				TheSamples[60] = 0.1832
+				TheSamples[61] = 0.1369
+				TheSamples[62] = 0.1013
+				TheSamples[63] = 0.0742
+				break;
+			}
+			case "Signal7" :
+			{
+				TheSamples[0] = 0;
+				TheSamples[1] = -330;
+				TheSamples[2] = -907;
+				TheSamples[3] = -2331;
+				TheSamples[4] = -4454;
+				TheSamples[5] = -6701;
+				TheSamples[6] = -8418;
+				TheSamples[7] = -9400;
+				TheSamples[8] = -8117;
+				TheSamples[9] = -7457;
+				TheSamples[10] = -7431;
+				TheSamples[11] = -7259;
+				TheSamples[12] = -6149;
+				TheSamples[13] = -3064;
+				TheSamples[14] = 1238;
+				TheSamples[15] = 5309;
+				TheSamples[16] = 8255;
+				TheSamples[17] = 8569;
+				TheSamples[18] = 6181;
+				TheSamples[19] = 3519;
+				TheSamples[20] = 846;
+				TheSamples[21] = -1923;
+				TheSamples[22] = -4515;
+				TheSamples[23] = -5071;
+				TheSamples[24] = -5085;
+				TheSamples[25] = -5256;
+				TheSamples[26] = -5476;
+				TheSamples[27] = -4828;
+				TheSamples[28] = -4297;
+				TheSamples[29] = -3464;
+				TheSamples[30] = -3521;
+				TheSamples[31] = -4333;
+				TheSamples[32] = -4959;
+				TheSamples[33] = -3669;
+				TheSamples[34] = -2011;
+				TheSamples[35] = -2326;
+				TheSamples[36] = -4471;
+				TheSamples[37] = -7636;
+				TheSamples[38] = -10923;
+				TheSamples[39] = -13635;
+				TheSamples[40] = -16985;
+				TheSamples[41] = -19841;
+				TheSamples[42] = -21343;
+				TheSamples[43] = -22017;
+				TheSamples[44] = -21661;
+				TheSamples[45] = -20326;
+				TheSamples[46] = -19218;
+				TheSamples[47] = -16690;
+				TheSamples[48] = -12010;
+				TheSamples[49] = -6639;
+				TheSamples[50] = -843;
+				TheSamples[51] = 4861;
+				TheSamples[52] = 9693;
+				TheSamples[53] = 12757;
+				TheSamples[54] = 14355;
+				TheSamples[55] = 15087;
+				TheSamples[56] = 15903;
+				TheSamples[57] = 15888;
+				TheSamples[58] = 14873;
+				TheSamples[59] = 11220;
+				TheSamples[60] = 6005;
+				TheSamples[61] = 1227;
+				TheSamples[62] = -1146;
+				TheSamples[63] = -635;
+				TheSamples[64] = 1314;
+				TheSamples[65] = 3697;
+				TheSamples[66] = 6219;
+				TheSamples[67] = 8907;
+				TheSamples[68] = 10926;
+				TheSamples[69] = 12461;
+				TheSamples[70] = 13175;
+				TheSamples[71] = 13525;
+				TheSamples[72] = 13781;
+				TheSamples[73] = 15170;
+				TheSamples[74] = 15831;
+				TheSamples[75] = 16060;
+				TheSamples[76] = 16626;
+				TheSamples[77] = 17185;
+				TheSamples[78] = 16659;
+				TheSamples[79] = 15116;
+				TheSamples[80] = 13381;
+				TheSamples[81] = 11239;
+				TheSamples[82] = 8715;
+				TheSamples[83] = 7405;
+				TheSamples[84] = 5598;
+				TheSamples[85] = 2152;
+				TheSamples[86] = -2372;
+				TheSamples[87] = -7240;
+				TheSamples[88] = -11316;
+				TheSamples[89] = -13782;
+				TheSamples[90] = -16129;
+				TheSamples[91] = -17910;
+				TheSamples[92] = -18677;
+				TheSamples[93] = -18296;
+				TheSamples[94] = -16448;
+				TheSamples[95] = -13996;
+				TheSamples[96] = -12851;
+				TheSamples[97] = -12316;
+				TheSamples[98] = -11338;
+				TheSamples[99] = -9649;
+				TheSamples[100] = -7911;
+				TheSamples[101] = -6413;
+				TheSamples[102] = -5969;
+				TheSamples[103] = -6723;
+				TheSamples[104] = -7045;
+				TheSamples[105] = -6963;
+				TheSamples[106] = -6416;
+				TheSamples[107] = -6948;
+				TheSamples[108] = -8603;
+				TheSamples[109] = -11818;
+				TheSamples[110] = -15718;
+				TheSamples[111] = -19030;
+				TheSamples[112] = -20161;
+				TheSamples[113] = -18714;
+				TheSamples[114] = -15474;
+				TheSamples[115] = -10658;
+				TheSamples[116] = -5199;
+				TheSamples[117] = 1476;
+				TheSamples[118] = 7305;
+				TheSamples[119] = 11485;
+				TheSamples[120] = 14041;
+				TheSamples[121] = 14279;
+				TheSamples[122] = 13276;
+				TheSamples[123] = 13143;
+				TheSamples[124] = 12476;
+				TheSamples[125] = 10848;
+				TheSamples[126] = 9614;
+				TheSamples[127] = 10066;
+				TheSamples[128] = 11153;
+				TheSamples[129] = 12147;
+				TheSamples[130] = 13776;
+				TheSamples[131] = 14922;
+				TheSamples[132] = 14893;
+				TheSamples[133] = 15210;
+				TheSamples[134] = 15543;
+				TheSamples[135] = 14235;
+				TheSamples[136] = 10660;
+				TheSamples[137] = 5897;
+				TheSamples[138] = 1508;
+				TheSamples[139] = -2042;
+				TheSamples[140] = -4741;
+				TheSamples[141] = -5707;
+				TheSamples[142] = -4395;
+				TheSamples[143] = -2046;
+				TheSamples[144] = 1615;
+				TheSamples[145] = 5499;
+				TheSamples[146] = 8093;
+				TheSamples[147] = 10168;
+				TheSamples[148] = 11791;
+				TheSamples[149] = 13514;
+				TheSamples[150] = 14165;
+				TheSamples[151] = 14045;
+				TheSamples[152] = 14012;
+				TheSamples[153] = 14388;
+				TheSamples[154] = 15395;
+				TheSamples[155] = 16784;
+				TheSamples[156] = 18903;
+				TheSamples[157] = 21031;
+				TheSamples[158] = 21871;
+				TheSamples[159] = 21286;
+				TheSamples[160] = 19753;
+				TheSamples[161] = 18781;
+				TheSamples[162] = 18918;
+				TheSamples[163] = 19200;
+				TheSamples[164] = 19205;
+				TheSamples[165] = 20086;
+				TheSamples[166] = 21295;
+				TheSamples[167] = 23177;
+				TheSamples[168] = 23840;
+				TheSamples[169] = 22950;
+				TheSamples[170] = 21594;
+				TheSamples[171] = 20423;
+				TheSamples[172] = 18971;
+				TheSamples[173] = 16636;
+				TheSamples[174] = 12448;
+				TheSamples[175] = 6606;
+				TheSamples[176] = 803;
+				TheSamples[177] = -3085;
+				TheSamples[178] = -5161;
+				TheSamples[179] = -5957;
+				TheSamples[180] = -5042;
+				TheSamples[181] = -2803;
+				TheSamples[182] = -11;
+				TheSamples[183] = 3428;
+				TheSamples[184] = 7024;
+				TheSamples[185] = 10355;
+				TheSamples[186] = 12752;
+				TheSamples[187] = 12267;
+				TheSamples[188] = 9795;
+				TheSamples[189] = 6837;
+				TheSamples[190] = 4226;
+				TheSamples[191] = 3180;
+				TheSamples[192] = 3363;
+				TheSamples[193] = 3565;
+				TheSamples[194] = 3872;
+				TheSamples[195] = 3478;
+				TheSamples[196] = 2862;
+				TheSamples[197] = 2010;
+				TheSamples[198] = 552;
+				TheSamples[199] = -473;
+				TheSamples[200] = -1930;
+				TheSamples[201] = -3008;
+				TheSamples[202] = -4424;
+				TheSamples[203] = -7065;
+				TheSamples[204] = -8381;
+				TheSamples[205] = -8086;
+				TheSamples[206] = -7041;
+				TheSamples[207] = -6229;
+				TheSamples[208] = -5708;
+				TheSamples[209] = -5085;
+				TheSamples[210] = -5100;
+				TheSamples[211] = -5430;
+				TheSamples[212] = -5517;
+				TheSamples[213] = -5116;
+				TheSamples[214] = -3975;
+				TheSamples[215] = -2526;
+				TheSamples[216] = -1265;
+				TheSamples[217] = -162;
+				TheSamples[218] = -637;
+				TheSamples[219] = -2563;
+				TheSamples[220] = -5319;
+				TheSamples[221] = -8038;
+				TheSamples[222] = -9622;
+				TheSamples[223] = -10280;
+				TheSamples[224] = -11344;
+				TheSamples[225] = -13227;
+				TheSamples[226] = -14379;
+				TheSamples[227] = -12835;
+				TheSamples[228] = -8139;
+				TheSamples[229] = -3008;
+				TheSamples[230] = 2028;
+				TheSamples[231] = 7014;
+				TheSamples[232] = 11748;
+				TheSamples[233] = 16075;
+				TheSamples[234] = 18145;
+				TheSamples[235] = 18265;
+				TheSamples[236] = 17414;
+				TheSamples[237] = 15397;
+				TheSamples[238] = 12185;
+				TheSamples[239] = 7905;
+				TheSamples[240] = 2711;
+				TheSamples[241] = -1157;
+				TheSamples[242] = -3456;
+				TheSamples[243] = -4788;
+				TheSamples[244] = -5849;
+				TheSamples[245] = -7155;
+				TheSamples[246] = -7675;
+				TheSamples[247] = -7458;
+				TheSamples[248] = -6971;
+				TheSamples[249] = -5764;
+				TheSamples[250] = -4671;
+				TheSamples[251] = -1778;
+				TheSamples[252] = 2418;
+				TheSamples[253] = 6036;
+				TheSamples[254] = 9200;
+				TheSamples[255] = 11590;
+				TheSamples[256] = 12886;
+				TheSamples[257] = 13115;
+				TheSamples[258] = 11868;
+				TheSamples[259] = 9273;
+				TheSamples[260] = 6139;
+				TheSamples[261] = 3291;
+				TheSamples[262] = 549;
+				TheSamples[263] = -2175;
+				TheSamples[264] = -3175;
+				TheSamples[265] = -3067;
+				TheSamples[266] = -1929;
+				TheSamples[267] = -351;
+				TheSamples[268] = 886;
+				TheSamples[269] = 694;
+				TheSamples[270] = -876;
+				TheSamples[271] = -2582;
+				TheSamples[272] = -3091;
+				TheSamples[273] = -3350;
+				TheSamples[274] = -4454;
+				TheSamples[275] = -6862;
+				TheSamples[276] = -9266;
+				TheSamples[277] = -10544;
+				TheSamples[278] = -9637;
+				TheSamples[279] = -7941;
+				TheSamples[280] = -5436;
+				TheSamples[281] = -2529;
+				TheSamples[282] = 53;
+				TheSamples[283] = 2274;
+				TheSamples[284] = 2945;
+				TheSamples[285] = 2963;
+				TheSamples[286] = 2616;
+				TheSamples[287] = 1146;
+				TheSamples[288] = -2175;
+				TheSamples[289] = -6754;
+				TheSamples[290] = -11691;
+				TheSamples[291] = -15515;
+				TheSamples[292] = -17218;
+				TheSamples[293] = -17421;
+				TheSamples[294] = -16859;
+				TheSamples[295] = -16536;
+				TheSamples[296] = -17262;
+				TheSamples[297] = -18790;
+				TheSamples[298] = -19961;
+				TheSamples[299] = -21040;
+				TheSamples[300] = -23041;
+				TheSamples[301] = -24412;
+				TheSamples[302] = -24894;
+				TheSamples[303] = -24041;
+				TheSamples[304] = -21930;
+				TheSamples[305] = -18837;
+				TheSamples[306] = -16780;
+				TheSamples[307] = -16118;
+				TheSamples[308] = -17176;
+				TheSamples[309] = -20281;
+				TheSamples[310] = -24370;
+				TheSamples[311] = -27829;
+				TheSamples[312] = -30722;
+				TheSamples[313] = -32474;
+				TheSamples[314] = -31610;
+				TheSamples[315] = -28484;
+				TheSamples[316] = -23377;
+				TheSamples[317] = -17308;
+				TheSamples[318] = -11029;
+				TheSamples[319] = -5167;
+				TheSamples[320] = -1033;
+				TheSamples[321] = 1243;
+				TheSamples[322] = 2273;
+				TheSamples[323] = 2587;
+				TheSamples[324] = 1509;
+				TheSamples[325] = -1797;
+				TheSamples[326] = -5606;
+				TheSamples[327] = -8383;
+				TheSamples[328] = -9270;
+				TheSamples[329] = -8585;
+				TheSamples[330] = -6593;
+				TheSamples[331] = -3938;
+				TheSamples[332] = -1317;
+				TheSamples[333] = 912;
+				TheSamples[334] = 1532;
+				TheSamples[335] = 851;
+				TheSamples[336] = -1571;
+				TheSamples[337] = -5794;
+				TheSamples[338] = -10564;
+				TheSamples[339] = -14801;
+				TheSamples[340] = -18319;
+				TheSamples[341] = -19662;
+				TheSamples[342] = -18377;
+				TheSamples[343] = -16108;
+				TheSamples[344] = -14029;
+				TheSamples[345] = -13177;
+				TheSamples[346] = -12950;
+				TheSamples[347] = -13087;
+				TheSamples[348] = -12414;
+				TheSamples[349] = -12690;
+				TheSamples[350] = -15109;
+				TheSamples[351] = -17229;
+				TheSamples[352] = -18022;
+				TheSamples[353] = -17696;
+				TheSamples[354] = -16173;
+				TheSamples[355] = -14164;
+				TheSamples[356] = -13360;
+				TheSamples[357] = -13003;
+				TheSamples[358] = -12896;
+				TheSamples[359] = -13506;
+				TheSamples[360] = -13981;
+				TheSamples[361] = -13833;
+				TheSamples[362] = -14076;
+				TheSamples[363] = -14592;
+				TheSamples[364] = -14010;
+				TheSamples[365] = -11719;
+				TheSamples[366] = -7607;
+				TheSamples[367] = -3664;
+				TheSamples[368] = -531;
+				TheSamples[369] = 1719;
+				TheSamples[370] = 3950;
+				TheSamples[371] = 5404;
+				TheSamples[372] = 5487;
+				TheSamples[373] = 5020;
+				TheSamples[374] = 2016;
+				TheSamples[375] = -3714;
+				TheSamples[376] = -10706;
+				TheSamples[377] = -16477;
+				TheSamples[378] = -19942;
+				TheSamples[379] = -21151;
+				TheSamples[380] = -19467;
+				TheSamples[381] = -15387;
+				TheSamples[382] = -10396;
+				TheSamples[383] = -4902;
+				TheSamples[384] = 978;
+				TheSamples[385] = 7441;
+				TheSamples[386] = 13706;
+				TheSamples[387] = 17128;
+				TheSamples[388] = 18374;
+				TheSamples[389] = 17744;
+				TheSamples[390] = 16286;
+				TheSamples[391] = 15165;
+				TheSamples[392] = 14855;
+				TheSamples[393] = 15499;
+				TheSamples[394] = 16813;
+				TheSamples[395] = 17546;
+				TheSamples[396] = 16710;
+				TheSamples[397] = 14343;
+				TheSamples[398] = 12341;
+				TheSamples[399] = 10707;
+				TheSamples[400] = 7386;
+				TheSamples[401] = 3196;
+				TheSamples[402] = -544;
+				TheSamples[403] = -2970;
+				TheSamples[404] = -3853;
+				TheSamples[405] = -3707;
+				TheSamples[406] = -2936;
+				TheSamples[407] = -1472;
+				TheSamples[408] = 703;
+				TheSamples[409] = 1989;
+				TheSamples[410] = 2342;
+				TheSamples[411] = 2587;
+				TheSamples[412] = 1990;
+				TheSamples[413] = 1811;
+				TheSamples[414] = 3092;
+				TheSamples[415] = 5017;
+				TheSamples[416] = 7478;
+				TheSamples[417] = 8948;
+				TheSamples[418] = 9857;
+				TheSamples[419] = 9417;
+				TheSamples[420] = 8146;
+				TheSamples[421] = 6717;
+				TheSamples[422] = 5513;
+				TheSamples[423] = 5264;
+				TheSamples[424] = 4563;
+				TheSamples[425] = 2695;
+				TheSamples[426] = 59;
+				TheSamples[427] = -924;
+				TheSamples[428] = -495;
+				TheSamples[429] = -225;
+				TheSamples[430] = 559;
+				TheSamples[431] = 2501;
+				TheSamples[432] = 4812;
+				TheSamples[433] = 7066;
+				TheSamples[434] = 8799;
+				TheSamples[435] = 10042;
+				TheSamples[436] = 10834;
+				TheSamples[437] = 9573;
+				TheSamples[438] = 8165;
+				TheSamples[439] = 6127;
+				TheSamples[440] = 4103;
+				TheSamples[441] = 2443;
+				TheSamples[442] = 2030;
+				TheSamples[443] = 1503;
+				TheSamples[444] = 1546;
+				TheSamples[445] = 1140;
+				TheSamples[446] = -59;
+				TheSamples[447] = -1640;
+				TheSamples[448] = -1498;
+				TheSamples[449] = -447;
+				TheSamples[450] = -246;
+				TheSamples[451] = -218;
+				TheSamples[452] = 1218;
+				TheSamples[453] = 4829;
+				TheSamples[454] = 10144;
+				TheSamples[455] = 15518;
+				TheSamples[456] = 19438;
+				TheSamples[457] = 22304;
+				TheSamples[458] = 24321;
+				TheSamples[459] = 24807;
+				TheSamples[460] = 24203;
+				TheSamples[461] = 23340;
+				TheSamples[462] = 21662;
+				TheSamples[463] = 19947;
+				TheSamples[464] = 19260;
+				TheSamples[465] = 19471;
+				TheSamples[466] = 20859;
+				TheSamples[467] = 21998;
+				TheSamples[468] = 22451;
+				TheSamples[469] = 21914;
+				TheSamples[470] = 20296;
+				TheSamples[471] = 18113;
+				TheSamples[472] = 15743;
+				TheSamples[473] = 15058;
+				TheSamples[474] = 14576;
+				TheSamples[475] = 13745;
+				TheSamples[476] = 11445;
+				TheSamples[477] = 9794;
+				TheSamples[478] = 8753;
+				TheSamples[479] = 8719;
+				TheSamples[480] = 9503;
+				TheSamples[481] = 11334;
+				TheSamples[482] = 13240;
+				TheSamples[483] = 14519;
+				TheSamples[484] = 15401;
+				TheSamples[485] = 16203;
+				TheSamples[486] = 16009;
+				TheSamples[487] = 14621;
+				TheSamples[488] = 11911;
+				TheSamples[489] = 7785;
+				TheSamples[490] = 3579;
+				TheSamples[491] = 4;
+				TheSamples[492] = -2122;
+				TheSamples[493] = -3572;
+				TheSamples[494] = -3751;
+				TheSamples[495] = -3698;
+				TheSamples[496] = -4997;
+				TheSamples[497] = -6388;
+				TheSamples[498] = -6773;
+				TheSamples[499] = -7143;
+				TheSamples[500] = -8334;
+				TheSamples[501] = -10652;
+				TheSamples[502] = -12643;
+				TheSamples[503] = -13055;
+				TheSamples[504] = -12140;
+				TheSamples[505] = -9697;
+				TheSamples[506] = -6926;
+				TheSamples[507] = -5307;
+				TheSamples[508] = -4735;
+				TheSamples[509] = -5995;
+				TheSamples[510] = -8340;
+				TheSamples[511] = -11020;
+				TheSamples[512] = -13849;
+				TheSamples[513] = -15915;
+				TheSamples[514] = -15676;
+				TheSamples[515] = -13484;
+				TheSamples[516] = -9484;
+				TheSamples[517] = -4635;
+				TheSamples[518] = 404;
+				TheSamples[519] = 4934;
+				TheSamples[520] = 8412;
+				TheSamples[521] = 11027;
+				TheSamples[522] = 13158;
+				TheSamples[523] = 15757;
+				TheSamples[524] = 16889;
+				TheSamples[525] = 15564;
+				TheSamples[526] = 12763;
+				TheSamples[527] = 10757;
+				TheSamples[528] = 10185;
+				TheSamples[529] = 9997;
+				TheSamples[530] = 9017;
+				TheSamples[531] = 7239;
+				TheSamples[532] = 6651;
+				TheSamples[533] = 6381;
+				TheSamples[534] = 6367;
+				TheSamples[535] = 6025;
+				TheSamples[536] = 5264;
+				TheSamples[537] = 3927;
+				TheSamples[538] = 2310;
+				TheSamples[539] = 93;
+				TheSamples[540] = -734;
+				TheSamples[541] = 1418;
+				TheSamples[542] = 5503;
+				TheSamples[543] = 9854;
+				TheSamples[544] = 13659;
+				TheSamples[545] = 16582;
+				TheSamples[546] = 19526;
+				TheSamples[547] = 22400;
+				TheSamples[548] = 25055;
+				TheSamples[549] = 26663;
+				TheSamples[550] = 26718;
+				TheSamples[551] = 26166;
+				TheSamples[552] = 24878;
+				TheSamples[553] = 24774;
+				TheSamples[554] = 26489;
+				TheSamples[555] = 28168;
+				TheSamples[556] = 29419;
+				TheSamples[557] = 30467;
+				TheSamples[558] = 31374;
+				TheSamples[559] = 31208;
+				TheSamples[560] = 30687;
+				TheSamples[561] = 29030;
+				TheSamples[562] = 26459;
+				TheSamples[563] = 23778;
+				TheSamples[564] = 22311;
+				TheSamples[565] = 21659;
+				TheSamples[566] = 20929;
+				TheSamples[567] = 19476;
+				TheSamples[568] = 18542;
+				TheSamples[569] = 18162;
+				TheSamples[570] = 17950;
+				TheSamples[571] = 16780;
+				TheSamples[572] = 15287;
+				TheSamples[573] = 14688;
+				TheSamples[574] = 12751;
+				TheSamples[575] = 8806;
+				TheSamples[576] = 3272;
+				TheSamples[577] = -2252;
+				TheSamples[578] = -6647;
+				TheSamples[579] = -10923;
+				TheSamples[580] = -14128;
+				TheSamples[581] = -16608;
+				TheSamples[582] = -16390;
+				TheSamples[583] = -13803;
+				TheSamples[584] = -10098;
+				TheSamples[585] = -6753;
+				TheSamples[586] = -4049;
+				TheSamples[587] = -1505;
+				TheSamples[588] = 483;
+				TheSamples[589] = 731;
+				TheSamples[590] = 239;
+				TheSamples[591] = -226;
+				TheSamples[592] = -687;
+				TheSamples[593] = -1566;
+				TheSamples[594] = -2352;
+				TheSamples[595] = -2964;
+				TheSamples[596] = -2628;
+				TheSamples[597] = -2134;
+				TheSamples[598] = -1812;
+				TheSamples[599] = -2345;
+				TheSamples[600] = -4407;
+				TheSamples[601] = -7004;
+				TheSamples[602] = -9699;
+				TheSamples[603] = -12631;
+				TheSamples[604] = -15202;
+				TheSamples[605] = -16556;
+				TheSamples[606] = -17765;
+				TheSamples[607] = -18659;
+				TheSamples[608] = -19743;
+				TheSamples[609] = -21090;
+				TheSamples[610] = -22290;
+				TheSamples[611] = -23934;
+				TheSamples[612] = -25847;
+				TheSamples[613] = -25874;
+				TheSamples[614] = -24040;
+				TheSamples[615] = -21672;
+				TheSamples[616] = -19314;
+				TheSamples[617] = -17211;
+				TheSamples[618] = -15754;
+				TheSamples[619] = -15023;
+				TheSamples[620] = -14677;
+				TheSamples[621] = -15202;
+				TheSamples[622] = -15719;
+				TheSamples[623] = -15822;
+				TheSamples[624] = -15514;
+				TheSamples[625] = -15945;
+				TheSamples[626] = -17163;
+				TheSamples[627] = -18188;
+				TheSamples[628] = -19394;
+				TheSamples[629] = -21026;
+				TheSamples[630] = -22644;
+				TheSamples[631] = -24803;
+				TheSamples[632] = -25603;
+				TheSamples[633] = -24528;
+				TheSamples[634] = -23322;
+				TheSamples[635] = -22272;
+				TheSamples[636] = -20825;
+				TheSamples[637] = -18524;
+				TheSamples[638] = -15561;
+				TheSamples[639] = -13967;
+				TheSamples[640] = -13334;
+				TheSamples[641] = -13005;
+				TheSamples[642] = -12872;
+				TheSamples[643] = -13899;
+				TheSamples[644] = -15789;
+				TheSamples[645] = -18259;
+				TheSamples[646] = -19168;
+				TheSamples[647] = -18115;
+				TheSamples[648] = -16063;
+				TheSamples[649] = -15369;
+				TheSamples[650] = -15461;
+				TheSamples[651] = -15412;
+				TheSamples[652] = -15021;
+				TheSamples[653] = -14115;
+				TheSamples[654] = -12396;
+				TheSamples[655] = -9251;
+				TheSamples[656] = -5343;
+				TheSamples[657] = -1686;
+				TheSamples[658] = 36;
+				TheSamples[659] = -898;
+				TheSamples[660] = -2511;
+				TheSamples[661] = -4383;
+				TheSamples[662] = -5766;
+				TheSamples[663] = -5938;
+				TheSamples[664] = -5332;
+				TheSamples[665] = -4560;
+				TheSamples[666] = -4440;
+				TheSamples[667] = -5075;
+				TheSamples[668] = -6200;
+				TheSamples[669] = -6697;
+				TheSamples[670] = -7049;
+				TheSamples[671] = -8123;
+				TheSamples[672] = -9306;
+				TheSamples[673] = -9733;
+				TheSamples[674] = -8950;
+				TheSamples[675] = -7947;
+				TheSamples[676] = -7461;
+				TheSamples[677] = -7084;
+				TheSamples[678] = -7607;
+				TheSamples[679] = -8753;
+				TheSamples[680] = -9989;
+				TheSamples[681] = -11636;
+				TheSamples[682] = -12885;
+				TheSamples[683] = -12389;
+				TheSamples[684] = -11037;
+				TheSamples[685] = -9381;
+				TheSamples[686] = -7923;
+				TheSamples[687] = -5588;
+				TheSamples[688] = -3552;
+				TheSamples[689] = -3290;
+				TheSamples[690] = -4706;
+				TheSamples[691] = -6464;
+				TheSamples[692] = -7425;
+				TheSamples[693] = -7855;
+				TheSamples[694] = -9131;
+				TheSamples[695] = -10944;
+				TheSamples[696] = -12004;
+				TheSamples[697] = -11144;
+				TheSamples[698] = -9348;
+				TheSamples[699] = -8513;
+				TheSamples[700] = -8036;
+				TheSamples[701] = -7540;
+				TheSamples[702] = -6687;
+				TheSamples[703] = -5049;
+				TheSamples[704] = -3010;
+				TheSamples[705] = 489;
+				TheSamples[706] = 5312;
+				TheSamples[707] = 8788;
+				TheSamples[708] = 10480;
+				TheSamples[709] = 9253;
+				TheSamples[710] = 7005;
+				TheSamples[711] = 4009;
+				TheSamples[712] = 1014;
+				TheSamples[713] = 437;
+				TheSamples[714] = 1561;
+				TheSamples[715] = 3027;
+				TheSamples[716] = 3781;
+				TheSamples[717] = 4600;
+				TheSamples[718] = 5706;
+				TheSamples[719] = 6743;
+				TheSamples[720] = 7819;
+				TheSamples[721] = 8908;
+				TheSamples[722] = 10891;
+				TheSamples[723] = 14405;
+				TheSamples[724] = 17771;
+				TheSamples[725] = 20188;
+				TheSamples[726] = 21391;
+				TheSamples[727] = 22310;
+				TheSamples[728] = 22328;
+				TheSamples[729] = 21412;
+				TheSamples[730] = 19942;
+				TheSamples[731] = 18077;
+				TheSamples[732] = 15498;
+				TheSamples[733] = 12242;
+				TheSamples[734] = 8811;
+				TheSamples[735] = 6334;
+				TheSamples[736] = 4472;
+				TheSamples[737] = 4001;
+				TheSamples[738] = 4211;
+				TheSamples[739] = 4554;
+				TheSamples[740] = 4211;
+				TheSamples[741] = 4118;
+				TheSamples[742] = 4081;
+				TheSamples[743] = 3982;
+				TheSamples[744] = 3658;
+				TheSamples[745] = 2529;
+				TheSamples[746] = 2203;
+				TheSamples[747] = 3379;
+				TheSamples[748] = 4573;
+				TheSamples[749] = 5188;
+				TheSamples[750] = 5116;
+				TheSamples[751] = 3999;
+				TheSamples[752] = 1973;
+				TheSamples[753] = 1367;
+				TheSamples[754] = 2261;
+				TheSamples[755] = 3999;
+				TheSamples[756] = 6712;
+				TheSamples[757] = 9030;
+				TheSamples[758] = 10659;
+				TheSamples[759] = 11415;
+				TheSamples[760] = 11659;
+				TheSamples[761] = 11165;
+				TheSamples[762] = 10719;
+				TheSamples[763] = 11453;
+				TheSamples[764] = 12242;
+				TheSamples[765] = 12377;
+				TheSamples[766] = 11134;
+				TheSamples[767] = 9011;
+				TheSamples[768] = 6867;
+				TheSamples[769] = 4058;
+				TheSamples[770] = 1277;
+				TheSamples[771] = -385;
+				TheSamples[772] = -705;
+				TheSamples[773] = 481;
+				TheSamples[774] = 2338;
+				TheSamples[775] = 3405;
+				TheSamples[776] = 4067;
+				TheSamples[777] = 3699;
+				TheSamples[778] = 2011;
+				TheSamples[779] = -708;
+				TheSamples[780] = -2366;
+				TheSamples[781] = -3418;
+				TheSamples[782] = -4699;
+				TheSamples[783] = -6876;
+				TheSamples[784] = -8517;
+				TheSamples[785] = -8855;
+				TheSamples[786] = -7800;
+				TheSamples[787] = -5278;
+				TheSamples[788] = -2738;
+				TheSamples[789] = -352;
+				TheSamples[790] = 1295;
+				TheSamples[791] = 2286;
+				TheSamples[792] = 1991;
+				TheSamples[793] = 641;
+				TheSamples[794] = -612;
+				TheSamples[795] = -2538;
+				TheSamples[796] = -4381;
+				TheSamples[797] = -4531;
+				TheSamples[798] = -3278;
+				TheSamples[799] = -2782;
+				TheSamples[800] = -4232;
+				TheSamples[801] = -7578;
+				TheSamples[802] = -11072;
+				TheSamples[803] = -13754;
+				TheSamples[804] = -15323;
+				TheSamples[805] = -15528;
+				TheSamples[806] = -13945;
+				TheSamples[807] = -11899;
+				TheSamples[808] = -11229;
+				TheSamples[809] = -11472;
+				TheSamples[810] = -12370;
+				TheSamples[811] = -12943;
+				TheSamples[812] = -12573;
+				TheSamples[813] = -10151;
+				TheSamples[814] = -6560;
+				TheSamples[815] = -3249;
+				TheSamples[816] = -1272;
+				TheSamples[817] = -681;
+				TheSamples[818] = -1030;
+				TheSamples[819] = -2476;
+				TheSamples[820] = -4718;
+				TheSamples[821] = -6329;
+				TheSamples[822] = -6830;
+				TheSamples[823] = -5905;
+				TheSamples[824] = -3298;
+				TheSamples[825] = -43;
+				TheSamples[826] = 3277;
+				TheSamples[827] = 5001;
+				TheSamples[828] = 5308;
+				TheSamples[829] = 4370;
+				TheSamples[830] = 2638;
+				TheSamples[831] = -12;
+				TheSamples[832] = -3681;
+				TheSamples[833] = -8381;
+				TheSamples[834] = -12179;
+				TheSamples[835] = -13689;
+				TheSamples[836] = -13627;
+				TheSamples[837] = -11622;
+				TheSamples[838] = -8444;
+				TheSamples[839] = -4324;
+				TheSamples[840] = -803;
+				TheSamples[841] = 2371;
+				TheSamples[842] = 2783;
+				TheSamples[843] = 929;
+				TheSamples[844] = -1812;
+				TheSamples[845] = -5130;
+				TheSamples[846] = -7839;
+				TheSamples[847] = -8566;
+				TheSamples[848] = -7576;
+				TheSamples[849] = -6942;
+				TheSamples[850] = -7413;
+				TheSamples[851] = -9045;
+				TheSamples[852] = -10699;
+				TheSamples[853] = -11239;
+				TheSamples[854] = -10659;
+				TheSamples[855] = -8835;
+				TheSamples[856] = -5261;
+				TheSamples[857] = -756;
+				TheSamples[858] = 3503;
+				TheSamples[859] = 7237;
+				TheSamples[860] = 10682;
+				TheSamples[861] = 13881;
+				TheSamples[862] = 17157;
+				TheSamples[863] = 20721;
+				TheSamples[864] = 24935;
+				TheSamples[865] = 29277;
+				TheSamples[866] = 32305;
+				TheSamples[867] = 32765;
+				TheSamples[868] = 30980;
+				TheSamples[869] = 27174;
+				TheSamples[870] = 21808;
+				TheSamples[871] = 17293;
+				TheSamples[872] = 14434;
+				TheSamples[873] = 13972;
+				TheSamples[874] = 14562;
+				TheSamples[875] = 15026;
+				TheSamples[876] = 14955;
+				TheSamples[877] = 14035;
+				TheSamples[878] = 12425;
+				TheSamples[879] = 10966;
+				TheSamples[880] = 9945;
+				TheSamples[881] = 8255;
+				TheSamples[882] = 5316;
+				TheSamples[883] = 2038;
+				TheSamples[884] = -1901;
+				TheSamples[885] = -5243;
+				TheSamples[886] = -6629;
+				TheSamples[887] = -5038;
+				TheSamples[888] = -2722;
+				TheSamples[889] = -668;
+				TheSamples[890] = 201;
+				TheSamples[891] = 1006;
+				TheSamples[892] = 56;
+				TheSamples[893] = -2449;
+				TheSamples[894] = -6273;
+				TheSamples[895] = -9641;
+				TheSamples[896] = -12765;
+				TheSamples[897] = -15073;
+				TheSamples[898] = -16481;
+				TheSamples[899] = -17591;
+				TheSamples[900] = -19018;
+				TheSamples[901] = -20048;
+				TheSamples[902] = -20622;
+				TheSamples[903] = -20650;
+				TheSamples[904] = -20754;
+				TheSamples[905] = -20662;
+				TheSamples[906] = -19634;
+				TheSamples[907] = -18317;
+				TheSamples[908] = -17504;
+				TheSamples[909] = -17235;
+				TheSamples[910] = -17984;
+				TheSamples[911] = -18642;
+				TheSamples[912] = -18066;
+				TheSamples[913] = -15085;
+				TheSamples[914] = -9448;
+				TheSamples[915] = -2229;
+				TheSamples[916] = 3850;
+				TheSamples[917] = 7974;
+				TheSamples[918] = 10634;
+				TheSamples[919] = 11631;
+				TheSamples[920] = 10367;
+				TheSamples[921] = 9493;
+				TheSamples[922] = 9832;
+				TheSamples[923] = 11457;
+				TheSamples[924] = 13302;
+				TheSamples[925] = 15408;
+				TheSamples[926] = 17022;
+				TheSamples[927] = 18169;
+				TheSamples[928] = 18114;
+				TheSamples[929] = 17004;
+				TheSamples[930] = 15675;
+				TheSamples[931] = 14714;
+				TheSamples[932] = 13482;
+				TheSamples[933] = 11217;
+				TheSamples[934] = 7875;
+				TheSamples[935] = 4360;
+				TheSamples[936] = 1483;
+				TheSamples[937] = 993;
+				TheSamples[938] = 3134;
+				TheSamples[939] = 7083;
+				TheSamples[940] = 11665;
+				TheSamples[941] = 16221;
+				TheSamples[942] = 17826;
+				TheSamples[943] = 16861;
+				TheSamples[944] = 13973;
+				TheSamples[945] = 11885;
+				TheSamples[946] = 11289;
+				TheSamples[947] = 11040;
+				TheSamples[948] = 10021;
+				TheSamples[949] = 9383;
+				TheSamples[950] = 9016;
+				TheSamples[951] = 7630;
+				TheSamples[952] = 6345;
+				TheSamples[953] = 5627;
+				TheSamples[954] = 5897;
+				TheSamples[955] = 7047;
+				TheSamples[956] = 9132;
+				TheSamples[957] = 11728;
+				TheSamples[958] = 14661;
+				TheSamples[959] = 18037;
+				TheSamples[960] = 19694;
+				TheSamples[961] = 19560;
+				TheSamples[962] = 19997;
+				TheSamples[963] = 22114;
+				TheSamples[964] = 24144;
+				TheSamples[965] = 25880;
+				TheSamples[966] = 25868;
+				TheSamples[967] = 24098;
+				TheSamples[968] = 21304;
+				TheSamples[969] = 17818;
+				TheSamples[970] = 13500;
+				TheSamples[971] = 9708;
+				TheSamples[972] = 7610;
+				TheSamples[973] = 7480;
+				TheSamples[974] = 8540;
+				TheSamples[975] = 9630;
+				TheSamples[976] = 10920;
+				TheSamples[977] = 11567;
+				TheSamples[978] = 10728;
+				TheSamples[979] = 8978;
+				TheSamples[980] = 6971;
+				TheSamples[981] = 5494;
+				TheSamples[982] = 4465;
+				TheSamples[983] = 2365;
+				TheSamples[984] = -988;
+				TheSamples[985] = -5102;
+				TheSamples[986] = -8148;
+				TheSamples[987] = -9144;
+				TheSamples[988] = -7887;
+				TheSamples[989] = -5426;
+				TheSamples[990] = -2185;
+				TheSamples[991] = 1914;
+				TheSamples[992] = 5080;
+				TheSamples[993] = 7333;
+				TheSamples[994] = 8179;
+				TheSamples[995] = 7922;
+				TheSamples[996] = 8173;
+				TheSamples[997] = 8871;
+				TheSamples[998] = 8939;
+				TheSamples[999] = 8493;
+				TheSamples[1000] = 7785;
+				TheSamples[1001] = 6240;
+				TheSamples[1002] = 4225;
+				TheSamples[1003] = 337;
+				TheSamples[1004] = -4531;
+				TheSamples[1005] = -8625;
+				TheSamples[1006] = -10513;
+				TheSamples[1007] = -11427;
+				TheSamples[1008] = -11719;
+				TheSamples[1009] = -11992;
+				TheSamples[1010] = -14081;
+				TheSamples[1011] = -17048;
+				TheSamples[1012] = -18362;
+				TheSamples[1013] = -16923;
+				TheSamples[1014] = -13588;
+				TheSamples[1015] = -8810;
+				TheSamples[1016] = -3806;
+				TheSamples[1017] = 366;
+				TheSamples[1018] = 2048;
+				TheSamples[1019] = 2142;
+				TheSamples[1020] = 1268;
+				TheSamples[1021] = 737;
+				TheSamples[1022] = 558;
+				TheSamples[1023] = 0;
+				break;
+			}
+		}
+		
+
+		return TheSamples;
+	}
+	
+</script></body></html>

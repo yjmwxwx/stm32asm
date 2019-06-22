@@ -330,14 +330,7 @@ __chuanganqi:		@出
 	movs r1, # 0x01
 	str r1, [r0, # 0x28]
 	bl _jianbo			@检波90、270
-	bl _jisuanfuzhi			@计算90幅度
-	mov r2, r0
-	mov r0, r1
-	bl _jisuanfuzhi			@计算270幅度
-	mov r1, r0
-	mov r0, r2
-	bl _xiangweipanduan		@判断相位
-	mov r4, r1
+	bl _jisuanfudu
 	mov r3, r0
 	ldr r0, = lvbohuanchong		@滤波器缓冲区
 	ldr r1, = 1024			@级数
@@ -346,61 +339,44 @@ __chuanganqi:		@出
 	mov r1, r4
 	pop {r2-r7,pc}
 
-
-_xiangweipanduan:		@相位判断
-				@入R0=90度，R1=270度
-				@出R0=相之间相差的数值，
-				@出R1=1,90度是正，R1=0，90度是负
-	push {r2,lr}
-	subs r1, r1, # 0	@ 校准0点
-	subs r2, r0, r1
-	bpl _adc90shizheng
-	subs r2, r1, r0
-	bpl _adc90shifu
-	cmp r0, r1
-	bne _xiangweipanduanfanhui
-_adc90shizheng:
-	mov r0, r2
-	movs r1, # 1
-	pop {r2,pc}
-_adc90shifu:
-	mov r0, r2
-	movs r1, # 0
-	pop {r2,pc}
-_xiangweipanduanfanhui:
-	movs r0, # 0
-	movs r1, # 1
-	pop {r2,pc}
 	
 	
-_jisuanfuzhi:			@计算幅值
-				@入R0出R0
-				@R0=ADC90度采样
-	push {r1-r3,lr}
+_jisuanfudu:	@ 计算幅度
+		@ r0= 实部，r1= 虚部
+	        @ r0 = 幅度 r1= 相位
+		@ Mag ~=Alpha * max(|I|, |Q|) + Beta * min(|I|, |Q|)
+		@ Alpha * Max + Beta * Min
+	push {r2-r3,lr}
 	cmp r0, # 0
-	beq _adcshi0fanhui
-	ldr r1, = 0x04		@实 Q15
-	ldr r2, = 0xffff8004    @虚 Q15
-	mov r3, r0
-	muls r0, r0, r1		@实
-	asrs r0, r0, # 15
-	muls r3, r3, r2		@虚
-	asrs r3, r3, # 15
-_shibushibushi0:		@检测实部是不是负数
-	movs r0, r0
-	bpl _fzbushifushu1
-	mvns r0, r0		@是负数转成正数
-	adds r0, r0, # 1
-_fzbushifushu1:			@检测虚部是不是负数
-	movs  r3, r3
-	bpl _fzbushifushu
-	mvns r3, r3		@是负数转成正数
-	adds r3, r3, # 1
-_fzbushifushu:
-	adds r0, r0, r3		@相加得到副值
-_adcshi0fanhui:	
+	bne _panduanxubushibushi0
+	mov r0, r1
+	pop {r1-r3,pc}
+_panduanxubushibushi0:	
+	cmp r1, # 0
+	bne _jisuanfudu1
 	pop {r1-r3,pc}
 	
+_jisuanfudu1:
+	ldr r2, = 31066		@ Alpha q15 0.948059448969
+	ldr r3, = 12867		@ Beta q15 0.392699081699
+	cmp r1, r0
+	bhi _alpha_min_beta_max
+_alpha_max_beta_min:
+	muls r0, r0, r2
+	muls r1, r1, r3
+	asrs r0, r0, # 15
+	asrs r1, r1, # 15
+	adds r0, r0, r1
+	movs r1, # 1
+	pop {r2-r3,pc}
+_alpha_min_beta_max:
+	muls r0, r0, r3
+	muls r1, r1, r2
+	asrs r0, r0, # 15
+	asrs r1, r1, # 15
+	adds r0, r0, r1
+	movs r1, # 0
+	pop {r2-r3,pc}
 _jianbo:				@检波
 					@输出r0=90度，R1=270度
 	push {r2-r4,lr}
@@ -414,7 +390,7 @@ _jianbo90du:
 	ldr r0, [r3]			@取出90度
 _jianbo270du:
 	ldr r4, [r2]
-	cmp r4, # 85 			@ 75
+	cmp r4, # 85			@ 75
 	bne _jianbo270du
 	ldr r1, [r3]
 	cpsie i
