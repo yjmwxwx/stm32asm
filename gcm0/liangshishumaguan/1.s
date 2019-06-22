@@ -337,6 +337,7 @@ __chuanganqi:		@出
 	bl _jisuanfudu			@ 180计算幅度
 	mov r1, r4
 	bl _xiangweipanduan
+	mov r4, r1
 	mov r3, r0
 	ldr r0, = lvbohuanchong		@滤波器缓冲区
 	ldr r1, = 1024			@级数
