@@ -329,8 +329,14 @@ __chuanganqi:		@出
 	ldr r0, = 0x40012400
 	movs r1, # 0x01
 	str r1, [r0, # 0x28]
-	bl _jianbo			@检波90、270
-	bl _jisuanfudu
+	bl _jianbo			
+	bl _jisuanfudu			@ 0计算幅度
+	mov r4, r0
+	mov r0, r2
+	mov r1, r3
+	bl _jisuanfudu			@ 180计算幅度
+	mov r1, r4
+	bl _xiangweipanduan
 	mov r3, r0
 	ldr r0, = lvbohuanchong		@滤波器缓冲区
 	ldr r1, = 1024			@级数
@@ -339,14 +345,32 @@ __chuanganqi:		@出
 	mov r1, r4
 	pop {r2-r7,pc}
 
+_xiangweipanduan:		@ 相位判断
+				@ 入R0=180度，R1=0度
+				@ 出R0=相之间相差的数值，
+				@ 出0度是正r1=1，0度是负r1=0
+	push {r2,lr}
+	subs r1, r1, # 0	@ 校准0点
+	subs r2, r0, r1
+	bpl _adc0dushizheng
+	subs r2, r1, r0
+	bpl _adc0dushifu
+_adc0dushizheng:
+	mov r0, r2
+	movs r1, # 1
+	pop {r2,pc}
+_adc0dushifu:
+	mov r0, r2
+	movs r1, # 0
+	pop {r2,pc}
 	
 	
 _jisuanfudu:	@ 计算幅度
-		@ r0= 实部，r1= 虚部
-	        @ r0 = 幅度 r1= 相位
+		@ 入r0= 实部，r1= 虚部
+	        @ 出r0 = 幅度
 		@ Mag ~=Alpha * max(|I|, |Q|) + Beta * min(|I|, |Q|)
 		@ Alpha * Max + Beta * Min
-	push {r2-r3,lr}
+	push {r1-r3,lr}
 	cmp r0, # 0
 	bne _panduanxubushibushi0
 	mov r0, r1
@@ -355,7 +379,6 @@ _panduanxubushibushi0:
 	cmp r1, # 0
 	bne _jisuanfudu1
 	pop {r1-r3,pc}
-	
 _jisuanfudu1:
 	ldr r2, = 31066		@ Alpha q15 0.948059448969
 	ldr r3, = 12867		@ Beta q15 0.392699081699
@@ -368,7 +391,7 @@ _alpha_max_beta_min:
 	asrs r1, r1, # 15
 	adds r0, r0, r1
 	movs r1, # 1
-	pop {r2-r3,pc}
+	pop {r1-r3,pc}
 _alpha_min_beta_max:
 	muls r0, r0, r3
 	muls r1, r1, r2
@@ -376,25 +399,36 @@ _alpha_min_beta_max:
 	asrs r1, r1, # 15
 	adds r0, r0, r1
 	movs r1, # 0
-	pop {r2-r3,pc}
-_jianbo:				@检波
-					@输出r0=90度，R1=270度
-	push {r2-r4,lr}
-	ldr r2, = 0x4002005c
-	ldr r3, = 0x40012440
+	pop {r1-r3,pc}
+_jianbo:				@ I Q
+					@ 出r0=0度，R1=90度
+					@ 出r1=180度，r2=270度
+	push {r4-r6,lr}
+	ldr r4, = 0x4002005c
+	ldr r5, = 0x40012440
 	cpsid i
+_jianbo0du:
+	ldr r6, [r4]
+	cmp r6, # 10			@ 0
+	bne _jianbo0du
+	ldr r0, [r5]			@取出0度
 _jianbo90du:
-	ldr r4, [r2]
-	cmp r4, # 35			@ 25
+	ldr r6, [r4]
+	cmp r6, # 35			@ 25
 	bne _jianbo90du
-	ldr r0, [r3]			@取出90度
+	ldr r1, [r5]			@ 取出90度
+_jianbo180du:
+        ldr r6, [r4]
+        cmp r6, # 60                    @ 50
+        bne _jianbo180du
+        ldr r2, [r5]                    @取出180度
 _jianbo270du:
-	ldr r4, [r2]
-	cmp r4, # 85			@ 75
-	bne _jianbo270du
-	ldr r1, [r3]
+        ldr r6, [r4]
+        cmp r6, # 85                    @ 75
+        bne _jianbo270du
+        ldr r3, [r5]			@ 取出270度
 	cpsie i
-	pop {r2-r4,pc}
+	pop {r4-r6,pc}
 
 _lvboqi:				@滤波器
 			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
