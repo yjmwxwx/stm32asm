@@ -151,8 +151,8 @@ _waisheshizhong:		 @ 外设时钟
 	str r1, [r0, # 0x18]
 	@+0X1C=RCC_APB1ENR
 	@ 1=TIM3 @ 4=TIM6 @5=TIM7 @8=TIM14 @11=WWDG @14=SPI @17=USRT2 @18=USART3 @20=USART5 @21=I2C1 @22=I2C2 @23=USB @28=PWR
-	movs r1, # 0x02
-	str r1, [r0, # 0x1c]
+@	movs r1, # 0x02
+@	str r1, [r0, # 0x1c]
 io_she_zhi:
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	@a(0x48000000)b(0x48000400)c(0x48000800)d(0x48000c00)f(0x48001400)
@@ -180,22 +180,22 @@ io_she_zhi:
 
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
-tim3chushihua:				@ 24M
-	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, =  0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 10
-	str r1, [r0, # 0x2c] @ ARR
-	ldr r1, =   0x3800
-	str r1, [r0, # 0x1c] @ ccmr2
-	ldr r1, =  0x1000
-	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 10
-	str r1, [r0, # 0x40] @ ccr4
-	movs r1, # 0x70
-	str r1, [r0, # 0x04]
-	movs r1, # 0x81
-	str r1, [r0]
+@tim3chushihua:				@ 24M
+@	ldr r0, = 0x40000400 @ tim3_cr1
+@	ldr r1, =  0
+@	str r1, [r0, # 0x28] @ psc
+@	ldr r1, = 9
+@	str r1, [r0, # 0x2c] @ ARR
+@	ldr r1, =   0x3800
+@	str r1, [r0, # 0x1c] @ ccmr2
+@	ldr r1, = 9999
+@	str r1, [r0, # 0x20] @ ccer
+@	ldr r1, = 10
+@	str r1, [r0, # 0x40] @ ccr4
+@	movs r1, # 0x70
+@	str r1, [r0, # 0x04]
+@	movs r1, # 0x81
+@	str r1, [r0]
 dmachushihua:
 	@+0=LSR,+4=IFCR,
 	@+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
@@ -239,7 +239,7 @@ _dengdaiadcwending:
 _tongdaoxuanze:
 	ldr r1, = 0x01
 	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-	@	ldr r1, = 0xcC3         @ tim3触发ADC
+@	ldr r1, = 0xcC3         @ tim3触发ADC
 	ldr r1, = 0x3003
 	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
 	movs r1, # 0        
@@ -261,10 +261,10 @@ _waishezhongduan:		@外设中断
 
 
 ting:
-
+	
 	ldr r0, = dianyabiao
 	bl _fftjisuan
-	ldr r0, = 0x20000000
+	ldr r0, = 0x20000058
 	movs r1, # 0x01
 	lsls r1, r1, # 10
 	adds r1, r1, r0
@@ -289,7 +289,15 @@ neicunqinglingxunhuan1:
         subs r3, # 4
         str r1, [r0, r3]
         bne neicunqinglingxunhuan1
-
+	ldr r0, = 0x40020000
+	ldr r1, [r0, # 0x0c]
+	cmp r1, # 0
+	bne ting
+	str r1, [r0, # 0x08]
+	movs r1, # 0xff
+	ldr r2, = 0xa81
+	str r1, [r0, # 0x0c]
+	str r2, [r0, # 0x08]
 	b ting
 	
 
@@ -428,9 +436,19 @@ _jisuanfudu:	@ 计算幅度
 		@ Mag ~=Alpha * max(|I|, |Q|) + Beta * min(|I|, |Q|)
 		@ Alpha * Max + Beta * Min
 	push {r1-r3,lr}
+	movs r0, r0
+	bpl _shibubushifushu
+	mvns r0, r0				@ 是负数转成正数
+	adds r0, r0, # 1	
+_shibubushifushu:				@ 实部不是负数
+	movs r1, r1
+	bpl _xububushifushu
+	mvns r1, r1				@ 是负数转成正数
+	adds r1, r1, # 1
+_xububushifushu:				@ 虚部不是负数
 	cmp r0, # 0
-	bne _panduanxubushibushi0
-	mov r0, r1
+	bne _panduanxubushibushi0		
+	mov r0, r1				
 	pop {r1-r3,pc}
 _panduanxubushibushi0:	
 	cmp r1, # 0
