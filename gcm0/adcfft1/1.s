@@ -501,7 +501,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 10	@修改
+	asrs r0, r7, # 8	@修改
 	pop {r1-r7,pc}
 
 	
