@@ -58,32 +58,6 @@ vectors:
 	.align 2
 
 _start:
-shizhong:
-        ldr r2, = 0x40022000   @FLASH访问控制
-        movs r1, # 0x32
-        str r1, [r2]           @FLASH缓冲 缓冲开启
-        ldr r0, = 0x40021000 @ rcc
-        ldr r1, = 0x10001
-        str r1, [r0]
-denghse:
-        ldr r1, [r0]
-        lsls r1, r1, # 14
-        bpl denghse
-dengpllguan:
-        ldr r1, [r0]
-        lsls r1, r1, # 6
-        bmi dengpllguan
-        ldr r1, = 0x110002
-        str r1, [r0, # 0x04]
-        ldr r1, = 0x1010000
-        movs r0, r0
-        str r1, [r0]
-
-dengpll:
-        ldr r1, [r0]
-        lsls r1, # 6
-        bpl dengpll
-
 
 
 _waisheshizhong:			 @ 外设时钟
@@ -100,14 +74,14 @@ _waisheshizhong:			 @ 外设时钟
 	@+0X1C=RCC_APB1ENR
 	@ 1=TIM3 @ 4=TIM6 @ 5=TIM7 @ 8=TIM14 @ 11=WWDG @ 14=SPI @ 17=USRT2 @ 18=USART3 @ 20=USART5 @ 21=I2C1
 	@ 22=I2C2 @ 23=USB @ 28=PWR
-	movs r2, # 2
+	ldr r2, = 0x102
 	str r2, [r0, # 0x1c]
 
 tim1chushiha:				
 	ldr r5, = 0x40012c00 @ tim1_cr1
 	ldr r1, = 0
 	str r1, [r5, # 0x28] @ psc
-	ldr r1, = 4
+	ldr r1, = 1
 	str r1, [r5, # 0x2c] @ ARR
 	ldr r1, = 0x38
 	str r1, [r5, # 0x1c] @ ccmr2  CC3
@@ -115,24 +89,40 @@ tim1chushiha:
 	str r1, [r5, # 0x20] @ ccer
 	ldr r1, = 0x8000
 	str r1, [r5, # 0x44] @ BDTR
-	ldr r1, = 4
+	ldr r1, = 1
 	str r1, [r5, # 0x3c]
 	movs r4, # 0xe1
 	str r4, [r5]
 tim3chushihua:				
 	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, = 5
+	ldr r1, = 0
 	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 4
+	ldr r1, = 1
 	str r1, [r0, # 0x2c] @ ARR
 	ldr r1, =   0x3800
 	str r1, [r0, # 0x1c] @ ccmr2
 	ldr r1, =  0x1000
 	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 5
+	ldr r1, = 1
 	str r1, [r0, # 0x40] @ ccr4
 	movs r1, # 0xe1
 	str r1, [r0]
+
+tim14chushihua:
+        ldr r0, = 0x40002000 @ tim14_cr1
+        ldr r1, = 0xff
+        str r1, [r0, # 0x28] @ psc
+        ldr r1, = 300
+        str r1, [r0, # 0x2c] @ ARR
+        ldr r1, =   0x38
+        str r1, [r0, # 0x18] @ ccmr1
+        movs r1, # 0x01
+        str r1, [r0, # 0x20] @ ccer
+        ldr r1, = 300
+        str r1, [r0, # 0x34] @ ccr4
+        movs r1, # 0xe1
+        str r1, [r0]
+
 
 io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -156,8 +146,10 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x28205403
+	ldr r1, = 0x28208000
 	str r1, [r0]
+	ldr r1, = 0x40000000
+	str r1, [r0, # 0x20]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 	
@@ -166,6 +158,32 @@ io_she_zhi:
 	str r1, [r0]
 	movs r1, # 0x10  @ tim3_4到PB1
 	str r1, [r0, # 0x20] @ ARRL
+
+shizhong:
+        ldr r2, = 0x40022000   @FLASH访问控制
+        movs r1, # 0x32
+        str r1, [r2]           @FLASH缓冲 缓冲开启
+        ldr r0, = 0x40021000 @ rcc
+        ldr r1, = 0x10001
+        str r1, [r0]
+denghse:
+        ldr r1, [r0]
+        lsls r1, r1, # 14
+        bpl denghse
+dengpllguan:
+        ldr r1, [r0]
+        lsls r1, r1, # 6
+        bmi dengpllguan
+        ldr r1, = 0x3d0002
+        str r1, [r0, # 0x04]
+        ldr r1, = 0x1010000
+        mov r0, r0
+        str r1, [r0]
+
+dengpll:
+        ldr r1, [r0]
+        lsls r1, # 6
+        bpl dengpll
 
 
 	bkpt # 1
