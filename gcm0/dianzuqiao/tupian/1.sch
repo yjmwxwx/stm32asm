@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:1-cache
 EELAYER 29 0
 EELAYER END
 $Descr A3 16535 11693
@@ -1490,12 +1491,12 @@ $EndComp
 $Comp
 L Amplifier_Operational:TL084 U9
 U 3 1 5DBA31C2
-P 11350 7050
-F 0 "U9" H 11350 7417 50  0000 C CNN
-F 1 "TL084" H 11350 7326 50  0000 C CNN
-F 2 "" H 11300 7150 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/tl081.pdf" H 11400 7250 50  0001 C CNN
-	3    11350 7050
+P 11300 7050
+F 0 "U9" H 11300 7417 50  0000 C CNN
+F 1 "TL084" H 11300 7326 50  0000 C CNN
+F 2 "" H 11250 7150 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/tl081.pdf" H 11350 7250 50  0001 C CNN
+	3    11300 7050
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -1649,8 +1650,6 @@ Wire Wire Line
 Wire Wire Line
 	12200 6250 12350 6250
 Connection ~ 12350 6250
-Wire Wire Line
-	11650 6950 11800 6950
 $Comp
 L power:GND #PWR?
 U 1 1 5E0B0DEB
@@ -1748,23 +1747,34 @@ Wire Wire Line
 	11750 8200 11800 8200
 Wire Wire Line
 	11800 6950 11800 6250
+Wire Wire Line
+	11600 6950 11800 6950
 Connection ~ 11800 6250
 Wire Wire Line
 	11800 6250 11900 6250
 Wire Wire Line
 	11800 7150 11800 8200
 Wire Wire Line
-	11650 7150 11800 7150
+	11600 7150 11800 7150
 Connection ~ 11800 8200
 Wire Wire Line
 	11800 8200 11900 8200
 Wire Wire Line
-	11050 7050 11000 7050
+	11000 7050 10900 7050
 Wire Wire Line
 	11000 6250 11000 7050
 Wire Wire Line
 	11000 6250 11350 6250
 Connection ~ 11000 7050
 Wire Wire Line
-	11000 7050 10900 7050
+	6200 5300 6200 5150
+Wire Wire Line
+	6200 5150 6100 5150
+Wire Wire Line
+	6100 5150 6100 5300
+Wire Wire Line
+	6200 5150 6300 5150
+Connection ~ 6200 5150
+Text GLabel 6300 5150 2    50   Input ~ 0
++3.3
 $EndSCHEMATC
