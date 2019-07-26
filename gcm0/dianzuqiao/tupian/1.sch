@@ -1480,12 +1480,12 @@ $EndComp
 $Comp
 L Amplifier_Operational:TL084 U9
 U 2 1 5DB9F053
-P 10550 5750
-F 0 "U9" H 10550 5383 50  0000 C CNN
-F 1 "TL084" H 10550 5474 50  0000 C CNN
-F 2 "" H 10500 5850 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/tl081.pdf" H 10600 5950 50  0001 C CNN
-	2    10550 5750
+P 9800 10200
+F 0 "U9" H 9800 9833 50  0000 C CNN
+F 1 "TL084" H 9800 9924 50  0000 C CNN
+F 2 "" H 9750 10300 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/tl081.pdf" H 9850 10400 50  0001 C CNN
+	2    9800 10200
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -1713,32 +1713,19 @@ Wire Wire Line
 Wire Wire Line
 	9300 7050 10450 7050
 Connection ~ 10450 7050
-$Comp
-L Device:R R21
-U 1 1 5E19E259
-P 15500 6700
-F 0 "R21" H 15570 6746 50  0000 L CNN
-F 1 "10K" H 15570 6655 50  0000 L CNN
-F 2 "" V 15430 6700 50  0001 C CNN
-F 3 "~" H 15500 6700 50  0001 C CNN
-	1    15500 6700
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	15800 6350 15800 8300
 Wire Wire Line
 	12950 8300 15800 8300
-Wire Wire Line
-	15200 6350 15800 6350
 $Comp
 L Amplifier_Operational:NE5532 U?
 U 2 1 5E22D8E4
-P 10600 4950
-F 0 "U?" H 10600 4583 50  0000 C CNN
-F 1 "NE5532" H 10600 4674 50  0000 C CNN
-F 2 "" H 10600 4950 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/ne5532.pdf" H 10600 4950 50  0001 C CNN
-	2    10600 4950
+P 9850 9400
+F 0 "U?" H 9850 9033 50  0000 C CNN
+F 1 "NE5532" H 9850 9124 50  0000 C CNN
+F 2 "" H 9850 9400 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/ne5532.pdf" H 9850 9400 50  0001 C CNN
+	2    9850 9400
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
@@ -1777,4 +1764,6 @@ Wire Wire Line
 Connection ~ 6200 5150
 Text GLabel 6300 5150 2    50   Input ~ 0
 +3.3
+Wire Wire Line
+	15200 6350 15800 6350
 $EndSCHEMATC

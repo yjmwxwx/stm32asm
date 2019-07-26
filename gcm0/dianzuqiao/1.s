@@ -219,6 +219,9 @@ ting:
 	ldr r2, = lvboqizhizhen
 	ldr r3, [r3]
 	bl _lvboqi
+	ldr r1, = 3300
+	muls r0, r0, r1
+	lsrs r0, r0, # 12
 	ldr r2, = shumaguanma
 	movs r1, # 8
 	bl _zhuanshumaguanma
