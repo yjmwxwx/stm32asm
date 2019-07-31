@@ -7,7 +7,7 @@
          .syntax unified
 	.section .data
 wendubuchangbiao1:
-	.int 0xb70,0xc1a,0xc6a,0xc1c,0xc7f,0xc8b,0xc8f,0xc92,0xc9f,0xcb0,0xcca,0xcd0,0xcf0
+	.int 0x5a1,0x5b1,0x5c9,0x5ff,0x92a,0x9ad,0xa2d,0xa88,0xaa6,0xae8,0xb95,0xbb2,0xbd3,0xc2b,0xc79,0xcb1,0xc05,0xcea,0xcfb
 shumaguanmabiao:
 	.int 0xfc,0x60,0xda,0xf2,0x66,0xb6,0xbe,0xe0,0xfe,0xf6
 shumaguanshuaxinbiao:
@@ -262,7 +262,7 @@ ting:
         ldr r2, = lvboqizhizhen1
         ldr r3, [r3]
         bl _lvboqi1
-	mov r4, r0
+	mov r6, r0
 
 	ldr r0, = lvboqihuanchong
 	ldr r1, = 512
@@ -282,19 +282,37 @@ ting:
 	b ting
 	
 __wendubuchang1:
-	push {r1-r7,lr}
+	push {r1-r6,lr}
 	ldr r1, = wendubuchangbiao1
 	movs r2, # 0
-__buchangxunhuan:	
+	movs r3, # 15
+	lsls r3, r3, # 2
+	movs r4, # 4
+	lsls r4, r4, # 2
+__gaowenbuchang:
 	ldr r5, [r1, r2]
-	cmp r5, r4
-	bcs __buchangfanhui1
+	cmp r5, r6
+	bcs __gaowenbuchangfanhui
 	adds r2, r2, # 4
-	b __buchangxunhuan
-__buchangfanhui1:
+	cmp r2, r3
+	bne __diwenbuchang
+__diwenbuchang:
+	ldrh r5, [r1, r2]
+	cmp r5, r6
+	bcs __diwenbuchangfanhui
+	adds r2, r2, # 4
+	cmp r2, r3
+	bne __diwenbuchang
+	pop {r1-r6,pc}
+__gaowenbuchangfanhui:
 	lsrs r2, r2, # 2
+	add r0, r0, r2
+	pop {r1-r6,pc}
+__diwenbuchangfanhui:
+	lsrs  r2, r2, # 2
 	subs r0, r0, r2
-	pop {r1-r7,pc}
+	pop {r1-r6,pc}
+	
 	
 	
 
@@ -309,13 +327,13 @@ __wendubuchang:
 	ldr r6, [r1]
 	ldrh r4, [r1, r6]
 @	ldrh r5, [r3, # 0x04]
-	cmp r4, r5
+	cmp r4, r0
 	bcs __buchangfanhui
 	mov r7, r6
 	adds r7, r7, # 4
-	strh r5, [r1, r7]
-	adds r7, r7, # 2
 	strh r0, [r1, r7]
+	adds r7, r7, # 2
+	strh r5, [r1, r7]
 	adds r6, r6, # 4
 	str r6, [r1]
 __buchangfanhui:
