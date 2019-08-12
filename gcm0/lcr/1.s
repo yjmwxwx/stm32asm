@@ -1,15 +1,15 @@
-	@@单片机stm32f030f4p6
-	@@电容小麦水分测量
+	@@ 单片机stm32f030f4p6
+	@@ 阻抗桥
 	@作者：yjmwxwx
-	@时间：2019-06-09
-	@编译器：ARM-NONE-EABI-AS
+	@时间：2019-08-12
+	@编译器：ARM-NONE-EABI
 	 .thumb
 	         .syntax unified
 .section .data
 zheng_xian_biao:
 	.short 0x30,0x33,0x36,0x38,0x3b,0x3e,0x41,0x44,0x47,0x49,0x4c,0x4e,0x50,0x52,0x54,0x56,0x58,0x59,0x5b,0x5c,0x5d,0x5e,0x5e,0x5f,0x5f,0x5f,0x5f,0x5f,0x5e,0x5d,0x5c,0x5b,0x5a,0x59,0x57,0x55,0x53,0x51,0x4f,0x4d,0x4a,0x48,0x45,0x43,0x40,0x3d,0x3a,0x37,0x34,0x31,0x2e,0x2b,0x28,0x25,0x22,0x1f,0x1c,0x1a,0x17,0x15,0x12,0x10,0xe,0xc,0xa,0x8,0x6,0x5,0x4,0x3,0x2,0x1,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x3,0x4,0x6,0x7,0x9,0xb,0xd,0xf,0x11,0x13,0x16,0x18,0x1b,0x1e,0x21,0x24,0x27,0x29,0x2c,0x30
 lcdshuju:
-	.ascii  "yjmwxwx-201906-09"
+	.ascii  "yjmwxwx-20190812"
 dianhua:	
 	.ascii	"     15552208295"
 qq:
@@ -236,10 +236,8 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x28205553
+	ldr r1, = 0x28205403
 	str r1, [r0]
-	movs r1, # 0xfc  @ pa2-pa7开漏输出
-	str r1, [r0, # 0x04]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 
@@ -264,197 +262,13 @@ _lcdchushihua:
 	movs r1, # 0
 	bl _xielcd
 	bl _lcdyanshi
-	
 
-
-_tingting:
-	ldr r0, = jishu
-	ldr r1, [r0]
-	cmp r1, # 8
-	beq _lcddi1
-	cmp r1, # 16
-	beq _lcddi2
-	cmp r1, # 24
-	beq _lcddi3
-	b _tiaoguoguanggao
-_lcddi1:
+ting:
 	movs r0, # 0x80
 	ldr r1, = lcdshuju
 	movs r2, # 16
 	bl _lcdxianshi
-	ldr r0, = 0x40020000
-	ldr r1, = 0
-	str r1, [r0, # 0x08]
-	b _tiaoguoguanggao
-_lcddi2:
-	movs r0, # 0x80
-	ldr r1, = dianhua
-	movs r2, # 16
-	bl _lcdxianshi
-	b _tiaoguoguanggao
-_lcddi3:
-	movs r0, # 0x80
-	ldr r1, = qq
-	movs r2, # 16
-	bl _lcdxianshi
-	ldr r0, = jishu
-	movs r1, # 0
-	str r1, [r0]
-_tiaoguoguanggao:
-	movs r0, # 0xc0
-	ldr r1, = xiaomai
-	movs r2, # 9
-	bl _lcdxianshi
-	bl _chuanganqi
-	mov r4, r0
-	cmp r1, # 1
-	bne __zhengzhi
-	movs r0, # 0xca
-	ldr r1, = fu
-	movs r2, # 1
-	bl _lcdxianshi
-	b __xianshiliangshishuzhi
-__zhengzhi:
-	movs r0, # 0xca
-	ldr r1, = zheng
-	movs r2, # 1
-	bl _lcdxianshi
-__xianshiliangshishuzhi:	
-	mov r0, r4
-	movs r1, # 4
-	ldr r2, = asciimabiao
-	movs r3, # 0xff
-	bl _zhuanascii
-	movs r0, # 0xcc
-	ldr r1, = asciimabiao
-	movs r2, # 0x04
-	bl _lcdxianshi
-	b _tingting
-
-	
-_chuanganqi:		@出
-			@R0=幅值，R1=相位
-	push {r2-r7,lr}
-	ldr r0, = 0x40012400
-	movs r1, # 0x01
-	str r1, [r0, # 0x28]
-	bl _jianbo			@检波90、270
-	bl _jisuanfuzhi			@计算90幅度
-	mov r2, r0
-	mov r0, r1
-	bl _jisuanfuzhi			@计算270幅度
-	mov r1, r0
-	mov r0, r2
-	bl _xiangweipanduan		@判断相位
-	mov r4, r1
-	mov r3, r0
-	ldr r0, = lvbohuanchong		@滤波器缓冲区
-	ldr  r1, = 1024			@级数
-	ldr r2, = lvbozhizhen		@滤波器指针
-	bl _lvboqi			@平滑，平均滤波器
-	mov r1, r4
-	pop {r2-r7,pc}
-
-
-_xiangweipanduan:		@相位判断
-				@入R0=90度，R1=270度
-				@出R0=相之间相差的数值，
-				@出R1=1,90度是正，R1=0，90度是负
-	push {r2,lr}
-	subs r1, r1, # 0	@ 校准0点
-	subs r2, r0, r1
-	bpl _adc90shizheng
-	subs r2, r1, r0
-	bpl _adc90shifu
-	cmp r0, r1
-	bne _xiangweipanduanfanhui
-_adc90shizheng:
-	mov r0, r2
-	movs r1, # 1
-	pop {r2,pc}
-_adc90shifu:
-	mov r0, r2
-	movs r1, # 0
-	pop {r2,pc}
-_xiangweipanduanfanhui:
-	movs r0, # 0
-	movs r1, # 1
-	pop {r2,pc}
-	
-	
-_jisuanfuzhi:			@计算幅值
-				@入R0出R0
-				@R0=ADC90度采样
-	push {r1-r3,lr}
-	cmp r0, # 0
-	beq _adcshi0fanhui
-	ldr r1, = 0x04		@实 Q15
-	ldr r2, = 0xffff8004    @虚 Q15
-	mov r3, r0
-	muls r0, r0, r1		@实
-	asrs r0, r0, # 15
-	muls r3, r3, r2		@虚
-	asrs r3, r3, # 15
-_shibushibushi0:		@检测实部是不是负数
-	movs r0, r0
-	bpl _fzbushifushu1
-	mvns r0, r0		@是负数转成正数
-	adds r0, r0, # 1
-_fzbushifushu1:			@检测虚部是不是负数
-	movs  r3, r3
-	bpl _fzbushifushu
-	mvns r3, r3		@是负数转成正数
-	adds r3, r3, # 1
-_fzbushifushu:
-	adds r0, r0, r3		@相加得到副值
-_adcshi0fanhui:	
-	pop {r1-r3,pc}
-	
-_jianbo:				@检波
-					@输出r0=90度，R1=270度
-	push {r2-r4,lr}
-	ldr r2, = 0x4002005c
-	ldr r3, = 0x40012440
-	cpsid i
-_jianbo90du:
-	ldr r4, [r2]
-	cmp r4, # 25
-	bne _jianbo90du
-	ldr r0, [r3]			@取出90度
-_jianbo270du:
-	ldr r4, [r2]
-	cmp r4, # 75
-	bne _jianbo270du
-	ldr r1, [r3]
-	cpsie i
-	pop {r2-r4,pc}
-
-_lvboqi:				@滤波器
-			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
-			@出R0=结果
-	push {r1-r7,lr}	
-	ldr r5, [r2]		@读出表指针
-	lsls r6, r1, # 1	
-	strh r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 2
-	cmp r5, r6
-	bne _lvboqimeidaohuanchongquding
-	movs r5, # 0
-_lvboqimeidaohuanchongquding:
-	str r5, [r2]
-	movs r7, # 0
-_lvboqixunhuan:
-	cmp r5, r6
-	bne _lvbozonghe
-	movs r5, # 0
-_lvbozonghe:
-	ldrh r4, [r0, r5]
-	adds r5, r5, # 2
-	adds r7, r7, r4
-	subs r1, r1, # 1
-	bne _lvboqixunhuan
-	asrs r0, r7, # 10	@修改
-	pop {r1-r7,pc}
+	b ting
 	
 
 _lcdxianshi:	  		@r0=LCD位置，r1=数据地址，r2=长度
@@ -483,74 +297,72 @@ _lcdyanshixunhuan:
 	pop {r5,pc}
 
 _xielcd:			@入R0=8位,r1=0命令,r1=1数据
-	push {r0-r7,lr}
-	lsrs r6, r0, # 4
+	push {r0-r3,lr}
+	mov r2, r0
+	lsrs r2, r2, # 4
+	lsls r2, r2, # 2	@ 高四位
 	lsls r0, r0, # 28
-	lsrs r0, r0, # 28
-	movs r2, # 0x80		@ RS
-	movs r3, # 0x40		@ E
-	movs r5, # 0x3c
-	ldr r4, = 0x48000000
-	cmp r1, # 0
-	beq _lcdmingling
-	str r2, [r4, # 0x18]	@RS=1
-	b _lcdshuju
-_lcdmingling:
-	str r2, [r4, # 0x28]	@RS=0
-_lcdshuju:
-	str r3, [r4, # 0x18]	@E=1
-	str r5, [r4, # 0x28]
-
-	lsls r7, r6, # 31
-	lsrs r7, r7, # 26
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r6, # 1
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 27
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r6, # 2
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 28
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r6, # 3
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 29
-	str r7, [r4, # 0x18]
-
-	bl _lcdyanshi
-	str r3, [r4, # 0x28]	@E=0
-
-
-	str r3, [r4, # 0x18]    @E=1
-	str r5, [r4, # 0x28]
-
-	lsls r7, r0, # 31
-	lsrs r7, r7, # 26
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r0, # 1
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 27
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r0, # 2
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 28
-	str r7, [r4, # 0x18]
-
-	lsrs r7, r0, # 3
-	lsls r7, r7, # 31
-	lsrs r7, r7, # 29
-	str r7, [r4, # 0x18]
-
-	bl _lcdyanshi
-	str r3, [r4, # 0x28]    @E=0
-
+	lsrs r0, r0, # 26	@ 低四位
+	lsls r1, r1, # 31
+	bpl __lcd_ming_ling
+__lcd_shu_ju:
+	movs r3, # 0x03		@ RS = 1 E = 1
+	b __xie_lcd_shu_ju
+__lcd_ming_ling:
+	movs r3, # 0x02		@ RS = 0 E = 1
+__xie_lcd_shu_ju:
+	mov r1, r0
+	adds r2, r2, r3
+	movs r0, r2
+	bl __74hc595
+	subs r0, r0, # 0x02
+	bl __74hc595
+	mov r0, r1
+	adds r0, r0, r3
+	bl __74hc595
+	subs r0, r0, # 0x02
+	bl __74hc595
+	pop {r0-r3,pc}
+	
+__74hc595:			@ 入R0=8位
+	push {r0-r7,lr}
+	ldr r6, = 0x48000000
+	movs r5, # 0x20		@ SRCLK
+	movs r2, # 0x40		@ RCLK
+	movs r3, # 0x80		@ SER
+	movs r4, # 24
+__595_yiweixunhuan:
+	str r2, [r6, # 0x18]	@ rclk=0
+	str r5, [r6, # 0x18]	@ srclk=0
+	movs r7, # 0xff
+__595_yanshi:
+	subs r7, r7, # 1
+	bne __595_yanshi
+	mov r1, r0
+	lsls r1, r1, r4
+	bpl __ser_0
+__ser_1:
+	str r3, [r6, # 0x28]	@ ser=1
+	b __595_yiwei
+__ser_0:
+	str r3, [r6, # 0x18]	@ ser=0
+__595_yiwei:
+	str r5, [r6, # 0x28]
+	movs r7, # 0xff
+__595_yanshi1:
+	subs r7, r7, # 1
+	bne __595_yanshi1
+	adds r4, r4, # 1
+	cmp r4, # 32
+	bne __595_yiweixunhuan
+	str r2, [r6, # 0x28]	@ rclk=1
+	movs r7, # 0xff
+__595_yanshi2:
+	subs r7, r7, # 1
+	bne __595_yanshi2
+	str r2, [r6, # 0x18]	@ rclk = 0
 	pop {r0-r7,pc}
-	.ltorg
+
 
 
 _zhuanascii:					@ 16进制转ASCII
