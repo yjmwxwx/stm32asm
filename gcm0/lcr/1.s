@@ -22,10 +22,8 @@ xiaomai:
 	.ascii "xiaomai ="
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
-	.equ jishu,			0x20000010
-	.equ lvbozhizhen,		0x20000020
-	.equ lvbohuanchong,		0x20000024
-	.equ adccaiyang,		0x20000500
+	.equ xiangminkaiguan,		0x20000030
+	.equ jishu,			0x20000034
 	.section .text
 vectors:
 	.word STACKINIT
@@ -297,8 +295,10 @@ _lcdyanshixunhuan:
 	pop {r5,pc}
 
 _xielcd:			@入R0=8位,r1=0命令,r1=1数据
-	push {r0-r3,lr}
+	push {r0-r5,lr}
+	ldr r4, = xiangminkaiguan  @ 相敏开关
 	mov r2, r0
+	ldr r5, [r4]
 	lsrs r2, r2, # 4
 	lsls r2, r2, # 2	@ 高四位
 	lsls r0, r0, # 28
@@ -307,10 +307,19 @@ _xielcd:			@入R0=8位,r1=0命令,r1=1数据
 	bpl __lcd_ming_ling
 __lcd_shu_ju:
 	movs r3, # 0x03		@ RS = 1 E = 1
-	b __xie_lcd_shu_ju
+	b __xiang_min_kai_guan
 __lcd_ming_ling:
 	movs r3, # 0x02		@ RS = 0 E = 1
+__xiang_min_kai_guan:
+	cmp r5, # 0x40
+	bne __kai_zheng_xiang_wei
+	movs r5, # 0x80
+	b __xie_lcd_shu_ju
+__kai_zheng_xiang_wei:	
+	movs r5, # 0x40
 __xie_lcd_shu_ju:
+	str r5, [r4]
+	adds r3, r3, r5
 	mov r1, r0
 	adds r2, r2, r3
 	movs r0, r2
@@ -322,7 +331,7 @@ __xie_lcd_shu_ju:
 	bl __74hc595
 	subs r0, r0, # 0x02
 	bl __74hc595
-	pop {r0-r3,pc}
+	pop {r0-r5,pc}
 	
 __74hc595:			@ 入R0=8位
 	push {r0-r7,lr}
