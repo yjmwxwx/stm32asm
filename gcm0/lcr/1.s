@@ -24,6 +24,7 @@ xiaomai:
 	.equ asciimabiao,		0x20000000
 	.equ xiangminkaiguan,		0x20000030
 	.equ jishu,			0x20000034
+	.equ dianyabiao,		0x20000038
 	.section .text
 vectors:
 	.word STACKINIT
@@ -129,73 +130,6 @@ _waisheshizhong:			 @ 外设时钟
 	@22=I2C2 @23=USB @28=PWR
 
 
-tim1chushiha:
-	ldr r0, = 0x40012c00 @ tim1_cr1
-	movs r1, # 0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 96
-	str r1, [r0, # 0x2c] @ ARR
-	ldr r1, = 0x68
-	str r1, [r0, # 0x1c] @ ccmr2  CC3
-	ldr r1, = 0x100    @  CC3
-	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 0x8000
-	str r1, [r0, # 0x44] @ BDTR
-	ldr r1, = 0x800 @ CC3 DMA
-	str r1, [r0, # 0x0c] @ DIER
-	ldr r1, = 0xe1
-	str r1, [r0]
-
-	
-_adcchushihua:
-	ldr r0, = 0x40012400  @ adc基地址
-	ldr r1, = 0x80000000
-	str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
-_dengadcjiaozhun:
-	ldr r1, [r0, # 0x08]
-	 movs r1, r1
-	bmi _dengadcjiaozhun   @ 等ADC校准
-_kaiadc:
-	ldr r1, [r0, # 0x08]
-	movs r2, # 0x01
-	orrs r1, r1, r2
-	str r1, [r0, # 0x08]
-_dengdaiadcwending:
-	ldr r1, [r0]
-	lsls r1, r1, # 31
-	bpl _dengdaiadcwending @ 等ADC稳定
-_tongdaoxuanze:
-	ldr r1, = 0x01
-	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-	ldr r1, = 0x3000        @ 13 连续转换
-	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
-	movs r1, # 0	         @
-	str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
-	ldr r1, [r0, # 0x08]
-	movs r2, # 0x04         @ 开始转换
-	orrs r1, r1, r2
-	str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
-
-dmachushihua:
-	@+0=LSR,+4=IFCR,
-	@+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
-	@+1c=CCR2,+20=CNDTR2,+24=CPAR2,+28=CMAR2
-	@+30=CCR3,+34=CNDTR3,+38=CPAR2,+3c=CMAR3
-	@+44=CCR4,+48=CNDTR4,+4c=CPAR4,+50=CMAR4
-	@+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
-	@+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
-	@+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
-
-	@tim1ch3DMA
-	ldr r0, = 0x40020000
-	ldr r1, = 0x40012c3c @ 外设地址
-	str r1, [r0, # 0x60]
-	ldr r1, = zheng_xian_biao @ 储存器地址
-	str r1, [r0, # 0x64]
-	ldr r1, = 100             @点数
-	str r1, [r0, # 0x5c]
-	ldr r1, = 0x25b1         @ 储存到外设
-	str r1, [r0, # 0x58]
 
 _waishezhongduan:				@外设中断
 	@0xE000E100    0-31  写1开，写0没效
@@ -234,10 +168,91 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x28205403
+	ldr r1, = 0x2820543f
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
+
+	
+dmachushihua:
+        @+0=LSR,+4=IFCR,
+        @+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
+        @+1c=CCR2,+20=CNDTR2,+24=CPAR2,+28=CMAR2
+        @+30=CCR3,+34=CNDTR3,+38=CPAR2,+3c=CMAR3
+        @+44=CCR4,+48=CNDTR4,+4c=CPAR4,+50=CMAR4
+        @+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
+        @+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
+        @+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
+
+        @tim1ch3DMA
+        ldr r0, = 0x40020000
+        ldr r1, = 0x40012c3c @ 外设地址
+        str r1, [r0, # 0x60]
+        ldr r1, = zheng_xian_biao @ 储存器地址
+        str r1, [r0, # 0x64]
+        ldr r1, = 100             @点数
+        str r1, [r0, # 0x5c]
+        ldr r1, = 0x25b1         @ 储存到外设
+        str r1, [r0, # 0x58]
+
+@	ldr r0, = 0x40020000
+@	ldr r1, = 0x40012440
+@	str r1, [r0, # 0x10]
+@	ldr r1, = dianyabiao
+@	str r1, [r0, # 0x14]
+ @       ldr r1, =  512
+  @      str r1, [r0, # 0x0c]
+   @     ldr r1, = 0xa81
+    @    str r1, [r0, # 0x08]
+
+tim1chushiha:
+        ldr r0, = 0x40012c00 @ tim1_cr1
+        movs r1, # 0
+        str r1, [r0, # 0x28] @ psc
+        ldr r1, = 96
+        str r1, [r0, # 0x2c] @ ARR
+        ldr r1, = 0x68
+        str r1, [r0, # 0x1c] @ ccmr2  CC3
+        ldr r1, = 0x100    @  CC3
+        str r1, [r0, # 0x20] @ ccer
+        ldr r1, = 0x8000
+        str r1, [r0, # 0x44] @ BDTR
+        ldr r1, = 0x800 @ CC3 DMA
+        str r1, [r0, # 0x0c] @ DIER
+        ldr r1, = 0xe1
+        str r1, [r0]
+
+
+_adcchushihua:
+        ldr r0, = 0x40012400  @ adc基地址
+	ldr r1, = 0x80000000
+        str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
+_dengadcjiaozhun:
+        ldr r1, [r0, # 0x08]
+         movs r1, r1
+        bmi _dengadcjiaozhun   @ 等ADC校准
+_kaiadc:
+        ldr r1, [r0, # 0x08]
+        movs r2, # 0x01
+        orrs r1, r1, r2
+        str r1, [r0, # 0x08]
+_dengdaiadcwending:
+        ldr r1, [r0]
+        lsls r1, r1, # 31
+        bpl _dengdaiadcwending @ 等ADC稳定
+_tongdaoxuanze:
+        ldr r1, = 1
+        str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
+@       ldr r1, = 0xcC3         @ tim3触发ADC
+        ldr r1, = 0x3000
+        str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
+        movs r1, # 0
+        str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
+        ldr r1, [r0, # 0x08]
+        ldr r2, = 0x04         @ 开始转换
+        orrs r1, r1, r2
+        str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
+
 
 _lcdchushihua:
 	movs r0, # 0x33
@@ -261,14 +276,98 @@ _lcdchushihua:
 	bl _xielcd
 	bl _lcdyanshi
 
+
 ting:
-	movs r0, # 0x80
-	ldr r1, = lcdshuju
-	movs r2, # 16
+	ldr r0, = 0x40012428
+	movs r1, # 1
+	str r1, [r0]
+	bl _jianbo
+	mov r4, r1
+	movs r1, # 4
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc0
+	ldr r1, = asciimabiao
+	movs r2, # 4
 	bl _lcdxianshi
+
+	movs r0, r4
+        movs r1, # 4
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xcc
+	ldr r1, = asciimabiao
+        movs r2, # 4
+        bl _lcdxianshi
+
+	ldr r0, = 0x40012428
+	movs r1, # 2
+	str r1, [r0]
+	bl _jianbo1
+        mov r4,	r1
+        movs r1, # 4
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x80
+	ldr r1, = asciimabiao
+        movs r2, # 4
+        bl _lcdxianshi
+	
+        movs r0, r4
+        movs r1, # 4
+	ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x8c
+        ldr r1, = asciimabiao
+        movs r2, # 4
+        bl _lcdxianshi
+	
 	b ting
 	
 
+_jianbo:				@检波
+					@输出r0=90度，R1=270度
+	push {r2-r4,lr}
+	ldr r2, = 0x4002005c
+	ldr r3, = 0x40012440
+	cpsid i
+_jianbo90du:
+	ldr r4, [r2]
+	cmp r4, # 25
+	bne _jianbo90du
+	ldr r0, [r3]			@取出90度
+_jianbo270du:
+	ldr r4, [r2]
+	cmp r4, # 75
+	bne _jianbo270du
+	ldr r1, [r3]
+	cpsie i
+	pop {r2-r4,pc}
+
+_jianbo1:                                @检波
+                                        @输出r0=90度，R1=270度
+        push {r2-r4,lr}
+        ldr r2, = 0x4002005c
+        ldr r3, = 0x40012440
+        cpsid i
+_jianbo0du:
+        ldr r4, [r2]
+        cmp r4, # 100
+        bne _jianbo0du
+        ldr r0, [r3]                    @取出90度
+_jianbo180du:
+        ldr r4, [r2]
+        cmp r4, # 50
+        bne _jianbo180du
+        ldr r1, [r3]
+        cpsie i
+        pop {r2-r4,pc}
+
+	
 _lcdxianshi:	  		@r0=LCD位置，r1=数据地址，r2=长度
 	push {r0-r4,lr}
 	mov r4, r1
