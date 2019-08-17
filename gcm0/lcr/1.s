@@ -7,13 +7,15 @@
 	         .syntax unified
 .section .data
 zheng_xian_biao:
-	.short 0x30,0x33,0x36,0x38,0x3b,0x3e,0x41,0x44,0x47,0x49,0x4c,0x4e,0x50,0x52,0x54,0x56,0x58,0x59,0x5b,0x5c,0x5d,0x5e,0x5e,0x5f,0x5f,0x5f,0x5f,0x5f,0x5e,0x5d,0x5c,0x5b,0x5a,0x59,0x57,0x55,0x53,0x51,0x4f,0x4d,0x4a,0x48,0x45,0x43,0x40,0x3d,0x3a,0x37,0x34,0x31,0x2e,0x2b,0x28,0x25,0x22,0x1f,0x1c,0x1a,0x17,0x15,0x12,0x10,0xe,0xc,0xa,0x8,0x6,0x5,0x4,0x3,0x2,0x1,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x3,0x4,0x6,0x7,0x9,0xb,0xd,0xf,0x11,0x13,0x16,0x18,0x1b,0x1e,0x21,0x24,0x27,0x29,0x2c,0x30
+	.short 24,25,26,28,29,31,32,34,35,36,37,38,40,41,42,43,43,44,45,45,46,46,47,47,47,47,47,47,47,46,46,45,45,44,43,43,42,41,40,38,37,36,35,34,32,31,29,28,26,25,24,22,21,19,18,16,15,13,12,11,10,9,7,6,5,4,4,3,2,2,1,1,0,0,0,0,0,0,0,1,1,2,2,3,4,4,5,6,7,9,10,11,12,13,15,16,18,19,21,22,24
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
 dianhua:	
 	.ascii	"     15552208295"
 qq:
 	.ascii	"   QQ:3341656346"
+xushu:
+	.ascii "j"
 fu:
 	.ascii "-"
 zheng:
@@ -24,7 +26,12 @@ xiaomai:
 	.equ asciimabiao,		0x20000000
 	.equ xiangminkaiguan,		0x20000030
 	.equ jishu,			0x20000034
-	.equ dianyabiao,		0x20000038
+	.equ jianbo,			0x20000038
+	.equ dianyabiao,		0x20000040
+	.equ lvboqizhizhen,		0x20000050
+	.equ lvboqihuanchong,		0x20000054
+	.equ lvboqizhizhen1,		0x20000550
+	.equ lvboqihuanchong1,		0x20000554
 	.section .text
 vectors:
 	.word STACKINIT
@@ -168,7 +175,7 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820543f
+	ldr r1, = 0x2820540f
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
@@ -192,24 +199,14 @@ dmachushihua:
         str r1, [r0, # 0x64]
         ldr r1, = 100             @点数
         str r1, [r0, # 0x5c]
-        ldr r1, = 0x25b1         @ 储存到外设
+        ldr r1, = 0x35b1         @ 储存到外设
         str r1, [r0, # 0x58]
-
-@	ldr r0, = 0x40020000
-@	ldr r1, = 0x40012440
-@	str r1, [r0, # 0x10]
-@	ldr r1, = dianyabiao
-@	str r1, [r0, # 0x14]
- @       ldr r1, =  512
-  @      str r1, [r0, # 0x0c]
-   @     ldr r1, = 0xa81
-    @    str r1, [r0, # 0x08]
 
 tim1chushiha:
         ldr r0, = 0x40012c00 @ tim1_cr1
         movs r1, # 0
         str r1, [r0, # 0x28] @ psc
-        ldr r1, = 96
+        ldr r1, = 47
         str r1, [r0, # 0x2c] @ ARR
         ldr r1, = 0x68
         str r1, [r0, # 0x1c] @ ccmr2  CC3
@@ -221,7 +218,6 @@ tim1chushiha:
         str r1, [r0, # 0x0c] @ DIER
         ldr r1, = 0xe1
         str r1, [r0]
-
 
 _adcchushihua:
         ldr r0, = 0x40012400  @ adc基地址
@@ -243,7 +239,6 @@ _dengdaiadcwending:
 _tongdaoxuanze:
         ldr r1, = 1
         str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-@       ldr r1, = 0xcC3         @ tim3触发ADC
         ldr r1, = 0x3000
         str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
         movs r1, # 0
@@ -277,12 +272,22 @@ _lcdchushihua:
 	bl _lcdyanshi
 
 
+	movs r0, # 0xc4
+	ldr r1, = xushu
+	movs r2, # 1
+	movs r3, # 0xff
+	bl _lcdxianshi
 ting:
 	ldr r0, = 0x40012428
 	movs r1, # 1
 	str r1, [r0]
+	movs r0, # 25
 	bl _jianbo
-	mov r4, r1
+	mov r3, r0
+        ldr r0, = lvboqihuanchong
+        ldr r1, = 256
+        ldr r2, = lvboqizhizhen
+        bl _lvboqi1
 	movs r1, # 4
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
@@ -292,80 +297,97 @@ ting:
 	movs r2, # 4
 	bl _lcdxianshi
 
-	movs r0, r4
-        movs r1, # 4
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-        movs r0, # 0xcc
-	ldr r1, = asciimabiao
-        movs r2, # 4
-        bl _lcdxianshi
-
-	ldr r0, = 0x40012428
-	movs r1, # 2
-	str r1, [r0]
-	bl _jianbo1
-        mov r4,	r1
-        movs r1, # 4
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-        movs r0, # 0x80
-	ldr r1, = asciimabiao
-        movs r2, # 4
-        bl _lcdxianshi
-	
-        movs r0, r4
+        ldr r0, = 0x40012428
+        movs r1, # 2
+        str r1, [r0]
+        movs r0, # 50
+	bl _jianbo
+        mov r3,	r0
+        ldr r0, = lvboqihuanchong1
+        ldr r1, = 256
+	ldr r2, = lvboqizhizhen1
+	bl _lvboqi1
         movs r1, # 4
 	ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
-        movs r0, # 0x8c
+        movs r0, # 0x80
         ldr r1, = asciimabiao
         movs r2, # 4
         bl _lcdxianshi
-	
+
+
 	b ting
 	
 
-_jianbo:				@检波
-					@输出r0=90度，R1=270度
-	push {r2-r4,lr}
-	ldr r2, = 0x4002005c
-	ldr r3, = 0x40012440
+_jianbo:				@ 检波 @ 入口 R0=度数
+	push {r1-r3,lr}
+	ldr r1, = 0x4002005c
+	ldr r2, = 0x40012440
 	cpsid i
 _jianbo90du:
-	ldr r4, [r2]
-	cmp r4, # 25
+	ldr r3, [r1]
+	cmp r3, r0 
 	bne _jianbo90du
-	ldr r0, [r3]			@取出90度
-_jianbo270du:
-	ldr r4, [r2]
-	cmp r4, # 75
-	bne _jianbo270du
-	ldr r1, [r3]
+	ldr r0, [r2]
 	cpsie i
 	pop {r2-r4,pc}
 
-_jianbo1:                                @检波
-                                        @输出r0=90度，R1=270度
-        push {r2-r4,lr}
-        ldr r2, = 0x4002005c
-        ldr r3, = 0x40012440
-        cpsid i
-_jianbo0du:
-        ldr r4, [r2]
-        cmp r4, # 100
-        bne _jianbo0du
-        ldr r0, [r3]                    @取出90度
-_jianbo180du:
-        ldr r4, [r2]
-        cmp r4, # 50
-        bne _jianbo180du
-        ldr r1, [r3]
-        cpsie i
-        pop {r2-r4,pc}
+_lvboqi:
+			@滤波器
+			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
+			@出R0=结果
+	push {r1-r7,lr}	
+	ldr r5, [r2]		@读出表指针
+	lsls r6, r1, # 1	
+	strh r3, [r0, r5]	@数值写到滤波器缓冲区
+	adds r5, r5, # 2
+	cmp r5, r6
+	bne _lvboqimeidaohuanchongquding
+	movs r5, # 0
+_lvboqimeidaohuanchongquding:
+	str r5, [r2]
+	movs r7, # 0
+_lvboqixunhuan:
+	cmp r5, r6
+	bne _lvbozonghe
+	movs r5, # 0
+_lvbozonghe:
+	ldrh r4, [r0, r5]
+	adds r5, r5, # 2
+	adds r7, r7, r4
+	subs r1, r1, # 1
+	bne _lvboqixunhuan
+	asrs r0, r7, # 8	@修改
+	pop {r1-r7,pc}
+
+_lvboqi1:
+			@滤波器
+			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
+			@出R0=结果
+	push {r1-r7,lr}	
+	ldr r5, [r2]		@读出表指针
+	lsls r6, r1, # 1	
+	strh r3, [r0, r5]	@数值写到滤波器缓冲区
+	adds r5, r5, # 2
+	cmp r5, r6
+	bne _lvboqimeidaohuanchongquding1
+	movs r5, # 0
+_lvboqimeidaohuanchongquding1:
+	str r5, [r2]
+	movs r7, # 0
+_lvboqixunhuan1:
+	cmp r5, r6
+	bne _lvbozonghe1
+	movs r5, # 0
+_lvbozonghe1:
+	ldrh r4, [r0, r5]
+	adds r5, r5, # 2
+	adds r7, r7, r4
+	subs r1, r1, # 1
+	bne _lvboqixunhuan1
+	asrs r0, r7, # 8	@修改
+	pop {r1-r7,pc}
 
 	
 _lcdxianshi:	  		@r0=LCD位置，r1=数据地址，r2=长度
