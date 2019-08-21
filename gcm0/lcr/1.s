@@ -285,9 +285,9 @@ ting:
 	bl _jianbo
 	mov r3, r0
         ldr r0, = lvboqihuanchong
-        ldr r1, = 256
+        ldr r1, = 16
         ldr r2, = lvboqizhizhen
-        bl _lvboqi1
+        bl _lvboqi
 	movs r1, # 4
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
@@ -304,9 +304,9 @@ ting:
 	bl _jianbo
         mov r3,	r0
         ldr r0, = lvboqihuanchong1
-        ldr r1, = 256
+        ldr r1, = 16
 	ldr r2, = lvboqizhizhen1
-	bl _lvboqi1
+	bl _lvboqi
         movs r1, # 4
 	ldr r2, = asciimabiao
         movs r3, # 0xff
@@ -315,7 +315,6 @@ ting:
         ldr r1, = asciimabiao
         movs r2, # 4
         bl _lcdxianshi
-
 
 	b ting
 	
@@ -358,36 +357,9 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 8	@修改
+	asrs r0, r7, # 4	@修改
 	pop {r1-r7,pc}
 
-_lvboqi1:
-			@滤波器
-			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
-			@出R0=结果
-	push {r1-r7,lr}	
-	ldr r5, [r2]		@读出表指针
-	lsls r6, r1, # 1	
-	strh r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 2
-	cmp r5, r6
-	bne _lvboqimeidaohuanchongquding1
-	movs r5, # 0
-_lvboqimeidaohuanchongquding1:
-	str r5, [r2]
-	movs r7, # 0
-_lvboqixunhuan1:
-	cmp r5, r6
-	bne _lvbozonghe1
-	movs r5, # 0
-_lvbozonghe1:
-	ldrh r4, [r0, r5]
-	adds r5, r5, # 2
-	adds r7, r7, r4
-	subs r1, r1, # 1
-	bne _lvboqixunhuan1
-	asrs r0, r7, # 8	@修改
-	pop {r1-r7,pc}
 
 	
 _lcdxianshi:	  		@r0=LCD位置，r1=数据地址，r2=长度
