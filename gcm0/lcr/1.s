@@ -284,11 +284,11 @@ ting:
 	str r1, [r0]
 	movs r0, # 50
 	bl _jianbo
-	ldr r3, = 516
+	ldr r3, = 516			
 	adds r0, r0, r3
 	mov r3, r0
         ldr r0, = lvboqihuanchong
-        ldr r1, = 256			@反相补偿
+        ldr r1, = 256			
         ldr r2, = lvboqizhizhen
         bl _lvboqi
 	movs r1, # 4
