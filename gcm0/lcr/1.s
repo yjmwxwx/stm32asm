@@ -32,6 +32,7 @@ xiaomai:
 	.equ lvboqihuanchong,		0x20000054
 	.equ lvboqizhizhen1,		0x20000550
 	.equ lvboqihuanchong1,		0x20000554
+
 	.section .text
 vectors:
 	.word STACKINIT
@@ -281,11 +282,13 @@ ting:
 	ldr r0, = 0x40012428
 	movs r1, # 1
 	str r1, [r0]
-	movs r0, # 25
+	movs r0, # 50
 	bl _jianbo
+	ldr r3, = 516
+	adds r0, r0, r3
 	mov r3, r0
         ldr r0, = lvboqihuanchong
-        ldr r1, = 16
+        ldr r1, = 256			@反相补偿
         ldr r2, = lvboqizhizhen
         bl _lvboqi
 	movs r1, # 4
@@ -300,11 +303,11 @@ ting:
         ldr r0, = 0x40012428
         movs r1, # 2
         str r1, [r0]
-        movs r0, # 50
+        movs r0, # 25
 	bl _jianbo
         mov r3,	r0
         ldr r0, = lvboqihuanchong1
-        ldr r1, = 16
+        ldr r1, = 256
 	ldr r2, = lvboqizhizhen1
 	bl _lvboqi
         movs r1, # 4
@@ -357,7 +360,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 4	@修改
+	asrs r0, r7, # 8	@修改
 	pop {r1-r7,pc}
 
 
