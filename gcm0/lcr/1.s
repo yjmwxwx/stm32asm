@@ -278,6 +278,8 @@ _lcdchushihua:
 	movs r2, # 1
 	movs r3, # 0xff
 	bl _lcdxianshi
+	mov r0, r0
+	mov r0, r0
 ting:
 	ldr r0, = 0x40012428
 	movs r1, # 1
