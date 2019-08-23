@@ -30,8 +30,12 @@ xiaomai:
 	.equ dianyabiao,		0x20000040
 	.equ lvboqizhizhen,		0x20000050
 	.equ lvboqihuanchong,		0x20000054
-	.equ lvboqizhizhen1,		0x20000550
-	.equ lvboqihuanchong1,		0x20000554
+	.equ lvboqizhizhen1,		0x20000254
+	.equ lvboqihuanchong1,		0x20000258
+	.equ lvboqizhizhen2,		0x20000460
+	.equ lvboqihuanchong2,		0x20000464
+	.equ lvboqizhizhen3,		0x20000670
+	.equ lvboqihuanchong3,		0x20000674
 
 	.section .text
 vectors:
@@ -176,7 +180,7 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820540f
+	ldr r1, = 0x2824540f
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
@@ -280,7 +284,12 @@ _lcdchushihua:
 	bl _lcdxianshi
 	mov r0, r0
 	mov r0, r0
+	
 ting:
+	ldr r0, = 0x48000000
+	movs r1, # 1
+	lsls r1, r1, # 9
+	str r1, [r0, # 0x18]
 	ldr r0, = 0x40012428
 	movs r1, # 1
 	str r1, [r0]
@@ -321,8 +330,51 @@ ting:
         movs r2, # 4
         bl _lcdxianshi
 
+	ldr r0, = 0x48000000
+        movs r1, # 1
+        lsls r1, r1, # 9
+        str r1, [r0, # 0x28]
+        ldr r0, = 0x40012428
+	movs r1, # 1
+        str r1, [r0]
+        movs r0, # 50
+        bl _jianbo
+	ldr r3, = 516                   @反相补偿
+        adds r0, r0, r3
+        mov r3, r0
+        ldr r0, = lvboqihuanchong2
+        ldr r1, = 256
+        ldr r2, = lvboqizhizhen2
+        bl _lvboqi
+        movs r1, # 4
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xcc
+        ldr r1, = asciimabiao
+	movs r2, # 4
+        bl _lcdxianshi
+
+        ldr r0, = 0x40012428
+        movs r1, # 2
+        str r1, [r0]
+        movs r0, # 25
+        bl _jianbo
+        mov r3, r0
+        ldr r0, = lvboqihuanchong3
+        ldr r1, = 256
+        ldr r2, = lvboqizhizhen3
+        bl _lvboqi
+        movs r1, # 4
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x8c
+        ldr r1, = asciimabiao
+        movs r2, # 4
+        bl _lcdxianshi
+
 	b ting
-	
 
 _jianbo:				@ 检波 @ 入口 R0=度数
 	push {r1-r3,lr}
