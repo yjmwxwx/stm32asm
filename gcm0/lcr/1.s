@@ -86,6 +86,11 @@ vectors:
 	.align 2
 
 _start:
+	ldr r0, = 0xffff
+yanshi111:
+	subs r0, r0, # 1
+	bne yanshi111
+	
 shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
@@ -295,8 +300,6 @@ ting:
 	str r1, [r0]
 	movs r0, # 50
 	bl _jianbo
-	ldr r3, = 516			@反相补偿
-	adds r0, r0, r3
 	mov r3, r0
         ldr r0, = lvboqihuanchong
         ldr r1, = 256			
@@ -337,10 +340,10 @@ ting:
         ldr r0, = 0x40012428
 	movs r1, # 1
         str r1, [r0]
-        movs r0, # 50
+        movs r0, # 25
         bl _jianbo
-	ldr r3, = 516                   @反相补偿
-        adds r0, r0, r3
+	ldr r3, =  276
+	adds r0, r0, r3
         mov r3, r0
         ldr r0, = lvboqihuanchong2
         ldr r1, = 256
@@ -350,7 +353,7 @@ ting:
         ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
-        movs r0, # 0xcc
+        movs r0, # 0x8c
         ldr r1, = asciimabiao
 	movs r2, # 4
         bl _lcdxianshi
@@ -358,7 +361,7 @@ ting:
         ldr r0, = 0x40012428
         movs r1, # 2
         str r1, [r0]
-        movs r0, # 25
+        movs r0, # 50
         bl _jianbo
         mov r3, r0
         ldr r0, = lvboqihuanchong3
@@ -369,7 +372,7 @@ ting:
         ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
-        movs r0, # 0x8c
+        movs r0, # 0xcc
         ldr r1, = asciimabiao
         movs r2, # 4
         bl _lcdxianshi
