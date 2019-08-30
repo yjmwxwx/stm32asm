@@ -7,7 +7,7 @@
 	         .syntax unified
 .section .data
 zheng_xian_biao:
-	.short 24,25,26,28,29,31,32,34,35,36,37,38,40,41,42,43,43,44,45,45,46,46,47,47,47,47,47,47,47,46,46,45,45,44,43,43,42,41,40,38,37,36,35,34,32,31,29,28,26,25,24,22,21,19,18,16,15,13,12,11,10,9,7,6,5,4,4,3,2,2,1,1,0,0,0,0,0,0,0,1,1,2,2,3,4,4,5,6,7,9,10,11,12,13,15,16,18,19,21,22,24
+	.short 23,24,26,27,29,30,31,33,34,35,36,38,39,40,41,41,42,43,44,44,45,45,46,46,46,46,46,46,46,45,45,45,44,43,43,42,41,40,39,38,37,36,35,33,32,31,29,28,27,25,24,22,21,19,18,17,15,14,13,11,10,9,8,7,6,5,4,3,3,2,1,1,1,0,0,0,0,0,0,0,1,1,2,2,3,4,5,5,6,7,8,10,11,12,13,15,16,17,19,20,22,23
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
 dianhua:	
@@ -20,6 +20,10 @@ fu:
 	.ascii "-"
 zheng:
 	.ascii "+"
+dianzu:
+	.ascii	"R="
+pinlv:
+	.ascii	"10KHZ"
 xiaomai:
 	.ascii "xiaomai ="
 	.equ STACKINIT,        	        0x20001000
@@ -28,15 +32,19 @@ xiaomai:
 	.equ jishu,			0x20000034
 	.equ jianbo,			0x20000038
 	.equ dianyabiao,		0x20000040
-	.equ lvboqizhizhen,		0x20000200
-	.equ lvboqihuanchong,		0x20000204
-	.equ lvboqizhizhen1,		0x20000410
-	.equ lvboqihuanchong1,		0x20000414
-	.equ lvboqizhizhen2,		0x20000620
-	.equ lvboqihuanchong2,		0x20000624
-	.equ lvboqizhizhen3,		0x20000830
-	.equ lvboqihuanchong3,		0x20000834
-
+	.equ lvboqizhizhen,		0x20000600
+	.equ lvboqihuanchong,		0x20000604
+	.equ lvboqizhizhen1,		0x20000700
+	.equ lvboqihuanchong1,		0x20000704
+	.equ lvboqizhizhen2,		0x20000800
+	.equ lvboqihuanchong2,		0x20000804
+	.equ lvboqizhizhen3,		0x20000900
+	.equ lvboqihuanchong3,		0x20000904
+	.equ xia_bi_shi_bu,		0x20000a00
+	.equ shang_bi_shi_bu,		0x20000a04
+	.equ xia_bi_xu_bu,		0x20000a08
+	.equ shang_bi_xu_bu,		0x20000a0c
+	.equ bu_chang_100r,		0x20000a10
 	.section .text
 vectors:
 	.word STACKINIT
@@ -193,6 +201,34 @@ io_she_zhi:
 
 
 
+_adcchushihua:
+        ldr r0, = 0x40012400  @ adc基地址
+        ldr r1, = 0x80000000
+        str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
+_dengadcjiaozhun:
+        ldr r1, [r0, # 0x08]
+        movs r1, r1
+        bmi _dengadcjiaozhun   @ 等ADC校准
+_kaiadc:
+	ldr r1, [r0, # 0x08]
+        movs r2, # 0x01
+	orrs r1, r1, r2
+        str r1, [r0, # 0x08]
+_dengdaiadcwending:
+	ldr r1, [r0]
+	lsls r1, r1, # 31
+	bpl _dengdaiadcwending @ 等ADC稳定
+_tongdaoxuanze:
+	ldr r1, = 2
+        str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
+        ldr r1, = 0xc03
+        str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
+	movs r1, # 0
+        str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
+	ldr r1, [r0, # 0x08]
+        ldr r2, = 0x04         @ 开始转换
+        orrs r1, r1, r2
+	str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
 
 
 	
@@ -212,7 +248,7 @@ dmachushihua:
         str r1, [r0, # 0x60]
         ldr r1, = zheng_xian_biao @ 储存器地址
         str r1, [r0, # 0x64]
-        ldr r1, = 100             @点数
+        ldr r1, = 101             @点数
         str r1, [r0, # 0x5c]
         ldr r1, = 0x35b1         @ 储存到外设
         str r1, [r0, # 0x58]
@@ -222,7 +258,7 @@ dmachushihua:
 	str r1, [r0, # 0x10]
 	ldr r1, = dianyabiao
 	str r1, [r0, # 0x14]
-	ldr r1, =  100
+	ldr r1, =  202
 	str r1, [r0, # 0x0c]
 	ldr r1, = 0x5a1		@ 5a1
 	str r1, [r0, # 0x08]
@@ -232,13 +268,13 @@ tim1chushiha:
         ldr r0, = 0x40012c00 @ tim1_cr1
         movs r1, # 0
         str r1, [r0, # 0x28] @ psc
-        ldr r1, = 47
+        ldr r1, = 46
         str r1, [r0, # 0x2c] @ ARR
 	movs r1, # 0x40
 	str r1, [r0, # 0x04] @ TRGO
 	movs r1, # 0x38
 	str r1, [r0, # 0x18] @ ccmr1 cc1
-	movs r1, # 47
+	movs r1, # 46
 	str r1, [r0, # 0x34]
         ldr r1, = 0x68
         str r1, [r0, # 0x1c] @ ccmr2  CC3
@@ -251,34 +287,7 @@ tim1chushiha:
         ldr r1, = 0x81
         str r1, [r0]
 
-_adcchushihua:
-        ldr r0, = 0x40012400  @ adc基地址
-        ldr r1, = 0x80000000
-        str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
-_dengadcjiaozhun:
-        ldr r1, [r0, # 0x08]
-        movs r1, r1
-        bmi _dengadcjiaozhun   @ 等ADC校准
-_kaiadc:
-        ldr r1, [r0, # 0x08]
-        movs r2, # 0x01
-        orrs r1, r1, r2
-        str r1, [r0, # 0x08]
-_dengdaiadcwending:
-        ldr r1, [r0]
-        lsls r1, r1, # 31
-        bpl _dengdaiadcwending @ 等ADC稳定
-_tongdaoxuanze:
-        ldr r1, = 1
-        str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-        ldr r1, = 0xc03
-        str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
-        movs r1, # 0
-        str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
-	ldr r1, [r0, # 0x08]
-	ldr r2, = 0x04         @ 开始转换
-	orrs r1, r1, r2
-	str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
+
 
 _lcdchushihua:
 	movs r0, # 0x33
@@ -302,35 +311,74 @@ _lcdchushihua:
 	bl _xielcd
 	bl _lcdyanshi
 
-
-	movs r0, # 0xc4
-	ldr r1, = xushu
-	movs r2, # 1
+	movs r0, # 0x80
+	ldr r1, = lcdshuju
+	movs r2, # 16
 	movs r3, # 0xff
 	bl _lcdxianshi
+	
+	ldr r0, = liangcheng
+	movs r1, # 0xc0
+	str r1, [r0]
+	bl __zi_dong_liang_cheng
+ting:
+        ldr r0, = dianyabiao
+	adds r0, r0, # 0x30
+        movs r1, # 0x32
+        bl _jianbo
+	bl __zhen_fu_lv_bo
+	bl __dian_zu_ji_suan
+	movs r1, # 4
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+        movs r0, # 0xc3
+	ldr r1, = asciimabiao
+        movs r2, # 0x04
+        bl _lcdxianshi
+        movs r0, # 0xc1
+        ldr r1, = dianzu
+        movs r2, # 2
+        movs r3, # 0xff
+        bl _lcdxianshi
+        movs r0, # 0xca
+        ldr r1, = pinlv
+        movs r2, # 5
+        movs r3, # 0xff
+        bl _lcdxianshi
+	b ting
 
-        movs r0, # 0xcf
+
+__dian_zu_ji_suan:
+	push {r1-r3,lr}
+	ldr r0, = shang_bi_shi_bu
+	ldr r1, = xia_bi_shi_bu
+	ldr r2, = bu_chang_100r
+	ldr r0, [r0]
+	ldr r1, [r1]
+	ldr r2, [r2]
+	ldr r2, = 76
+	adds r0, r0, r2
+	movs r2, # 162
+	muls r0, r0, r2
+	bl _chufa
+	pop {r1-r3,pc}
+	
+__xian_shi_shang_xia_bi:
+	push {r0-r3,lr}
+        movs r0, # 0xc4
         ldr r1, = xushu
         movs r2, # 1
         movs r3, # 0xff
         bl _lcdxianshi
-
-
-	ldr r0, = liangcheng
-	movs r1, # 0x80
-	str r1, [r0]
-
-ting:
-	bl _jianbo
-	mov r5, r2
-	mov r6, r3
-	mov r4, r1
-	mov r3, r0
-	ldr r0, = lvboqihuanchong
-	ldr r1, = 16
-	ldr r2, = lvboqizhizhen
-	bl _lvboqi
+	movs r0, # 0xcf
+        ldr r1, = xushu
+	movs r2, # 1
+	movs r3, # 0xff
+	bl _lcdxianshi
+	ldr r0, = xia_bi_shi_bu
 	movs r1, # 4
+	ldr r0, [r0]
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
 	bl _zhuanascii
@@ -338,85 +386,113 @@ ting:
 	ldr r1, = asciimabiao
 	movs r2, # 0x04
 	bl _lcdxianshi
-
-        mov r3, r4
-        ldr r0, = lvboqihuanchong1
-	ldr r1, = 16
-	ldr r2, = lvboqizhizhen1
-        bl _lvboqi
+        ldr r0, = shang_bi_shi_bu
         movs r1, # 4
-	ldr r2, = asciimabiao
+        ldr r0, [r0]
+        ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
         movs r0, # 0x80
         ldr r1, = asciimabiao
         movs r2, # 0x04
         bl _lcdxianshi
-
-	mov r3, r5
-	ldr r0, = lvboqihuanchong2
-        ldr r1, = 16
-        ldr r2, = lvboqizhizhen2
-	bl _lvboqi
+        ldr r0, = xia_bi_xu_bu
         movs r1, # 4
+        ldr r0, [r0]
         ldr r2, = asciimabiao
-	movs r3, # 0xff
+        movs r3, # 0xff
         bl _zhuanascii
         movs r0, # 0xcb
         ldr r1, = asciimabiao
-	movs r2, # 0x04
-	bl _lcdxianshi
-
-        mov r3, r6
-	ldr r0, = lvboqihuanchong3
-	ldr r1, = 16
-	ldr r2, = lvboqizhizhen3
-        bl _lvboqi
-	movs r1, # 4
-	ldr r2, = asciimabiao
+        movs r2, # 0x04
+        bl _lcdxianshi
+        ldr r0, = shang_bi_xu_bu
+        movs r1, # 4
+        ldr r0, [r0]
+        ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
         movs r0, # 0xc0
-	ldr r1, = asciimabiao
+        ldr r1, = asciimabiao
         movs r2, # 0x04
-	bl _lcdxianshi
+        bl _lcdxianshi
+	pop {r0-r3,pc}
 
 
-	b ting
+__zhen_fu_lv_bo:
+	@ 入口 R0= 下臂实部，R1=上臂实部，R2=下臂虚部，R3=上臂虚部
+	push {r0-r7,lr}
+	ldr r7, = xia_bi_shi_bu
+	mov r5, r2
+	mov r6, r3
+	mov r4, r1
+	mov r3, r0
+	ldr r0, = lvboqihuanchong
+	ldr r1, = 64
+	ldr r2, = lvboqizhizhen
+	bl _lvboqi
+	str r0, [r7]			@保存下臂实部
+        mov r3, r4
+        ldr r0, = lvboqihuanchong1
+	ldr r1, = 64
+	ldr r2, = lvboqizhizhen1
+        bl _lvboqi
+        str r0, [r7, # 0x04]		@保存上臂实部
+	mov r3, r5
+	ldr r0, = lvboqihuanchong2
+        ldr r1, = 64
+        ldr r2, = lvboqizhizhen2
+	bl _lvboqi
+	str r0, [r7, # 0x08]		@保存下臂虚部
+
+        mov r3, r6
+	ldr r0, = lvboqihuanchong3
+	ldr r1, = 64
+	ldr r2, = lvboqizhizhen3
+        bl _lvboqi
+	str r0, [r7, # 0x0c]		@保存上臂虚部
+	pop {r0-r7,pc}
 	
 
-
-
-_jianbo:				@ 出口r0 r1 r2 r3
+__zi_dong_liang_cheng:
+	@ 0xc0=100,0x80=1k
+	@0x40=10k,0x00=100k
+	push {r0-r1,lr}
+	ldr r0, = liangcheng
+	movs r1, # 0xc0
+	str r1, [r0]
+	pop {r0-r1,pc}
+	
+_jianbo:
+	@ 入口 R0=采样表首地址，R1=0度90度相差多少
+	@ 出口R0=下臂90度，R1=上臂90度，R2=下臂180度，R3=上臂180度
 	push {r4-r7,lr}
+	mov r4, r1
+	mov r1, r0
+	mov r3, r0
+	adds r3, r3, # 0x18	@偏移90度
+	adds r1, r1, r4
+	mov r2, r1
+	adds r2, r2, # 0x18	@偏移90度
         ldr r7, = 0x48000000
         ldr r6, = 0x200
 	str r6, [r7, # 0x28]
         ldr r5, = 0x40012428
-        movs r4, # 1
+        movs r4, # 2
         str r4, [r5]
-
-	bl _jianboyanshi
-	ldr r4, = 0x20000088
-	ldrh r0, [r4]
-
-
+	bl _jianboyanshi	
+	ldrh r0, [r0]
 	str r6, [r7, # 0x18]
 	bl _jianboyanshi
-	ldr r4, = 0x200000b8
-	ldrh r1, [r4]
-	
-	movs r4, # 2
+	ldrh r1, [r1]
+	movs r4, # 1
 	str r4, [r5]
 	str r6, [r7, # 0x28]
 	bl _jianboyanshi
-	ldr r4, = 0x200000b8
-	ldrh r2, [r4]
-
+	ldrh r2, [r2]
 	str r6, [r7, # 0x18]
 	bl _jianboyanshi
-	ldr r4, = 0x20000088
-	ldrh r3, [r4]
+	ldrh r3, [r3]
 	pop {r4-r7,pc}
 _jianboyanshi:
 	push {r7,lr}
@@ -450,7 +526,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 4	@修改
+	asrs r0, r7, # 6	@修改
 	pop {r1-r7,pc}
 
 
