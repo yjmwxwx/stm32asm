@@ -30,8 +30,8 @@ qianou:
 	.ascii	"K"
 ou:
         .int    0xf4
-qingping:
-	.int 0x20
+kong:
+	.int 0x20202020
 xiaomai:
 	.ascii "xiaomai ="
 	.equ STACKINIT,        	        0x20001000
@@ -332,6 +332,7 @@ _lcdchushihua:
 	ldr r0, = liangcheng
 	movs r1, # 0x00
 	str r1, [r0]
+
 ting:
 	bl __zi_dong_liang_cheng
         ldr r0, = dianyabiao
@@ -350,17 +351,96 @@ ting:
         ldr r1, = asciimabiao
         movs r2, # 8
         bl _lcdxianshi
-	
+	ldr r0, = liangcheng
+	ldr r1, [r0]
+__liangcheng100k:
+	cmp r1, # 0x00
+	bne __liangcheng10k
         ldr r0, = dianzuzhi
-        movs r1, # 7
+        ldr r1, = 1000
         ldr r0, [r0]
+	bl _chufa
+	movs r1, # 4
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
         bl _zhuanascii
 	movs r0, # 0xc3
 	ldr r1, = asciimabiao
-	movs r2, # 7
+	movs r2, # 4
         bl _lcdxianshi
+	movs r0, # 0xc7
+        ldr r1, = qianou
+        movs r2, # 2
+        bl _lcdxianshi
+	movs r0, # 0xc9
+        ldr r1, = kong
+        movs r2, # 1
+        bl _lcdxianshi
+	b __xian_shi_qi_ta
+__liangcheng10k:
+        ldr r0, = liangcheng
+        ldr r1, [r0]
+	cmp r1, # 0x40
+	bne __liangcheng1k
+        ldr r0, = dianzuzhi
+        ldr r1, = 100
+        ldr r0, [r0]
+        bl _chufa
+        movs r1, # 5
+        ldr r2, = asciimabiao
+	movs r3, # 3
+        bl _zhuanascii
+        movs r0, # 0xc3
+        ldr r1, = asciimabiao
+        movs r2, # 5
+        bl _lcdxianshi
+        movs r0, # 0xc8
+        ldr r1, = qianou
+        movs r2, # 2
+        bl _lcdxianshi
+	b __xian_shi_qi_ta
+__liangcheng1k:
+        ldr r0, = liangcheng
+        ldr r1, [r0]
+        cmp r1, # 0x80
+        bne __liangcheng100r
+	ldr r0, = dianzuzhi
+        ldr r1, = 10
+        ldr r0, [r0]
+        bl _chufa
+        movs r1, # 5
+        ldr r2, = asciimabiao
+        movs r3, # 2
+        bl _zhuanascii
+        movs r0, # 0xc3
+        ldr r1, = asciimabiao
+        movs r2, # 5
+        bl _lcdxianshi
+        movs r0, # 0xc8
+        ldr r1, = qianou
+        movs r2, # 2
+        bl _lcdxianshi
+	b __xian_shi_qi_ta
+__liangcheng100r:
+        ldr r0, = dianzuzhi
+	movs r1, # 4
+        ldr r0, [r0]
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xc3
+        ldr r1, = asciimabiao
+        movs r2, # 4
+        bl _lcdxianshi
+        movs r0, # 0xc7
+        ldr r1, = ou
+        movs r2, # 1
+        bl _lcdxianshi
+        movs r0, # 0xc8
+        ldr r1, = kong
+        movs r2, # 2
+        bl _lcdxianshi
+        b __xian_shi_qi_ta
 
 __xian_shi_qi_ta:
 	ldr r0, = liangcheng
@@ -406,7 +486,7 @@ dd:
 	bl _lcdxianshi
 
         ldr r0, = dianyabiao
-        adds r0, r0, # 0x2e
+        adds r0, r0, #	0x20 
         movs r1, # 0x32
         bl _jianbo
         bl __zhen_fu_lv_bo
@@ -496,6 +576,7 @@ __ji_suan_dian_rong:
 	muls r4, r4, r7		@ ad
 	subs r5, r5, r4		@ bc-ad
 	mov r1, r2
+	mov r0, r5
 	lsls r0, r0, # 10
 	bl _chufa
 	mov r1, r0		@ R1=结果虚部
@@ -506,17 +587,15 @@ __ji_suan_dian_rong:
 	ldr r3, = dianzuzhi
 	asrs r0, r0, # 10
 	str r0, [r3]
+	ldr r3, = 20588		@ 10khz Q15 ω
 	asrs r1, r1, # 10
-	ldr r3, = 205887	@ q15的2pi
-	ldr r4, = 10000		@ 频率10KHZ
-	muls r3, r3, r4
-	asrs r3, r3, # 15
 	muls r3, r3, r1
+	asrs r3, r3, # 15
 	ldr r0, = 1000000000
-	muls r1, r1, r3
-	bl _chufa
-	ldr r1, = dianrongzhi
-	str r0, [r1]
+	movs r1, r3
+	bl _chufa		@ 1/(ωxc)
+	ldr r2, = dianrongzhi
+	str r0, [r2]
 	pop {r0-r7,pc}
 	
 __xian_shi_shang_xia_bi:
@@ -610,7 +689,7 @@ __zhen_fu_lv_bo:
 __zi_dong_liang_cheng:
 	@ 0xc0=100,0x80=1k
 	@0x40=10k,0x00=100k
-	push {r0-r4,lr}
+	push {r0-r6,lr}
 	ldr r0, = zidongliangchengyanshi
 	movs r2, # 20
 	ldr r1, [r0]
@@ -620,21 +699,27 @@ __zi_dong_liang_cheng:
 	bcc __liang_cheng_fan_hui
 	movs r1, # 0
 	str r1, [r0]
-	ldr r0, = xia_bi_shi_bu
+	ldr r0, = shang_bi_shi_bu
+	ldr r5, = xia_bi_shi_bu
 	ldr r1, = liangcheng
 	ldr r2, [r1]
-	ldr r3, = 2000
+	ldr r6, = 2000
+	ldr r3, = 5
 	cmp r2, # 0xc0
 	beq __xuan_kong
 __pan_duan_liang_cheng:
+	ldr r4, [r5]
+	cmp r4, r6
+	bcs __gai_liang_cheng
 	ldr r4, [r0]
-	cmp r4,  r3
-	bcc __bao_cun_liang_cheng
+	cmp r4,	r3
+	bcs __bao_cun_liang_cheng
 __gai_liang_cheng:
 	adds r2, r2, # 0x40
 __bao_cun_liang_cheng:
 	str r2, [r1]
 __xuan_kong:
+	ldr r0, = xia_bi_shi_bu
 	ldr r4, [r0]
 	cmp r4, # 5
 	bcs __liang_cheng_fan_hui
@@ -642,7 +727,7 @@ __liang_cheng_chong_zhi:
 	movs r2, # 0
 	str r2, [r1]
 __liang_cheng_fan_hui:	
-	pop {r0-r4,pc}
+	pop {r0-r6,pc}
 	
 _jianbo:
 	@ 入口 R0=采样表首地址，R1=0度90度相差多少
@@ -817,7 +902,9 @@ _zhuanascii:					@ 16进制转ASCII
 	mov r6, r1
 	movs r1, # 10
 _xunhuanqiuma:
+	push {r1}
 	bl _chufa
+	pop {r1}
 	mov r4, r0
 	muls r4, r1
 	subs r3, r5, r4
@@ -839,10 +926,11 @@ _qiumafanhui:
 	strb r3, [r2, r6]
 	pop {r0-r7,pc}
 
+
 	
 _chufa:				@软件除法
 	@ r0 除以 r1 等于 商(r0)余数R1
-	push {r1-r4,lr}
+	push {r2-r4,lr}
 	cmp r0, # 0
 	beq _chufafanhui
 	cmp r1, # 0
@@ -862,8 +950,9 @@ _chufaxunhuan:
 _chufaweishubudao0:
 	lsrs r3, r3, # 1
 	bne _chufaxunhuan
+	mov r1, r4
 _chufafanhui:
-	pop {r1-r4,pc}
+	pop {r2-r4,pc}
 	.ltorg
 
 
