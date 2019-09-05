@@ -42,6 +42,8 @@ xiaomai:
 	.equ jishu,			0x20000034
 	.equ jianbo,			0x20000038
 	.equ dianyabiao,		0x20000040
+	.equ dianyabiao1,		0x20000110
+	.equ dianyabiao2,		0x200001e0
 	.equ lvboqizhizhen,		0x20000600
 	.equ lvboqihuanchong,		0x20000604
 	.equ lvboqizhizhen1,		0x20000700
@@ -167,7 +169,6 @@ _waisheshizhong:			 @ 外设时钟
 	@1=TIM3 @4=TIM6 @5=TIM7 @8=TIM14 @11=WWDG @14=SPI @17=USRT2 @18=USART3 @20=USART5 @21=I2C1
 	@22=I2C2 @23=USB @28=PWR
 
-
 _waishezhongduan:				@外设中断
 	@0xE000E100    0-31  写1开，写0没效
 	@0XE000E180    0-31 写1关，写0没效
@@ -232,7 +233,7 @@ _dengdaiadcwending:
 _tongdaoxuanze:
 	ldr r1, = 2
         str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-        ldr r1, = 0xc03
+        ldr r1, = 0x803
         str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
 	movs r1, # 0
         str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
@@ -269,11 +270,12 @@ dmachushihua:
 	str r1, [r0, # 0x10]
 	ldr r1, = dianyabiao
 	str r1, [r0, # 0x14]
-	ldr r1, =  50
+	ldr r1, =  100
 	str r1, [r0, # 0x0c]
 	ldr r1, = 0x5a1		@ 5a1
 	str r1, [r0, # 0x08]
 
+	
 tim1chushiha:
         ldr r0, = 0x40012c00 @ tim1_cr1
         movs r1, # 0
@@ -332,7 +334,6 @@ _lcdchushihua:
 	movs r1, # 0x00
 	str r1, [r0]
 
-	b dd
 
 ting:
 	bl __zi_dong_liang_cheng
@@ -492,39 +493,6 @@ dd:
         bl __xian_shi_shang_xia_bi
 	b dd
 
-
-	
-__dian_zu_ji_suan:
-	push {r1-r3,lr}
-	ldr r0, = shang_bi_shi_bu
-	ldr r1, = xia_bi_shi_bu
-	ldr r3, = liangcheng
-	@ldr r2, = bu_chang_100r
-	ldr r0, [r0]
-	ldr r3, [r3]
-	ldr r1, [r1]
-	@ldr r2, [r2]
-__liang_cheng_100k:	
-	cmp r3, # 0x00
-	bne __liang_cheng10k
-	ldr r2, = 100000
-	b __ji_suan_dian_zu
-__liang_cheng10k:
-	cmp r3, # 0x40
-	bne __liang_cheng1k
-	ldr r2, = 10000
-	b __ji_suan_dian_zu
-__liang_cheng1k:
-	cmp r3, # 0x80
-	bne __liang_cheng100ou
-	ldr r2, = 1000
-	b __ji_suan_dian_zu
-__liang_cheng100ou:	
-	movs r2, # 100
-__ji_suan_dian_zu:	
-	muls r0, r0, r2
-	bl _chufa
-	pop {r1-r3,pc}
 __ji_suan_fu_du:    @ 计算幅度
                 @ 入r0= 实部，r1= 虚部
                 @ 出r0 = 幅度
@@ -641,6 +609,8 @@ __ji_suan_dian_rong:
 	muls r1, r1, r3
 	mov r4, r1
 	ldr r0, = 1000000000
+	cmp r1, r0
+	bhi __shu_tai_da
 	bl _chufa
 	mov r3, r0
 	ldr r2, = 1000
@@ -653,7 +623,25 @@ __ji_suan_dian_rong:
 	adds r3, r3, r0
 	str r3, [r2]
 	pop {r0-r7,pc}
-	
+__shu_tai_da:
+	lsrs r1, r1, # 10
+	bl _chufa
+	ldr r1, = 1000
+	lsls r0, r0, # 10
+	bl _chufa
+	ldr r2, = dianrongzhi
+	str r0, [r2]
+	pop {r0-r7,pc}
+__fu_zhi_nei_cun:
+	@ 入口 R0 = 要复制的地址，R1=目标地址，R2=复制的数量
+	push {lr}
+	lsls r2, r2, # 1
+__fu_zhi_xun_huan:	
+	ldrh r3, [r0, r2]
+	strh r3, [r1, r2]
+	subs r2, r2, # 2
+	bne __fu_zhi_xun_huan
+	pop {pc}
 __xian_shi_shang_xia_bi:
 	push {r0-r3,lr}
         movs r0, # 0xc4
@@ -747,7 +735,7 @@ __zi_dong_liang_cheng:
 	@0x40=10k,0x00=100k
 	push {r0-r6,lr}
 	ldr r0, = zidongliangchengyanshi
-	movs r2, # 20
+	movs r2, # 30
 	ldr r1, [r0]
 	adds r1, r1, # 1
 	str r1, [r0]
@@ -759,7 +747,7 @@ __zi_dong_liang_cheng:
 	ldr r5, = xia_bi_shi_bu
 	ldr r1, = liangcheng
 	ldr r2, [r1]
-	ldr r6, = 2300
+	ldr r6, = 2200
 	ldr r3, = 20
 	cmp r2, # 0xc0
 	beq __xuan_kong
@@ -795,23 +783,32 @@ _jianbo:
         ldr r5, = 0x40012428
         movs r4, # 2
         str r4, [r5]
-	bl _jianboyanshi	
-	bl __zhao_zui_da_shu
-	push {r0}
+	bl _jianboyanshi
+	bkpt # 5
+	ldr r0, = dianyabiao
+	ldr r1, = dianyabiao1
+	movs r2, # 100
+	bl __fu_zhi_nei_cun
+	bkpt # 1
 	str r6, [r7, # 0x18]
 	bl _jianboyanshi
-        bl __zhao_zui_da_shu
-	push {r0}
+        ldr r0, = dianyabiao
+	ldr r1, = dianyabiao2
+	movs r2, # 100
+	bl __fu_zhi_nei_cun
+	bkpt # 2
 	movs r4, # 1
 	str r4, [r5]
 	str r6, [r7, # 0x28]
 	bl _jianboyanshi
         bl __zhao_zui_da_shu
 	ldrh r2, [r1, # 0x0c]
+	bkpt # 3
 	str r6, [r7, # 0x18]
 	bl _jianboyanshi
         bl __zhao_zui_da_shu
 	ldrh r3, [r1, # 0x0c]
+	bkpt # 4
 	pop {r1}
 	pop {r0}
 	pop {r4-r7,pc}
