@@ -47,8 +47,13 @@ xiaomai:
 	.equ jishu,			0x20000034
 	.equ jianbo,			0x20000038
 	.equ dianyabiao,		0x20000040
+<<<<<<< HEAD
 	.equ zhengxiangbiao,		0x20000110
 	.equ fanxiangbiao,		0x200001e0
+=======
+	.equ dianyabiao1,		0x20000110
+	.equ dianyabiao2,		0x200001e0
+>>>>>>> 1c28160d29ba40963993e58ca692a911fd93de54
 	.equ lvboqizhizhen,		0x20000600
 	.equ lvboqihuanchong,		0x20000604
 	.equ lvboqizhizhen1,		0x20000700
@@ -338,7 +343,11 @@ _lcdchushihua:
 	ldr r0, = liangcheng
 	movs r1, # 0x00
 	str r1, [r0]
+<<<<<<< HEAD
 	b dd
+=======
+
+>>>>>>> 1c28160d29ba40963993e58ca692a911fd93de54
 
 ting:
 	bl __zi_dong_liang_cheng
@@ -640,6 +649,7 @@ __shu_tai_da:
 	pop {r0-r7,pc}
 __fu_zhi_nei_cun:
 	@ 入口 R0 = 要复制的地址，R1=目标地址，R2=复制的数量
+<<<<<<< HEAD
 	push {r4,lr}
 	movs r4, # 0
 __fu_zhi_xun_huan:	
@@ -651,6 +661,16 @@ __fu_zhi_xun_huan:
 	pop {r4,pc}
 
 	
+=======
+	push {lr}
+	lsls r2, r2, # 1
+__fu_zhi_xun_huan:	
+	ldrh r3, [r0, r2]
+	strh r3, [r1, r2]
+	subs r2, r2, # 2
+	bne __fu_zhi_xun_huan
+	pop {pc}
+>>>>>>> 1c28160d29ba40963993e58ca692a911fd93de54
 __xian_shi_shang_xia_bi:
 @入口 R0= 下臂实部，R1=上臂实部，R2=下臂虚部，R3=上臂虚部
 	push {r0-r3,lr}
@@ -842,6 +862,7 @@ __liang_cheng_chong_zhi:
 	str r2, [r1]
 __liang_cheng_fan_hui:	
 	pop {r0-r6,pc}
+<<<<<<< HEAD
 __jianbo:
 	@入口R0=0（上臂）1（下臂）
 	@出口R0=实部 R1=虚部
@@ -856,9 +877,37 @@ __jianbo:
 __xia_bi_kai:
 	str r5, [r4, # 0x28]	@ 下臂开
 __tong_dao_xuan_ze:
+=======
+	
+_jianbo:
+	@ 入口 R0=采样表首地址，R1=0度90度相差多少
+	@ 出口R0=下臂90度，R1=上臂90度，R2=下臂180度，R3=上臂180度
+	push {r4-r7,lr}
+        ldr r7, = 0x48000000
+        ldr r6, = 0x200
+	str r6, [r7, # 0x28]
+        ldr r5, = 0x40012428
+        movs r4, # 2
+        str r4, [r5]
+	bl _jianboyanshi
+	bkpt # 5
+	ldr r0, = dianyabiao
+	ldr r1, = dianyabiao1
+	movs r2, # 100
+	bl __fu_zhi_nei_cun
+	bkpt # 1
+	str r6, [r7, # 0x18]
+	bl _jianboyanshi
+        ldr r0, = dianyabiao
+	ldr r1, = dianyabiao2
+	movs r2, # 100
+	bl __fu_zhi_nei_cun
+	bkpt # 2
+>>>>>>> 1c28160d29ba40963993e58ca692a911fd93de54
 	movs r4, # 1
 	str r4, [r6]		@ 正相通道开
 	bl _jianboyanshi
+<<<<<<< HEAD
 	ldr r0, = dianyabiao
 	ldr r1, = zhengxiangbiao
 	movs r2, # 100
@@ -939,6 +988,19 @@ _jianbo:
 	movs r2, r1
 	movs r1, r4
 	pop {r4-r5,pc}
+=======
+        bl __zhao_zui_da_shu
+	ldrh r2, [r1, # 0x0c]
+	bkpt # 3
+	str r6, [r7, # 0x18]
+	bl _jianboyanshi
+        bl __zhao_zui_da_shu
+	ldrh r3, [r1, # 0x0c]
+	bkpt # 4
+	pop {r1}
+	pop {r0}
+	pop {r4-r7,pc}
+>>>>>>> 1c28160d29ba40963993e58ca692a911fd93de54
 _jianboyanshi:
 	push {r7,lr}
 	ldr r7, = 0xffff
