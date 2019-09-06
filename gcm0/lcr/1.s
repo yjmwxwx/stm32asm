@@ -494,7 +494,16 @@ dd:
         ldr r1, = asciimabiao
 	movs r2, # 1
 	bl _lcdxianshi
-        bl _jianbo
+	bl _jianbo
+	bl __zhen_fu_lv_bo
+	ldr r0, = xia_bi_shi_bu
+	ldr r1, = shang_bi_shi_bu
+	ldr r2, = xia_bi_xu_bu
+	ldr r3, = shang_bi_xu_bu
+	ldr r0, [r0]
+	ldr r1, [r1]
+	ldr r2, [r2]
+	ldr r3, [r3]
 	bl __xian_shi_shang_xia_bi
 	b dd
 
@@ -652,7 +661,7 @@ __fu_zhi_xun_huan:
 	
 __xian_shi_shang_xia_bi:
 @入口 R0= 下臂实部，R1=上臂实部，R2=下臂虚部，R3=上臂虚部
-	push {r0-r3,lr}
+	push {r0-r7,lr}
 	mov r8, r0
 	mov r9, r1
 	mov r10, r2
@@ -761,7 +770,7 @@ __xian_shi_xia_bi_xu_bu:
         ldr r1, = asciimabiao
         movs r2, # 5
         bl _lcdxianshi
-	pop {r0-r3,pc}
+	pop {r0-r7,pc}
 
 
 __zhen_fu_lv_bo:
@@ -940,6 +949,10 @@ _jianbo:
 	adds r0, r0, # 1
 	mvns r2, r2
 	adds r2, r2, # 1
+	asrs r0, r0, # 4
+	asrs r1, r1, # 4
+	asrs r2, r2, # 4
+	asrs r3, r3, # 4
 	pop {r4-r5,pc}
 _jianboyanshi:
 	push {r7,lr}
@@ -975,9 +988,9 @@ _lvboqi:
 			@出R0=结果
 	push {r1-r7,lr}	
 	ldr r5, [r2]		@读出表指针
-	lsls r6, r1, # 1	
-	strh r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 2
+	lsls r6, r1, # 2	
+	str r3, [r0, r5]	@数值写到滤波器缓冲区
+	adds r5, r5, # 4
 	cmp r5, r6
 	bne _lvboqimeidaohuanchongquding
 	movs r5, # 0
@@ -989,8 +1002,8 @@ _lvboqixunhuan:
 	bne _lvbozonghe
 	movs r5, # 0
 _lvbozonghe:
-	ldrh r4, [r0, r5]
-	adds r5, r5, # 2
+	ldr r4, [r0, r5]
+	adds r5, r5, # 4
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
