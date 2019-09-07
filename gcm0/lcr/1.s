@@ -24,7 +24,7 @@ fu:
 zheng:
 	.ascii "+"
 dianzu:
-	.ascii	"R="
+	.ascii	"Z="
 dianrong:
 	.ascii	"C="
 pinlv:
@@ -337,8 +337,8 @@ _lcdchushihua:
 	ldr r0, = liangcheng
 	movs r1, # 0x00
 	str r1, [r0]
-	b dd
 
+	b dd
 ting:
 	bl __zi_dong_liang_cheng
         bl _jianbo
@@ -354,97 +354,17 @@ ting:
         ldr r1, = asciimabiao
         movs r2, # 8
         bl _lcdxianshi
-	ldr r0, = liangcheng
-	ldr r1, [r0]
 __liangcheng100k:
-	cmp r1, # 0x00
-	bne __liangcheng10k
         ldr r0, = dianzuzhi
-        ldr r1, = 1000
         ldr r0, [r0]
-	bl _chufa
-	movs r1, # 4
+	movs r1, # 6
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
         bl _zhuanascii
-	movs r0, # 0xc3
+	movs r0, # 0xc2
 	ldr r1, = asciimabiao
-	movs r2, # 4
+	movs r2, # 6
         bl _lcdxianshi
-	movs r0, # 0xc7
-        ldr r1, = qianou
-        movs r2, # 2
-        bl _lcdxianshi
-	movs r0, # 0xc9
-        ldr r1, = kong
-        movs r2, # 1
-        bl _lcdxianshi
-	b __xian_shi_qi_ta
-__liangcheng10k:
-        ldr r0, = liangcheng
-        ldr r1, [r0]
-	cmp r1, # 0x40
-	bne __liangcheng1k
-        ldr r0, = dianzuzhi
-        ldr r1, = 100
-        ldr r0, [r0]
-        bl _chufa
-        movs r1, # 5
-        ldr r2, = asciimabiao
-	movs r3, # 3
-        bl _zhuanascii
-        movs r0, # 0xc3
-        ldr r1, = asciimabiao
-        movs r2, # 5
-        bl _lcdxianshi
-        movs r0, # 0xc8
-        ldr r1, = qianou
-        movs r2, # 2
-        bl _lcdxianshi
-	b __xian_shi_qi_ta
-__liangcheng1k:
-        ldr r0, = liangcheng
-        ldr r1, [r0]
-        cmp r1, # 0x80
-        bne __liangcheng100r
-	ldr r0, = dianzuzhi
-        ldr r1, = 10
-        ldr r0, [r0]
-        bl _chufa
-        movs r1, # 5
-        ldr r2, = asciimabiao
-        movs r3, # 2
-        bl _zhuanascii
-        movs r0, # 0xc3
-        ldr r1, = asciimabiao
-        movs r2, # 5
-        bl _lcdxianshi
-        movs r0, # 0xc8
-        ldr r1, = qianou
-        movs r2, # 2
-        bl _lcdxianshi
-	b __xian_shi_qi_ta
-__liangcheng100r:
-        ldr r0, = dianzuzhi
-	movs r1, # 4
-        ldr r0, [r0]
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-        movs r0, # 0xc3
-        ldr r1, = asciimabiao
-        movs r2, # 4
-        bl _lcdxianshi
-        movs r0, # 0xc7
-        ldr r1, = ou
-        movs r2, # 1
-        bl _lcdxianshi
-        movs r0, # 0xc8
-        ldr r1, = kong
-        movs r2, # 2
-        bl _lcdxianshi
-        b __xian_shi_qi_ta
-
 __xian_shi_qi_ta:
 	ldr r0, = liangcheng
 	ldr r0, [r0]
@@ -458,7 +378,7 @@ __xian_shi_qi_ta:
         movs r2, # 1
         bl _lcdxianshi
 
-        movs r0, # 0xc1
+        movs r0, # 0xc0
         ldr r1, = dianzu
         movs r2, # 2
         bl _lcdxianshi
@@ -481,9 +401,8 @@ __xian_shi_dian_rong:
 	.ltorg
 
 dd:
+	bl __zi_dong_liang_cheng
 	ldr r0, = liangcheng
-	movs r1, # 0x80
-	str r1, [r0]
         ldr r0, [r0]
 	lsrs r0, r0, # 6
         movs r1, # 1
@@ -613,11 +532,11 @@ __ji_suan_dian_rong:
 	pop {r2}		@ R2=R（量程）
 	muls r0, r0, r2		@ 
 	muls r1, r1, r2		@
-	asrs r0, r0, # 10
 	ldr r2, = dianzuzhi
+	asrs r0, r0, # 10
 	asrs r1, r1, # 10
-	str r0, [r2]
 	bl __ji_suan_fu_du
+	str r0, [r2]
 	ldr r3, = 62831		@ 2pi*10khz
 	mov r1, r0
 	muls r1, r1, r3
@@ -813,7 +732,7 @@ __zi_dong_liang_cheng:
 	@0x40=10k,0x00=100k
 	push {r0-r6,lr}
 	ldr r0, = zidongliangchengyanshi
-	movs r2, # 30
+	movs r2, # 20
 	ldr r1, [r0]
 	adds r1, r1, # 1
 	str r1, [r0]
@@ -821,21 +740,31 @@ __zi_dong_liang_cheng:
 	bcc __liang_cheng_fan_hui
 	movs r1, # 0
 	str r1, [r0]
-	ldr r0, = shang_bi_shi_bu
-	ldr r5, = xia_bi_shi_bu
+	ldr r0, = xia_bi_shi_bu
 	ldr r1, = liangcheng
+	ldr r4, [r0]
+	movs r4, r4
+	bpl __tiao_guo_zhuan_zheng_shu
+	mvns r4, r4
+	adds r4, r4, # 1
+__tiao_guo_zhuan_zheng_shu:
+	ldr r0, = xia_bi_xu_bu
+	ldr r5, [r0]
+	movs r5, r5
+	bpl __tiao_guo_zhuan_zheng_shu1
+	mvns r5, r5
+	adds r5, r5, # 1
+__tiao_guo_zhuan_zheng_shu1:	
+	ldr r3, = 4000
 	ldr r2, [r1]
-	ldr r6, = 2200
-	ldr r3, = 20
 	cmp r2, # 0xc0
 	beq __xuan_kong
 __pan_duan_liang_cheng:
-	ldr r4, [r5]
-	cmp r4, r6
+	cmp r5, r3
 	bcs __gai_liang_cheng
-	ldr r4, [r0]
+__jian_ce_shang_bi:	
 	cmp r4,	r3
-	bcs __bao_cun_liang_cheng
+	bcc __bao_cun_liang_cheng
 __gai_liang_cheng:
 	adds r2, r2, # 0x40
 __bao_cun_liang_cheng:
@@ -843,7 +772,7 @@ __bao_cun_liang_cheng:
 __xuan_kong:
 	ldr r0, = xia_bi_shi_bu
 	ldr r4, [r0]
-	cmp r4, # 20
+	cmp r4, # 70
 	bcs __liang_cheng_fan_hui
 __liang_cheng_chong_zhi:
 	movs r2, # 0
@@ -919,8 +848,9 @@ __ji_suan_dft:
 	adds r6, r6, # 4
 	muls r7, r7, r3		@ 虚部
 	asrs r7, r7, # 15
-	mvns r7, r7
-	adds r7, r7, # 1
+	movs r4, # 0
+	subs r4, r4, # 1
+	muls r7, r7, r4
 	mov r4, r9
 	adds r4, r4, r7
 	mov r9, r4
@@ -949,10 +879,10 @@ _jianbo:
 	adds r0, r0, # 1
 	mvns r2, r2
 	adds r2, r2, # 1
-	asrs r0, r0, # 4
-	asrs r1, r1, # 4
-	asrs r2, r2, # 4
-	asrs r3, r3, # 4
+	asrs r0, r0, # 5
+	asrs r1, r1, # 5
+	asrs r2, r2, # 5
+	asrs r3, r3, # 5
 	pop {r4-r5,pc}
 _jianboyanshi:
 	push {r7,lr}
