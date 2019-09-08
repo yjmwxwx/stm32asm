@@ -64,6 +64,9 @@ _fu:
 	.equ zidongliangchengyanshi,	0x20000a14
 	.equ dianzuzhi,			0x20000a18
 	.equ dianrongzhi,		0x20000a1c
+	.equ shangbifangda,		0x20000a20
+	.equ xiabifangda,		0x20000a24
+	.equ zidongfangdayanshi,	0x20000a28
 	.section .text
 vectors:
 	.word STACKINIT
@@ -210,12 +213,15 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2824540f
+	ldr r1, = 0x2824550f
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 
 
+	ldr r0, = 0x48000400
+	ldr r1, = 0x00000004
+	str r1, [r0]
 
 _adcchushihua:
         ldr r0, = 0x40012400  @ adc基地址
@@ -401,8 +407,15 @@ __xian_shi_dian_rong:
 	.ltorg
 
 dd:
-	bl __zi_dong_liang_cheng
+	ldr r0, = shangbifangda
+	ldr r1, = xiabifangda
+	movs r2, # 0
+	movs r3, # 3
+	str r2, [r0]
+	str r3, [r1]
 	ldr r0, = liangcheng
+	movs r1, # 0x00
+	str r1, [r0]
         ldr r0, [r0]
 	lsrs r0, r0, # 6
         movs r1, # 1
@@ -425,7 +438,29 @@ dd:
 	ldr r3, [r3]
 	bl __xian_shi_shang_xia_bi
 	b dd
-
+	.ltorg
+__fang_da:
+	@ 入口r0=0(放大0)，1（放大2），2（放大8.8）,3（放大44）
+	push {r1-r4,lr}
+        ldr r2, = 0x48000000
+        ldr r1, = 0x48000400
+	movs r3, # 0x02
+	movs r4, # 0x10
+	lsls r0, r0, # 30
+	bmi __pa4_guan
+	str r4, [r2, # 0x18]
+	b __pan_duan_pb1
+__pa4_guan:
+	str r4, [r2, # 0x28]
+__pan_duan_pb1:
+        lsls r0, r0, # 1
+        bmi __pb1_guan
+        str r3, [r1, # 0x18]
+	pop {r1-r4,pc}
+__pb1_guan:
+	str r3, [r1, # 0x28]
+	pop {r1-r4,pc}
+	
 __ji_suan_fu_du:    @ 计算幅度
                 @ 入r0= 实部，r1= 虚部
                 @ 出r0 = 幅度
@@ -726,7 +761,6 @@ __zhen_fu_lv_bo:
 	str r0, [r7, # 0x0c]		@保存上臂虚部
 	pop {r0-r7,pc}
 	
-
 __zi_dong_liang_cheng:
 	@ 0xc0=100,0x80=1k
 	@0x40=10k,0x00=100k
@@ -866,10 +900,16 @@ __ji_suan_dft:
 	pop {r2-r7,pc}
 _jianbo:
 	push {r4-r5,lr}
-	movs r0, # 0
-	bl __jianbo
+	ldr r0, = shangbifangda		@上臂放大
+	ldr r0, [r0]
+	bl __fang_da
+	movs r0, # 0		@上臂开
+	bl __jianbo		
 	push {r0,r1}
-	movs r0, # 1
+	ldr r0, = xiabifangda		@下臂放大
+	ldr r0, [r0]
+	bl __fang_da
+	movs r0, # 1		@下臂开
 	bl __jianbo
 	pop {r4,r5}	
 	movs r3, r5
