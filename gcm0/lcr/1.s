@@ -11,6 +11,8 @@ zheng_xian_biao:
 	.align 4
 xuan_zhuan_yin_zi:
 	.int 0x8000,0x0000,0x7EFD,0xFFFFEFF6,0x7BFA,0xFFFFE02B,0x7702,0xFFFFD0E2,0x702A,0xFFFFC256,0x678D,0xFFFFB4C4,0x5D4E,0xFFFFA861,0x5197,0xFFFF9D60,0x4495,0xFFFF93EE,0x367F,0xFFFF8C2F,0x278D,0xFFFF8644,0x17FC,0xFFFF8245,0x0809,0xFFFF8041,0xFFFFF7F7,0xFFFF8041,0xFFFFE804,0xFFFF8245,0xFFFFD873,0xFFFF8644,0xFFFFC981,0xFFFF8C2F,0xFFFFBB6B,0xFFFF93EE,0xFFFFAE69,0xFFFF9D60,0xFFFFA2B2,0xFFFFA861,0xFFFF9873,0xFFFFB4C4,0xFFFF8FD6,0xFFFFC256,0xFFFF88FE,0xFFFFD0E2,0xFFFF8406,0xFFFFE02B,0xFFFF8103,0xFFFFEFF6,0xFFFF8000,0x0000,0xFFFF8103,0x100A,0xFFFF8406,0x1FD5,0xFFFF88FE,0x2F1E,0xFFFF8FD6,0x3DAA,0xFFFF9873,0x4B3C,0xFFFFA2B2,0x579F,0xFFFFAE69,0x62A0,0xFFFFBB6B,0x6C12,0xFFFFC981,0x73D1,0xFFFFD873,0x79BC,0xFFFFE804,0x7DBB,0xFFFFF7F7,0x7FBF,0x0809,0x7FBF,0x17FC,0x7DBB,0x278D,0x79BC,0x367F,0x73D1,0x4495,0x6C12,0x5197,0x62A0,0x5D4E,0x579F,0x678D,0x4B3C,0x702A,0x3DAA,0x7702,0x2F1E,0x7BFA,0x1FD5,0x7EFD,0x100A,0x8000,0x0000,0x7EFD,0xFFFFEFF6,0x7BFA,0xFFFFE02B,0x7702,0xFFFFD0E2,0x702A,0xFFFFC256,0x678D,0xFFFFB4C4,0x5D4E,0xFFFFA861,0x5197,0xFFFF9D60,0x4496,0xFFFF93EE,0x367F,0xFFFF8C2F,0x278D,0xFFFF8644,0x17FC,0xFFFF8245,0x0809,0xFFFF8041,0xFFFFF7F7,0xFFFF8041,0xFFFFE804,0xFFFF8245,0xFFFFD873,0xFFFF8644,0xFFFFC981,0xFFFF8C2F,0xFFFFBB6B,0xFFFF93EE,0xFFFFAE69,0xFFFF9D60,0xFFFFA2B2,0xFFFFA861,0xFFFF9873,0xFFFFB4C4,0xFFFF8FD6,0xFFFFC256,0xFFFF88FE,0xFFFFD0E2,0xFFFF8406,0xFFFFE02B,0xFFFF8103,0xFFFFEFF6,0xFFFF8000,0x0000,0xFFFF8103,0x100A,0xFFFF8406,0x1FD5,0xFFFF88FE,0x2F1E,0xFFFF8FD6,0x3DAA,0xFFFF9873,0x4B3C,0xFFFFA2B2,0x579F,0xFFFFAE69,0x62A0,0xFFFFBB6A,0x6C12,0xFFFFC981,0x73D1,0xFFFFD873,0x79BC,0xFFFFE804,0x7DBB,0xFFFFF7F7,0x7FBF,0x0809,0x7FBF,0x17FC,0x7DBB,0x278D,0x79BC,0x367F,0x73D1,0x4495,0x6C12,0x5197,0x62A0,0x5D4E,0x579F,0x678D,0x4B3C,0x702A,0x3DAA,0x7702,0x2F1E,0x7BFA,0x1FD5,0x7EFD,0x100B
+liang_cheng_biao:
+	.int 0x00c00300,0x00c00201,0x00c00102,0x00c00003,0x00800300,0x00800201,0x00800102,0x00800003,0x00400300,0x00400201,0x00400102,0x00400003,0x00000300,0x00000201,0x00000102,0x00000003
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
 dianhua:	
@@ -66,7 +68,6 @@ _fu:
 	.equ dianrongzhi,		0x20000a1c
 	.equ shangbifangda,		0x20000a20
 	.equ xiabifangda,		0x20000a24
-	.equ zidongfangdayanshi,	0x20000a28
 	.section .text
 vectors:
 	.word STACKINIT
@@ -183,7 +184,7 @@ _waishezhongduan:				@外设中断
 	@0XE000E280    0-31 清除， 写0没效
 
 @_systick:				@ systick定时器初始化
-
+@
 @	ldr r0, = 0xe000e010
 @	ldr r1, = 0xffffff
 @	str r1, [r0, # 4]
@@ -406,7 +407,61 @@ __xian_shi_dian_rong:
 
 	.ltorg
 
+	
 dd:
+	ldr r0, = liangcheng
+	movs r1, # 0xc0
+	str r1, [r0]
+ddd:	
+	bl __zi_dong_liang_cheng
+	bl _jianbo
+        bl __zhen_fu_lv_bo
+        ldr r0, = xia_bi_shi_bu
+        ldr r1, = shang_bi_shi_bu
+        ldr r2, = xia_bi_xu_bu
+        ldr r3, = shang_bi_xu_bu
+        ldr r0, [r0]
+        ldr r1, [r1]
+        ldr r2, [r2]
+        ldr r3, [r3]
+        bl __xian_shi_shang_xia_bi
+
+	ldr r0, = liangcheng
+        ldr r0, [r0]
+	lsrs r0, r0, # 6
+	movs r1, # 1
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xc7
+        ldr r1, = asciimabiao
+        movs r2, # 1
+	bl _lcdxianshi
+
+        ldr r0, = shangbifangda
+        ldr r0, [r0]
+        movs r1, # 1
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x87
+        ldr r1, = asciimabiao
+        movs r2, # 1
+	bl _lcdxianshi
+
+        ldr r0, = xiabifangda
+        ldr r0, [r0]
+        movs r1, # 1
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xc8
+        ldr r1, = asciimabiao
+        movs r2, # 1
+	bl _lcdxianshi
+
+	b ddd
+	
 	ldr r0, = shangbifangda
 	ldr r1, = xiabifangda
 	movs r2, # 0
@@ -760,59 +815,120 @@ __zhen_fu_lv_bo:
         bl _lvboqi
 	str r0, [r7, # 0x0c]		@保存上臂虚部
 	pop {r0-r7,pc}
-	
+
 __zi_dong_liang_cheng:
-	@ 0xc0=100,0x80=1k
-	@0x40=10k,0x00=100k
-	push {r0-r6,lr}
+	push {r0-r4,lr}	
 	ldr r0, = zidongliangchengyanshi
-	movs r2, # 20
+	ldr r2, = 100
 	ldr r1, [r0]
 	adds r1, r1, # 1
 	str r1, [r0]
 	cmp r1, r2
-	bcc __liang_cheng_fan_hui
+	beq __liang_cheng_ji_suan
+	pop {r0-r4,pc}
+__liang_cheng_ji_suan:
 	movs r1, # 0
 	str r1, [r0]
-	ldr r0, = xia_bi_shi_bu
-	ldr r1, = liangcheng
-	ldr r4, [r0]
-	movs r4, r4
-	bpl __tiao_guo_zhuan_zheng_shu
-	mvns r4, r4
-	adds r4, r4, # 1
-__tiao_guo_zhuan_zheng_shu:
-	ldr r0, = xia_bi_xu_bu
-	ldr r5, [r0]
-	movs r5, r5
-	bpl __tiao_guo_zhuan_zheng_shu1
-	mvns r5, r5
-	adds r5, r5, # 1
-__tiao_guo_zhuan_zheng_shu1:	
-	ldr r3, = 4000
+	ldr r4, = 3000
+	ldr r0, = liangcheng
+	ldr r1, = xia_bi_shi_bu
+	ldr r3, [r0]
 	ldr r2, [r1]
-	cmp r2, # 0xc0
-	beq __xuan_kong
-__pan_duan_liang_cheng:
-	cmp r5, r3
-	bcs __gai_liang_cheng
-__jian_ce_shang_bi:	
-	cmp r4,	r3
-	bcc __bao_cun_liang_cheng
+	movs r2, r2
+	bpl __xia_bi_da_xiao_pan_duan
+	mvns r2, r2
+	adds r2, r2, # 1
+__xia_bi_da_xiao_pan_duan:	
+	cmp r2, r4
+	bcc __gai_liang_cheng
+	b __liang_cheng_fan_hui
 __gai_liang_cheng:
-	adds r2, r2, # 0x40
+	subs r3, r3, # 0x40
+	bpl __bao_cun_liang_cheng
+	movs r3, # 0
 __bao_cun_liang_cheng:
-	str r2, [r1]
-__xuan_kong:
-	ldr r0, = xia_bi_shi_bu
-	ldr r4, [r0]
-	cmp r4, # 70
+	str r3, [r0]
+	bl __zi_dong_zeng_yi
+__pan_duan_xuan_kong:
+	cmp r2, # 60
 	bcs __liang_cheng_fan_hui
-__liang_cheng_chong_zhi:
-	movs r2, # 0
-	str r2, [r1]
-__liang_cheng_fan_hui:	
-	pop {r0-r6,pc}
+	movs r3, # 0xc0
+	str r3, [r0]
+	ldr r0, = shangbifangda
+	ldr r2, = xiabifangda
+	movs r3, # 0
+	str r3, [r0]
+	str r3, [r2]
+__liang_cheng_fan_hui:
+	pop {r0-r4,pc}
+
+__zi_dong_zeng_yi:
+	push {r0-r7,lr}
+	ldr r0, = shang_bi_shi_bu
+	ldr r1, = xia_bi_shi_bu
+	ldr r2, = 3000
+	ldr r0, [r0]
+	ldr r1, [r1]
+	movs r0, r0
+	bpl __jian_ce_xia_bi_fu_shu
+	mvns r0, r0
+	adds r0, r0, # 1
+__jian_ce_xia_bi_fu_shu:	
+	movs r1, r1
+	bpl __pan_duan_shang_bi_da_xiao
+	mvns r1, r1
+	adds r1, r1, # 1
+__pan_duan_shang_bi_da_xiao:	
+	cmp r0, r2
+	bcs __pan_duan_xia_bi_fang_da
+	ldr r0, = shangbifangda
+	ldr r3, [r0]
+	adds r3, r3, # 1
+	cmp r3, # 3
+	bcc __bao_cun_shang_bi_fang_da
+	movs r3, # 3
+__bao_cun_shang_bi_fang_da:	
+	str r3, [r0]
+__pan_duan_xia_bi_fang_da:
+	cmp r1, r2
+	bcs __zeng_yi_fan_hui
+	ldr r0, = xiabifangda
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	cmp r1, # 3
+	bcc __bao_cun_xia_bi_fang_da
+	movs r1, # 3
+__bao_cun_xia_bi_fang_da:
+	str r1, [r0]
+__zeng_yi_fan_hui:
+	pop {r0-r7,pc}
+
+	
+__liang_cheng_she_zhi:
+	@ 入口=liangcheng
+	push {r0-r7,lr}
+	ldr r0, = liangcheng
+	ldr r1, = liang_cheng_biao
+	ldr r0, [r0]
+	lsls r0, r0, # 2
+	ldr r2, [r1, r0]	@ r2=liangcheng
+	mov r3, r2		@ r3=shangbifangda
+	mov r4, r2		@ r4=xiabifangda
+	ldr r5, = liangcheng
+	ldr r6, = shangbifangda
+	ldr r7, = xiabifangda
+	lsrs r2, r2, # 22
+	lsls r2, r2, # 6
+	lsls r3, r3, # 22
+	lsrs r3, r3, # 30
+	lsls r4, r4, # 30
+	lsrs r4, r4, # 30
+	str r2, [r5]
+	str r3, [r6]
+	str r4, [r7]
+	pop {r0-r7,pc}
+
+	.ltorg
 __jianbo:
 	@入口R0=0（上臂）1（下臂）
 	@出口R0=实部 R1=虚部
