@@ -30,7 +30,7 @@ zukang:
 	.ascii	"Z="
 dianrong:
 	.ascii	"C="
-pinlv10k:
+pinlv:
 	.ascii	"10KHZ"
 qianou:
 	.ascii	"K"
@@ -40,8 +40,6 @@ kong:
 	.int 0x20202020
 pifa:
 	.ascii "PF"
-enfa:
-	.ascii "NF"
 _fu:	
 	.ascii "-"
 	
@@ -73,8 +71,6 @@ _fu:
 	.equ xiabifangda,		0x20000a24
 	.equ anjian,			0x20000a28
 	.equ bu_chang_1k,		0x20000a2c
-	.equ dianrongzhi,		0x20000a30
-	.equ shang,			0x20000a34
 	.section .text
 vectors:
 	.word STACKINIT
@@ -123,7 +119,7 @@ vectors:
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
 _start:
-	ldr r0, = 0xffff
+	ldr r0, = 0xfffff
 yanshi111:
 	subs r0, r0, # 1
 	bne yanshi111	
@@ -343,18 +339,14 @@ _lcdchushihua:
 	bl _lcdyanshi
 	
 	ldr r0, = liangcheng
-	movs r1, # 0x40
+	movs r1, # 0x80
 	str r1, [r0]
+
 
 ting:
 	bl _jianbo
 	bl __zhen_fu_lv_bo
 	bl __zu_kang_ji_suan
-	bl __dian_rong_ji_suan
-	bl __cai_dan1
-	b ting
-__cai_dan1:
-	push {lr}
 	ldr r1, = dianzuzhi
 	ldr r4, [r1]
 	movs r4, r4
@@ -381,11 +373,12 @@ __xian_shi_dian_zu:
         ldr r1, = asciimabiao
         movs r2, # 5
         bl _lcdxianshi
+
 	ldr r1, = diankangzhi
 	ldr r4, [r1]
 	movs r4, r4
         bpl __dian_kang_zheng
-        movs r0, # 0x88
+        movs r0, # 0xc0
         ldr r1, = _fu
         movs r2, # 1
 	bl _lcdxianshi
@@ -393,55 +386,32 @@ __xian_shi_dian_zu:
         adds r4, r4, # 1
         b __xian_shi_dian_kang
 __dian_kang_zheng:
-        movs r0, # 0x88
-        ldr r1, = zheng
+        movs r0, # 0xc0
+        ldr r1, = kong
         movs r2, # 1
         bl _lcdxianshi
 __xian_shi_dian_kang:
+
         mov r0, r4
-        movs r1, # 5
+        movs r1, # 10
         ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
-        movs r0, # 0x89
+        movs r0, # 0xc1
         ldr r1, = asciimabiao
-        movs r2, # 5
-        bl _lcdxianshi
-        movs r0, # 0x8f
-        ldr r1, = ou
-        movs r2, # 1
+        movs r2, # 10
         bl _lcdxianshi
 __xian_shi_z:
 	movs r0, # 0x80
 	ldr r1, = zukang
 	movs r2, # 2
 	bl _lcdxianshi
-__xian_shi_pin_lv:
-        movs r0, # 0xcb
-        ldr r1, = pinlv10k
-        movs r2, # 5
-        bl _lcdxianshi
-__xian_shi_dian_rong:
-	ldr r0, = dianrongzhi
-        movs r1, # 8
-	ldr r0, [r0]
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-	movs r0, # 0xc0
-        ldr r1, = asciimabiao
-	movs r2, # 8
-        bl _lcdxianshi
-        movs r0, # 0xc8
-	ldr r1, = pifa
-	movs r2, # 2
-        bl _lcdxianshi
-	pop {pc}
+	b ting
 	
 	
 dd:
 	ldr r0, = liangcheng
-	movs r1, # 0x00
+	movs r1, # 0x80
 	str r1, [r0]
 	ldr r0, = shangbifangda
 	ldr r1, = xiabifangda
@@ -502,25 +472,7 @@ ddd:
 
 	b ddd
 	.ltorg
-
-
-__dian_rong_ji_suan:
-	push {r0-r4,lr}
-	ldr r0, = dianzuzhi
-	ldr r1, = diankangzhi
-	ldr r0, [r0]
-	ldr r1, [r1]
-	bl __ji_suan_fu_du
-	mov r1, r0
-	ldr r3, = 100
-	ldr r0, = 1000000000
-	bl _chufa
-	ldr r1, = 62831
-	muls r0, r0, r3
-	bl _chufa
-	ldr r3, = dianrongzhi
-	str r0, [r3]
-	pop {r0-r4,pc}
+	
 __an_jian:
 	push {r1}
 	ldr r1, = 0x48000010
@@ -631,7 +583,7 @@ __ji_suan_dian_rong:
 @ Z=R+jx
 @ Z=R*[(a+bi)/(c+di)]=R*[(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)]
 @c=1/[(2*pi*f)*xc]
-	push {r4}
+	mov r8, r4
 	mov r4, r0
 	mov r5, r1
 	mov r6, r2
@@ -643,34 +595,24 @@ __ji_suan_dian_rong:
 	muls r3, r3, r3		@d*d
 	adds r2, r2, r3		@c*c+d*d
 	mov r1, r2
-	bl __chu_fa		@(ac+bd)/(c*c+d*d)
-	push {r0-r1}
+	ldr r3, = 100000
+	muls r0, r0, r3
+	bl _chufa		@(ac+bd)/(c*c+d*d)
+	push {r0}
 	muls r5, r5, r6		@ bc
 	muls r4, r4, r7		@ ad
 	subs r5, r5, r4		@ bc-ad
 	mov r1, r2
 	mov r0, r5
-	bl __chu_fa
-	mov r2, r0
-	mov r3, r1
-	pop {r5-r6}		@实
-	pop {r4}
-	muls r2, r2, r4	
-	muls r3, r3, r4
-	
-	muls r5, r5, r4
-	muls r6, r6, r4
-	ldr r1, = 100000
-	mov r0, r3
+	mov r3, r8
+	muls r0, r0, r3
 	bl _chufa
-	add r2, r2, r0
-	mov r0, r6
-	bl _chufa
-	add r5, r5, r0
-	ldr r0, = dianzuzhi
-	ldr r1, = diankangzhi
-	str r5, [r0]
-	str r2, [r1]
+	mov r1, r0		@ R1=结果虚部
+	pop {r0}		@ R0=结果实部
+	ldr r2, = dianzuzhi
+	ldr r3, = diankangzhi
+	str r0, [r2]
+	str r1, [r3]
 	pop {r0-r7,pc}
 	
 __fu_zhi_nei_cun:
@@ -1087,7 +1029,9 @@ _zhuanascii:					@ 16进制转ASCII
 	mov r6, r1
 	movs r1, # 10
 _xunhuanqiuma:
+	push {r1}
 	bl _chufa
+	pop {r1}
 	mov r4, r0
 	muls r4, r1
 	subs r3, r5, r4
@@ -1109,13 +1053,28 @@ _qiumafanhui:
 	strb r3, [r2, r6]
 	pop {r0-r7,pc}
 
+
+	
 _chufa:				@软件除法
 	@ r0 除以 r1 等于 商(r0)余数R1
-	push {r1-r4,lr}
+	push {r2-r5,lr}
 	cmp r0, # 0
 	beq _chufafanhui
 	cmp r1, # 0
 	beq _chufafanhui
+	movs r5, # 0
+	movs r0, r0
+	bpl __chu_shu_bu_shi_fu_shu
+	adds r5, r5, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+__chu_shu_bu_shi_fu_shu:
+	movs r1, r1
+	bpl __bei_chu_shu_bu_shi_fu_shu
+	adds r5, r5, # 1
+	mvns r1, r1
+	adds r1, r1, # 1
+__bei_chu_shu_bu_shi_fu_shu:	
 	mov r2, r0
 	movs r3, # 1
 	lsls r3, r3, # 31
@@ -1131,73 +1090,14 @@ _chufaxunhuan:
 _chufaweishubudao0:
 	lsrs r3, r3, # 1
 	bne _chufaxunhuan
-_chufafanhui:
-	pop {r1-r4,pc}
-
-__chu_fa:
-	push {r2-r7,lr}
-        cmp r0, # 0
-        beq _chufafanhui1
-        cmp r1, # 0
-        beq _chufafanhui1
-	movs r5, # 0
-	movs r6, # 6
-	movs r0, r0
-	bpl __pan_duan_bei_chu_shu
-	adds r5, r5, # 1
-	mvns r0, r0
-	adds r0, r0, # 1
-__pan_duan_bei_chu_shu:
-	movs r1, r1
-	bpl __bao_cun_fu_hao
-	adds r5, r5, # 1
-	mvns r0, r0
-	adds r0, r0, # 1
-__bao_cun_fu_hao:
-	push {r5}
-__ji_suan_chu_fa:	
-        mov r2, r0
-        movs r3, # 1
-        lsls r3, r3, # 31
-        movs r0, # 0
-        mov r4, r0
-_chufaxunhuan1:
-        lsls r2, r2, # 1
-        adcs r4, r4, r4
-        cmp r4, r1
-	bcc _chufaweishubudao00
-	adds r0, r0, r3
-	subs r4, r4, r1
-_chufaweishubudao00:
-	lsrs r3, r3, # 1
-	bne _chufaxunhuan1
-	push {r0}
-	mov r0, r4
-	movs r2, # 10
-	muls r0, r0, r2
-	subs r6, r6, # 1
-	bne __ji_suan_chu_fa
-	pop {r0-r5}
-	ldr r7, = 10000
-	ldr r6, = 1000
-	muls r4, r4, r7
-	muls r3, r3, r6
-	ldr r7, = 100
-	movs r6, # 10
-	muls r2, r2, r7
-	muls r1, r1, r6
-	adds r1, r1, r0
-	adds r1, r1, r2
-	adds r1, r1, r3
-	adds r1, r1, r4
-	mov r0, r5
-	pop {r5}
+	mov r1, r4
 	cmp r5, # 1
-	bne _chufafanhui1
+	bne _chufafanhui
 	mvns r0, r0
 	adds r0, r0, # 1
-_chufafanhui1:
-	pop {r2-r7,pc}
+_chufafanhui:
+	pop {r2-r5,pc}
+	.ltorg
 
 
 _nmi_handler:
@@ -1218,5 +1118,3 @@ _systickzhongduan:
 	str r1, [r0]                 @ 清除SYSTICK中断
 aaa:
 	bx lr
-	.ltorg
-	.end
