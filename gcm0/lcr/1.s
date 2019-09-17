@@ -123,12 +123,6 @@ vectors:
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
 _start:
-	ldr r0, = 0x87654321
-	ldr r1, = 0x87654321
-	ldr r2, = 0x12345678
-	bl __chufa64
-	bkpt # 1
-
 	ldr r0, = 0xffff
 yanshi111:
 	subs r0, r0, # 1
@@ -349,7 +343,7 @@ _lcdchushihua:
 	bl _lcdyanshi
 	
 	ldr r0, = liangcheng
-	movs r1, # 0x40
+	movs r1, # 0xc0
 	str r1, [r0]
 
 ting:
@@ -517,15 +511,14 @@ __dian_rong_ji_suan:
 	ldr r0, [r0]
 	ldr r1, [r1]
 	bl __ji_suan_fu_du
-	mov r1, r0
-	ldr r3, = 100
-	ldr r0, = 1000000000
-	bl _chufa
+	mov r2, r0
 	ldr r1, = 62831
-	muls r0, r0, r3
-	bl _chufa
+	muls r2, r2, r1
+	ldr r1, = 0xe4a51000
+	movs r0, # 0xe8
+	bl __chufa64
 	ldr r3, = dianrongzhi
-	str r0, [r3]
+	str r1, [r3]
 	pop {r0-r4,pc}
 __an_jian:
 	push {r1}
@@ -649,34 +642,22 @@ __ji_suan_dian_rong:
 	muls r3, r3, r3		@d*d
 	adds r2, r2, r3		@c*c+d*d
 	mov r1, r2
-	bl __chufa64		@(ac+bd)/(c*c+d*d)
-	push {r0-r1}
+	pop {r3}
+	muls r0, r0, r3
+	bl __chu_fa		@(ac+bd)/(c*c+d*d)
+	push {r0}
 	muls r5, r5, r6		@ bc
 	muls r4, r4, r7		@ ad
 	subs r5, r5, r4		@ bc-ad
-	mov r1, r2
 	mov r0, r5
-	bl __chufa64
-	mov r2, r0
-	mov r3, r1
-	pop {r5-r6}		@实
-	pop {r4}
-	muls r2, r2, r4	
-	muls r3, r3, r4
-	
-	muls r5, r5, r4
-	muls r6, r6, r4
-	ldr r1, = 100000
-	mov r0, r3
-	bl _chufa
-	add r2, r2, r0
-	mov r0, r6
-	bl _chufa
-	add r5, r5, r0
-	ldr r0, = dianzuzhi
-	ldr r1, = diankangzhi
-	str r5, [r0]
-	str r2, [r1]
+	muls r0, r0, r3
+	mov r1, r2
+	bl __chu_fa
+	pop {r1}		@实
+	ldr r3, = dianzuzhi
+	ldr r4, = diankangzhi
+	str r1, [r3]
+	str r0, [r4]
 	pop {r0-r7,pc}
 	
 __fu_zhi_nei_cun:
@@ -946,10 +927,22 @@ _jianbo:
 	adds r0, r0, # 1
 	mvns r2, r2
 	adds r2, r2, # 1
-	asrs r0, r0, # 5
-	asrs r1, r1, # 5
-	asrs r2, r2, # 5
-	asrs r3, r3, # 5
+	mov r6, r1
+	movs r1, # 50
+	bl __chu_fa
+	push {r0}
+	mov r0, r2
+	bl __chu_fa
+	push {r0}
+	mov r0, r6
+	bl __chu_fa
+	push {r0}
+	mov r0, r3
+	bl __chu_fa
+	mov r3, r0
+	pop {r1}
+	pop {r2}
+	pop {r0}
 	pop {r4-r5,pc}
 _jianboyanshi:
 	push {r7,lr}
@@ -1183,8 +1176,85 @@ __chu_fa64_fan_hui0:
 	movs r0, # 0
 	movs r1, # 0
 	pop {r3-r7,pc}
+__chengfa:
+        @入R0 乘以 R1
+        @出 R0高32 ， R1低32
+	@0xffffffff*0xffffffff
+        @4        F F F E 0 0 0 1
+        @3                F F F E 0 0 0 1
+        @2                F F F E 0 0 0 1
+        @1                        F F F E 0 0 0 1
+        @         F F F F F F F E 0 0 0 0 0 0 0 1
+	push {r2-r7,lr}
+	mov r2, r0
+	mov r3, r1
+	lsrs r0, r0, # 16	@高16
+	lsls r2, r2, # 16	@ 低16
+	lsrs r2, r2, # 16
+        lsrs r1, r1, # 16	@高16
+	lsls r3, r3, # 16	@低16
+	lsrs r3, r3, # 16
+	mov r4, r2		
+	mov r5, r0		
+	muls r2, r2, r3		@1
+	muls r0, r0, r3		@2
+	muls r4, r4, r1		@3
+	muls r5, r5, r1		@4
+	mov r6, r0		@2
+	mov r7, r4		@3
+	lsls r0, r0, # 16	@2低
+	lsls r4, r4, # 16	@3低
+	lsrs r6, r6, # 16	@2高
+	lsrs r7, r7, # 16	@3高
+	adds r2, r2, r0
+	adcs r2, r2, r4
+	adcs r5, r5, r6
+	adcs r5, r5, r7
+	mov r0, r5
+	mov r1, r2
+	pop {r2-r7,pc}
 
-
+__chu_fa:
+	push {r1-r7,lr}
+        cmp r0, # 0
+        beq _chufafanhui1
+        cmp r1, # 0
+        beq _chufafanhui1
+	movs r5, # 0
+	movs r0, r0
+	bpl __pan_duan_bei_chu_shu
+	adds r5, r5, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+__pan_duan_bei_chu_shu:
+	movs r1, r1
+	bpl __ji_suan_chu_fa11
+	adds r5, r5, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+__ji_suan_chu_fa11:	
+        mov r2, r0
+        movs r3, # 1
+        lsls r3, r3, # 31
+        movs r0, # 0
+        mov r4, r0
+_chufaxunhuan1:
+        lsls r2, r2, # 1
+        adcs r4, r4, r4
+        cmp r4, r1
+	bcc _chufaweishubudao00
+	adds r0, r0, r3
+	subs r4, r4, r1
+_chufaweishubudao00:
+	lsrs r3, r3, # 1
+	bne _chufaxunhuan1
+	cmp r5, # 1
+	bne _chufafanhui1
+	mvns r0, r0
+	adds r0, r0, # 1
+_chufafanhui1:
+	pop {r1-r7,pc}
+	
 _nmi_handler:
 	bx lr
 _hard_fault:
