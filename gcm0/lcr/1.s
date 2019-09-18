@@ -341,11 +341,92 @@ _lcdchushihua:
 	movs r1, # 0
 	bl _xielcd
 	bl _lcdyanshi
+
+	b dd
 	
 	ldr r0, = liangcheng
-	movs r1, # 0xc0
+	movs r1, # 0x00
 	str r1, [r0]
 
+shiyan:
+        bl _jianbo
+        bl __zhen_fu_lv_bo
+	bl aaaa
+	mov r4, r1
+	
+        movs r1, # 16
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x80
+        ldr r1, = asciimabiao
+        movs r2, # 16
+        bl _lcdxianshi
+
+        mov r0, r4
+        movs r1, # 16
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xc0
+        ldr r1, = asciimabiao
+        movs r2, # 16
+        bl _lcdxianshi
+	b shiyan
+
+aaaa:
+	push {r4-r7,lr}
+	ldr r0, = shang_bi_shi_bu
+	ldr r1, = shang_bi_xu_bu
+	ldr r2, = xia_bi_shi_bu
+	ldr r3, = xia_bi_xu_bu
+	ldr r4, = liangcheng
+	ldr r0, [r0]
+	ldr r1, [r1]
+	ldr r2, [r2]
+	ldr r3, [r3]
+	ldr r5, [r4]
+__c_liang_cheng_100ka:
+        cmp r5, # 0x00
+	bne __c_liang_cheng10ka
+        ldr r4, = 100000
+	b __ji_suan_dian_ronga
+__c_liang_cheng10ka:
+        cmp r5, # 0x40
+        bne __c_liang_cheng1ka
+        ldr r4, = 10000
+        b __ji_suan_dian_ronga
+__c_liang_cheng1ka:
+        cmp r5, # 0x80
+	bne __c_liang_cheng100oua
+        ldr r4, = 1000
+        b __ji_suan_dian_ronga
+__c_liang_cheng100oua:
+	movs r4, # 100
+__ji_suan_dian_ronga:
+@ Z=R+jx
+@ Z=R*[(a+bi)/(c+di)]=R*[(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)]
+@c=1/[(2*pi*f)*xc]
+	push {r4}
+	mov r4, r0
+	mov r5, r1
+	mov r6, r2
+	mov r7, r3
+	muls r0, r0, r2		@ac
+	muls r1, r1, r3		@bd
+	adds r0, r0, r1		@ac+bd
+	muls r2, r2, r2		@c*c
+	muls r3, r3, r3		@d*d
+	adds r2, r2, r3		@c*c+d*d
+	push {r0,r2}
+	muls r5, r5, r6		@ bc
+	muls r4, r4, r7		@ ad
+	subs r5, r5, r4		@ bc-ad
+	pop {r0,r2}
+	pop {r1}
+	bl __chengfa
+	bl __chufa64
+	pop {r4-r7,pc}
 ting:
 	bl _jianbo
 	bl __zhen_fu_lv_bo
@@ -441,7 +522,7 @@ __xian_shi_dian_rong:
 	
 dd:
 	ldr r0, = liangcheng
-	movs r1, # 0x00
+	movs r1, # 0xc0
 	str r1, [r0]
 	ldr r0, = shangbifangda
 	ldr r1, = xiabifangda
@@ -613,20 +694,20 @@ __c_liang_cheng_100k:
         cmp r5, # 0x00
 	bne __c_liang_cheng10k
         ldr r4, = 100000
-	b __ji_suan_dian_rong
+	b __ji_suan_zu_kang
 __c_liang_cheng10k:
         cmp r5, # 0x40
         bne __c_liang_cheng1k
         ldr r4, = 10000
-        b __ji_suan_dian_rong
+        b __ji_suan_zu_kang
 __c_liang_cheng1k:
         cmp r5, # 0x80
 	bne __c_liang_cheng100ou
         ldr r4, = 1000
-        b __ji_suan_dian_rong
+        b __ji_suan_zu_kang
 __c_liang_cheng100ou:
 	movs r4, # 100
-__ji_suan_dian_rong:
+__ji_suan_zu_kang:
 @ Z=R+jx
 @ Z=R*[(a+bi)/(c+di)]=R*[(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)]
 @c=1/[(2*pi*f)*xc]
@@ -659,7 +740,7 @@ __ji_suan_dian_rong:
 	str r1, [r3]
 	str r0, [r4]
 	pop {r0-r7,pc}
-	
+
 __fu_zhi_nei_cun:
 	@ 入口 R0 = 要复制的地址，R1=目标地址，R2=复制的数量
 	push {r4,lr}
@@ -831,10 +912,26 @@ __jianbo:
 	cmp r0, # 0
 	bne __xia_bi_kai
 	str r5, [r4, # 0x18]	@上臂开
-	b __tong_dao_xuan_ze
+        movs r4, # 1
+        str r4, [r6]            @ 反相通道开
+        bl _jianboyanshi
+        ldr r0, = dianyabiao
+        ldr r1, = fanxiangbiao
+        movs r2, # 100
+        bl __fu_zhi_nei_cun
+        movs r4, # 2
+        str r4, [r6]            @ 正相通道开
+	bl _jianboyanshi
+        ldr r0, = dianyabiao
+        ldr r1, = zhengxiangbiao
+        movs r2, # 100
+        bl __fu_zhi_nei_cun
+        ldr r1, = zhengxiangbiao
+        ldr r0, = fanxiangbiao
+	bl __DFT_ji_suan
+        pop {r2-r7,pc}
 __xia_bi_kai:
 	str r5, [r4, # 0x28]	@ 下臂开
-__tong_dao_xuan_ze:
 	movs r4, # 1
 	str r4, [r6]		@ 反相通道开
 	bl _jianboyanshi
@@ -854,6 +951,7 @@ __tong_dao_xuan_ze:
 	bl __DFT_ji_suan
 	pop {r2-r7,pc}
 
+	
 __DFT_ji_suan:
 	@入口R0=正相表，R1=反相表
 	push {r2-r7,lr}
@@ -890,9 +988,6 @@ __ji_suan_dft:
 	adds r6, r6, # 4
 	muls r7, r7, r3		@ 虚部
 	asrs r7, r7, # 15
-	movs r4, # 0
-	subs r4, r4, # 1
-	muls r7, r7, r4
 	mov r4, r9
 	adds r4, r4, r7
 	mov r9, r4
@@ -922,12 +1017,7 @@ _jianbo:
 	pop {r4,r5}	
 	movs r3, r5
 	movs r2, r1
-	movs r1, r4
-	mvns r0, r0
-	adds r0, r0, # 1
-	mvns r2, r2
-	adds r2, r2, # 1
-	mov r6, r1
+	movs r6, r4
 	movs r1, # 50
 	bl __chu_fa
 	push {r0}
