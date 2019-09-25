@@ -12,7 +12,7 @@ zheng_xian_biao:
 xuan_zhuan_yin_zi:
 	.int 0x8000,0x0000,0x7EFD,0xFFFFEFF6,0x7BFA,0xFFFFE02B,0x7702,0xFFFFD0E2,0x702A,0xFFFFC256,0x678D,0xFFFFB4C4,0x5D4E,0xFFFFA861,0x5197,0xFFFF9D60,0x4495,0xFFFF93EE,0x367F,0xFFFF8C2F,0x278D,0xFFFF8644,0x17FC,0xFFFF8245,0x0809,0xFFFF8041,0xFFFFF7F7,0xFFFF8041,0xFFFFE804,0xFFFF8245,0xFFFFD873,0xFFFF8644,0xFFFFC981,0xFFFF8C2F,0xFFFFBB6B,0xFFFF93EE,0xFFFFAE69,0xFFFF9D60,0xFFFFA2B2,0xFFFFA861,0xFFFF9873,0xFFFFB4C4,0xFFFF8FD6,0xFFFFC256,0xFFFF88FE,0xFFFFD0E2,0xFFFF8406,0xFFFFE02B,0xFFFF8103,0xFFFFEFF6,0xFFFF8000,0x0000,0xFFFF8103,0x100A,0xFFFF8406,0x1FD5,0xFFFF88FE,0x2F1E,0xFFFF8FD6,0x3DAA,0xFFFF9873,0x4B3C,0xFFFFA2B2,0x579F,0xFFFFAE69,0x62A0,0xFFFFBB6B,0x6C12,0xFFFFC981,0x73D1,0xFFFFD873,0x79BC,0xFFFFE804,0x7DBB,0xFFFFF7F7,0x7FBF,0x0809,0x7FBF,0x17FC,0x7DBB,0x278D,0x79BC,0x367F,0x73D1,0x4495,0x6C12,0x5197,0x62A0,0x5D4E,0x579F,0x678D,0x4B3C,0x702A,0x3DAA,0x7702,0x2F1E,0x7BFA,0x1FD5,0x7EFD,0x100A,0x8000,0x0000,0x7EFD,0xFFFFEFF6,0x7BFA,0xFFFFE02B,0x7702,0xFFFFD0E2,0x702A,0xFFFFC256,0x678D,0xFFFFB4C4,0x5D4E,0xFFFFA861,0x5197,0xFFFF9D60,0x4496,0xFFFF93EE,0x367F,0xFFFF8C2F,0x278D,0xFFFF8644,0x17FC,0xFFFF8245,0x0809,0xFFFF8041,0xFFFFF7F7,0xFFFF8041,0xFFFFE804,0xFFFF8245,0xFFFFD873,0xFFFF8644,0xFFFFC981,0xFFFF8C2F,0xFFFFBB6B,0xFFFF93EE,0xFFFFAE69,0xFFFF9D60,0xFFFFA2B2,0xFFFFA861,0xFFFF9873,0xFFFFB4C4,0xFFFF8FD6,0xFFFFC256,0xFFFF88FE,0xFFFFD0E2,0xFFFF8406,0xFFFFE02B,0xFFFF8103,0xFFFFEFF6,0xFFFF8000,0x0000,0xFFFF8103,0x100A,0xFFFF8406,0x1FD5,0xFFFF88FE,0x2F1E,0xFFFF8FD6,0x3DAA,0xFFFF9873,0x4B3C,0xFFFFA2B2,0x579F,0xFFFFAE69,0x62A0,0xFFFFBB6A,0x6C12,0xFFFFC981,0x73D1,0xFFFFD873,0x79BC,0xFFFFE804,0x7DBB,0xFFFFF7F7,0x7FBF,0x0809,0x7FBF,0x17FC,0x7DBB,0x278D,0x79BC,0x367F,0x73D1,0x4495,0x6C12,0x5197,0x62A0,0x5D4E,0x579F,0x678D,0x4B3C,0x702A,0x3DAA,0x7702,0x2F1E,0x7BFA,0x1FD5,0x7EFD,0x100B
 liang_cheng_biao:
-	.int 0x00c00300,0x00c00201,0x00c00102,0x00c00003,0x00800300,0x00800201,0x00800102,0x00800003,0x00400300,0x00400201,0x00400102,0x00400003,0x00000300,0x00000201,0x00000102,0x00000003
+	.int 0x00c00000,0x00c00300,0x00c00200,0x00c00100,0x00c00000,0x00c00001,0x00c00002,0x00c00003,0x00800300,0x00800200,0x00800100,0x00800000,0x00800001,0x00800002,0x00800003,0x00400300,0x00400200,0x00400100,0x00400000,0x00400001,0x00400002,0x00400003,0x00000300,0x00000200,0x00000100,0x00000000,0x00000001,0x00000002,0x00000003
 	
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
@@ -78,6 +78,8 @@ xiaoshu:
 	.equ dianrongzhi,		0x20000a38
 	.equ shang,			0x20000a40
 	.equ xiaoshudian,		0x20000a44
+	.equ liangchengjishu,		0x20000a48
+	.equ liangcheng1,		0x20000a4c
 	.section .text
 vectors:
 	.word STACKINIT
@@ -347,7 +349,7 @@ _lcdchushihua:
 
 
 	ldr r0, = liangcheng
-	movs r1, # 0x00
+	movs r1, # 0xc0
 	str r1, [r0]
         ldr r0, = shangbifangda
         ldr r1, = xiabifangda
@@ -355,6 +357,7 @@ _lcdchushihua:
         str r2, [r0]
 	movs r2, # 0
         str r2, [r1]
+	b ddd
 ting:
         bl _jianbo
         bl __zhen_fu_lv_bo
@@ -453,10 +456,7 @@ __xian_shi_dian_rong:
         bl _lcdxianshi
 	b ting	
 ddd:
-	bl __zi_dong_liang_cheng
-	bl __an_jian
-	ldr r1, = shangbifangda
-	str r0, [r1]
+	bl __an_jian_ji_shu
 	bl _jianbo
         bl __zhen_fu_lv_bo
         ldr r0, = xia_bi_shi_bu
@@ -469,16 +469,15 @@ ddd:
         ldr r3, [r3]
         bl __xian_shi_shang_xia_bi
 
-	ldr r0, = liangcheng
+	ldr r0, = liangcheng1
         ldr r0, [r0]
-	lsrs r0, r0, # 6
-	movs r1, # 1
+	movs r1, # 2
         ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
         movs r0, # 0xc7
         ldr r1, = asciimabiao
-        movs r2, # 1
+        movs r2, # 2
 	bl _lcdxianshi
 
         ldr r0, = shangbifangda
@@ -498,13 +497,59 @@ ddd:
         ldr r2, = asciimabiao
         movs r3, # 0xff
         bl _zhuanascii
-        movs r0, # 0xc8
+        movs r0, # 0x88
         ldr r1, = asciimabiao
         movs r2, # 1
 	bl _lcdxianshi
 
 	b ddd
 	.ltorg
+__an_jian_ji_shu:
+	push {r0-r3,lr}
+	bl __an_jian
+	cmp r0, # 1
+	bne __an_jian_ji_shu_fan_hui
+	ldr r1, = liangchengjishu
+	ldr r2, [r1]
+	adds r2, r2, # 1
+	str r2, [r1]
+	cmp r2, # 10
+	bne __an_jian_ji_shu_fan_hui
+	movs r2, # 0
+	str r2, [r1]
+	ldr r1, = liangcheng1
+	ldr r0, [r1]
+	adds r0, r0, # 1
+	str r0, [r1]
+	cmp r0, # 29
+	bne __xie_ru_liang_cheng
+	movs r0, # 0
+	str r0, [r1]
+__xie_ru_liang_cheng:
+	bl __liang_cheng_she_zhi
+__an_jian_ji_shu_fan_hui:
+	pop {r0-r3,pc}
+__liang_cheng_she_zhi:
+	@ 入口=liangcheng
+	push {r1-r7,lr}
+	ldr r1, = liang_cheng_biao
+	lsls r0, r0, # 2
+	ldr r2, [r1, r0]	@ r2=liangcheng
+	mov r3, r2		@ r3=shangbifangda
+	mov r4, r2		@ r4=xiabifangda
+	ldr r5, = liangcheng
+	ldr r6, = shangbifangda
+	ldr r7, = xiabifangda
+	lsrs r2, r2, # 22
+	lsls r2, r2, # 6
+	lsls r3, r3, # 22
+	lsrs r3, r3, # 30
+	lsls r4, r4, # 30
+	lsrs r4, r4, # 30
+	str r2, [r5]
+	str r3, [r6]
+	str r4, [r7]
+	pop {r1-r7,pc}
 __xiao_shu_dian_wei_zhi:
 	push {r0-r1,lr}
 	ldr r0, = liangcheng
@@ -601,6 +646,7 @@ __dian_rong_ji_suan:
 	str r1, [r3]
 	pop {r0-r4,pc}
 __an_jian:
+	@ 出口 R0=00(没有按)，1（按键1）2(按键2)3（按键1+2）
 	push {r1}
 	ldr r1, = 0x48000010
 	ldr r0, [r1]
@@ -610,7 +656,7 @@ __an_jian:
 	pop {r1}
 	bx lr
 __fang_da:
-	@ 入口r0=0(放大1)，1（放大2.75），2（放大9）,3（放大29）
+	@ 入口r0=0(放大1)，1（放大3），2（放大9）,3（放大29）
 	push {r1-r4,lr}
         ldr r2, = 0x48000000
         ldr r1, = 0x48000400
