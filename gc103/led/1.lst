@@ -1,0 +1,77 @@
+ARM GAS  1.s 			page 1
+
+
+   1              		@led闪烁
+   2              		.thumb
+   3              		.syntax unified
+   4              		.equ GPIOC_CRH,		0x40011004
+   5              		.equ GPIOC_ODR,		0x4001100C
+   6              		.equ RCC_APB2ENR,	0x40021018	
+   7              		.equ STACHINIT,		0x20005000	@堆栈顶
+   8              		.equ LEDDELAY,		800000		@LED延时
+   9              	vectors:					@向量表
+  10 0000 00500020 		.word STACHINIT	
+  11 0004 1D000000 		.word _start + 1			@复位向量，+1 表示thumb
+  12 0008 47000000 	        .word _nmi_handler + 1 
+  13 000c 47000000 	        .word _hard_fault + 1 
+  14 0010 47000000 	        .word _memory_fault + 1 
+  15 0014 47000000 	        .word _bus_fault + 1
+  16 0018 47000000 	        .word _usage_fault + 1
+  17              	_start:
+  18              	_io_she_zhi:				@io设置	
+  19 001c 0A4E     		ldr r6, = RCC_APB2ENR
+  20 001e 4FF01000 		mov r0, # 0x10
+  21 0022 3060     		str r0, [r6]		@开IO时钟
+  22 0024 094E     		ldr r6, = GPIOC_CRH	
+  23 0026 0A48     		ldr r0, = 0x44434444	
+  24 0028 3060     		str r0, [r6]		@GPIOC_12模式推挽输出
+  25 002a 4FF00002 		mov r2, # 0		
+  26 002e 4FF48053 		mov r3, # 0x1000	@ IO 12
+  27 0032 084E     		ldr r6, = GPIOC_ODR
+  28              	led_xun_huan:			@LED循环
+  29 0034 3260     		str r2, [r6]		@LED低
+  30 0036 0849     		ldr r1, = LEDDELAY	@r1=LED延时数
+  31              	yan_shi1:			@延时1
+  32 0038 0139     		subs r1, r1, # 1	@延时数减1
+  33 003a FDD1     		bne yan_shi1		@不到0循环
+  34 003c 3360     		str r3, [r6]		@LED高
+  35 003e 0649     		ldr r1, = LEDDELAY	@r1=LED延时数
+  36              	yan_shi2:			@延时2
+  37 0040 0139     		subs r1, r1, # 1	@延时书减1
+  38 0042 FDD1     		bne yan_shi2		@不到跳转延时2
+  39 0044 F6E7     		b led_xun_huan		@ 跳到LED循环
+  40              	_nmi_handler:	
+  41              	_hard_fault:	
+  42              	_memory_fault:	
+  43              	_bus_fault:	
+  44              	_usage_fault:
+  45 0046 70471810 		bx lr
+  45      02400410 
+  45      01404444 
+  45      43440C10 
+  45      01400035 
+ARM GAS  1.s 			page 2
+
+
+DEFINED SYMBOLS
+                 1.s:4      *ABS*:0000000040011004 GPIOC_CRH
+                 1.s:5      *ABS*:000000004001100c GPIOC_ODR
+                 1.s:6      *ABS*:0000000040021018 RCC_APB2ENR
+                 1.s:7      *ABS*:0000000020005000 STACHINIT
+                 1.s:8      *ABS*:00000000000c3500 LEDDELAY
+                 1.s:9      .text:0000000000000000 vectors
+                 1.s:17     .text:000000000000001c _start
+                 1.s:40     .text:0000000000000046 _nmi_handler
+                 1.s:41     .text:0000000000000046 _hard_fault
+                 1.s:42     .text:0000000000000046 _memory_fault
+                 1.s:43     .text:0000000000000046 _bus_fault
+                 1.s:44     .text:0000000000000046 _usage_fault
+                 1.s:18     .text:000000000000001c _io_she_zhi
+                            .text:0000000000000000 $d
+                 1.s:19     .text:000000000000001c $t
+                 1.s:28     .text:0000000000000034 led_xun_huan
+                 1.s:31     .text:0000000000000038 yan_shi1
+                 1.s:36     .text:0000000000000040 yan_shi2
+                 1.s:45     .text:0000000000000048 $d
+
+NO UNDEFINED SYMBOLS
