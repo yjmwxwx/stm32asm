@@ -773,7 +773,7 @@ __liang_cheng_fan_hui:
 	pop {r0-r5,pc}
 __dian_gan_ji_suan:
 	push {r0-r2,lr}
-	ldr r0, = fudu
+	ldr r0, = diankangzhi
 	ldr r0, [r0]
 	ldr  r1, = 1000000000
 	bl __chengfa
@@ -784,8 +784,10 @@ __dian_gan_ji_suan:
 	pop {r0-r2,pc}
 __dian_rong_ji_suan:
 	push {r0-r4,lr}
-	ldr r0, = fudu
+	ldr r0, = diankangzhi
 	ldr r2, [r0]
+	mvns r2, r2
+	adds r2, r2, # 1
 	ldr r1, = 62831
 	muls r2, r2, r1
 	ldr r1, = 0xd4a51000
