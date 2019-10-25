@@ -22,11 +22,18 @@ xiao_shu_dian_wei_zhi:
 	.byte 3,4,3,3,3,3
 	.align 4
 dian_rong_huan_suan_biao:
-	.int 0x00000064,0x10000001,0x00000064,0x000003e8,0x00000064,0x10000001
+	.int 0x00000064,0x000003e8,0x00000064,0x000003e8,0x00000064,0x10000001
 dian_rong_dan_wei:
 	.short 0x4675,0x466d,0x4675,0x466e,0x4670,0x4670
 dian_rong_xiao_shu_dian_wei_zhi:
-	.byte 1,3,1,2,0xff,2
+	.byte 1,1,1,2,0xff,2
+	.align 4
+dian_gan_huan_suan_biao:
+	.int 10000,100000,1,1,1,1
+dian_gan_dan_wei:
+	.short 0x4875,0x4875,0x4875,0x4875,0x4875,0x4875
+dian_gan_xiao_shu_dian_wei_zhi:
+	.byte 4,3,4,1,1,1
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
 dianhua:	
@@ -37,23 +44,6 @@ _fu:
 	.ascii "-"
 pinlv10k:
 	.ascii	"m"
-haoou:
-	.ascii "m"
-ou:
-        .int    0xf4
-qianou:
-	.ascii "k"
-	.int 0xf4
-zhaoou:
-	.ascii "M"
-	.int 0xf4
-youfa:
-	.ascii "mF"
-	.ascii "uF"
-nenfa:
-	.ascii "nF"
-pifa:
-	.ascii "pF"
 kong:
 	.int 0x20202020
 
@@ -88,10 +78,13 @@ kong:
 	.equ dianrongzhi,		0x20000a38
 	.equ shang,			0x20000a40
 	.equ xiaoshudian,		0x20000a44
-	.equ liangchengjishu,		0x20000a48
+	.equ anjianyanshi,		0x20000a48
 	.equ liangcheng1,		0x20000a4c
 	.equ fudu,			0x20000a50
 	.equ dianrongxiaoshudian,	0x20000a54
+	.equ dianganzhi,		0x20000a58
+	.equ dianganxiaoshudian,	0x20000a5c
+	.equ L_C_qie_huan,		0x20000a60
 	.section .text
 vectors:
 	.word STACKINIT
@@ -376,8 +369,10 @@ ting:
 	bl __zu_kang_ji_suan
 	bl __fang_da_huan_suan
 	bl __dian_rong_ji_suan
+	bl __dian_gan_ji_suan
 	bl __dan_wei_xian_shi
 	bl __dian_rong_huan_suan
+	bl __dian_gan_huan_suan
 	bl __xiao_shu_dian_xian_shi
 	ldr r0, = dianzuzhi
 	ldr r4, [r0]
@@ -451,6 +446,10 @@ __xian_shi_pin_lv:
         ldr r1, = pinlv10k
         movs r2, # 1
         bl _lcdxianshi
+	ldr r0, = L_C_qie_huan
+	ldr r0, [r0]
+	cmp r0, # 1
+	bne __xian_shi_dian_gan
 __xian_shi_dian_rong:
 	ldr r0, = dianrongzhi
         movs r1, # 5
@@ -463,6 +462,19 @@ __xian_shi_dian_rong:
         ldr r1, = asciimabiao
 	movs r2, # 5
         bl _lcdxianshi
+	b ting
+__xian_shi_dian_gan:
+	ldr r0, = dianganzhi
+	movs r1, # 5
+	ldr r3, = dianganxiaoshudian
+	ldr r0, [r0]
+	ldr r3, [r3]
+	ldr r2, = asciimabiao
+	bl _zhuanascii
+	movs r0, # 0x0c9
+	ldr r1, = asciimabiao
+	movs r2, # 5
+	bl _lcdxianshi
 	b ting	
 ddd:
 	bl __an_jian_ji_shu
@@ -525,6 +537,10 @@ __xiao_shu_dian_xian_shi:
 	ldr r2, = dianrongxiaoshudian
 	ldrb r0, [r1, r3]
 	str r0, [r2]
+	ldr r1, = dian_gan_xiao_shu_dian_wei_zhi
+	ldr r2, = dianganxiaoshudian
+	ldrb r0, [r1, r3]
+	str r0, [r2]
 	pop {r0-r3,pc}
 __dan_wei_xian_shi:
 	push {r0-r3,lr}
@@ -537,6 +553,17 @@ __dan_wei_xian_shi:
 	movs r0, # 0x8e
 	movs r2, # 2
 	bl _lcdxianshi
+	ldr r1, = L_C_qie_huan
+	ldr r1, [r1]
+	cmp r1, # 1
+	beq __xian_shi_dian_rong_dan_wei
+	ldr r1, = dian_gan_dan_wei
+	adds r1, r1, r3
+	movs r0, # 0xce
+	movs r2, # 2
+	bl _lcdxianshi
+	pop {r0-r3,pc}
+__xian_shi_dian_rong_dan_wei:	
 	ldr r1, = dian_rong_dan_wei
 	adds r1, r1, r3
 	movs r0, # 0xce
@@ -567,6 +594,19 @@ __dian_rong_cheng:
 	ldr r1, [r0]
 	muls r1, r1, r3
 	str r1, [r0]
+	pop {r0-r3,pc}
+__dian_gan_huan_suan:
+	push {r0-r3,lr}
+	ldr r0, = liangcheng1
+	ldr r3, = dian_gan_huan_suan_biao
+	ldr r2, [r0]
+	ldr r0, = dianganzhi
+	lsls r2, r2, # 2
+	ldr r1, [r3, r2]
+	mov r3, r0
+	ldr r0, [r0]
+	bl _chufa
+	str r0, [r3]
 	pop {r0-r3,pc}
 __fang_da_huan_suan:
 	push {r0-r3,lr}
@@ -613,8 +653,8 @@ __an_jian_ji_shu:
 	push {r0-r3,lr}
 	bl __an_jian
 	cmp r0, # 1
-	bne __an_jian_ji_shu_fan_hui
-	ldr r1, = liangchengjishu
+	bne __dian_gan_dian_rong_qie_huan
+	ldr r1, = anjianyanshi
 	ldr r2, [r1]
 	adds r2, r2, # 1
 	str r2, [r1]
@@ -632,8 +672,29 @@ __an_jian_ji_shu:
 	str r0, [r1]
 __xie_ru_liang_cheng:
 	bl __liang_cheng_she_zhi
+	pop {r0-r3,pc}
+__dian_gan_dian_rong_qie_huan:
+	cmp r0, # 2
+	bne __an_jian_ji_shu_fan_hui
+	ldr r1, = anjianyanshi
+	ldr r2, [r1]
+	adds r2, r2, # 1
+	str r2, [r1]
+	cmp r2, # 10
+	bne __an_jian_ji_shu_fan_hui
+	movs r2, # 0
+	str r2, [r1]
+	ldr r1, = L_C_qie_huan
+	ldr r0, [r1]
+	adds r0, r0, # 1
+	str r0, [r1]
+	cmp r0, # 2
+	bne __an_jian_ji_shu_fan_hui
+	movs r0, # 0
+	str r0, [r1]
 __an_jian_ji_shu_fan_hui:
 	pop {r0-r3,pc}
+	.ltorg
 __liang_cheng_she_zhi:
 	@ 入口=liangcheng
 	push {r1-r7,lr}
@@ -710,7 +771,17 @@ __pan_duan_xuan_kong:
 	str r3, [r0]
 __liang_cheng_fan_hui:
 	pop {r0-r5,pc}
-	
+__dian_gan_ji_suan:
+	push {r0-r2,lr}
+	ldr r0, = fudu
+	ldr r0, [r0]
+	ldr  r1, = 1000000000
+	bl __chengfa
+	ldr r2, = 62831
+	bl __chufa64
+	ldr r2, = dianganzhi
+	str r1, [r2]
+	pop {r0-r2,pc}
 __dian_rong_ji_suan:
 	push {r0-r4,lr}
 	ldr r0, = fudu
