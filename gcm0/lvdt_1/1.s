@@ -3,7 +3,7 @@
 	         .syntax unified
 	.section .data
 zheng_xian_biao:
-	.short 0x18,0x19,0x1a,0x1c,0x1d,0x1f,0x20,0x22,0x23,0x24,0x25,0x26,0x28,0x29,0x2a,0x2b,0x2b,0x2c,0x2d,0x2d,0x2e,0x2e,0x2f,0x2f,0x2f,0x2f,0x2f,0x2f,0x2f,0x2e,0x2e,0x2d,0x2d,0x2c,0x2b,0x2b,0x2a,0x29,0x28,0x26,0x25,0x24,0x23,0x22,0x20,0x1f,0x1d,0x1c,0x1a,0x19,0x18,0x16,0x15,0x13,0x12,0x10,0xf,0xd,0xc,0xb,0xa,0x9,0x7,0x6,0x5,0x4,0x4,0x3,0x2,0x2,0x1,0x1,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x2,0x3,0x4,0x4,0x5,0x6,0x7,0x9,0xa,0xb,0xc,0xd,0xf,0x10,0x12,0x13,0x15,0x16,0x18
+.short 0x30,0x33,0x36,0x38,0x3b,0x3e,0x41,0x44,0x47,0x49,0x4c,0x4e,0x50,0x52,0x54,0x56,0x58,0x59,0x5b,0x5c,0x5d,0x5e,0x5e,0x5f,0x5f,0x5f,0x5f,0x5f,0x5e,0x5d,0x5c,0x5b,0x5a,0x59,0x57,0x55,0x53,0x51,0x4f,0x4d,0x4a,0x48,0x45,0x43,0x40,0x3d,0x3a,0x37,0x34,0x31,0x2e,0x2b,0x28,0x25,0x22,0x1f,0x1c,0x1a,0x17,0x15,0x12,0x10,0xe,0xc,0xa,0x8,0x6,0x5,0x4,0x3,0x2,0x1,0x0,0x0,0x0,0x0,0x0,0x1,0x1,0x2,0x3,0x4,0x6,0x7,0x9,0xb,0xd,0xf,0x11,0x13,0x16,0x18,0x1b,0x1e,0x21,0x24,0x27,0x29,0x2c,0x30
 	.align 4
 shumaguanmabiao:
 	.int 0x02,0xae,0x14,0x0c,0xa8,0x48,0x40,0x2e,0x00,0x08
@@ -11,8 +11,8 @@ shumaguanmabiao:
 	.equ STACKINIT,        	        0x20001000
 	.equ shumaguanma,		0x20000000
 	.equ dianyabiao,		0x20000100
-	.equ lvboqizhizhen,		0x20000600
-	.equ lvboqihuanchong,		0x20000604
+	.equ lvboqizhizhen,		0x20000200
+	.equ lvboqihuanchong,		0x20000204
 .section .text
 vectors:
 	.word STACKINIT
@@ -168,7 +168,7 @@ _dengdaiadcwending:
 	lsls r1, r1, # 31
 	bpl _dengdaiadcwending @ 等ADC稳定
 _tongdaoxuanze:
-	ldr r1, = 2
+	ldr r1, = 1
         str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
         ldr r1, = 0x803
         str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
@@ -217,14 +217,14 @@ tim1chushiha:
         ldr r0, = 0x40012c00 @ tim1_cr1
         movs r1, # 0
         str r1, [r0, # 0x28] @ psc
-        ldr r1, = 47
+        ldr r1, = 96
         str r1, [r0, # 0x2c] @ ARR
 	@	movs r1, # 0x40
 	movs r1, # 0x20
 	str r1, [r0, # 0x04] @ TRGO
 	movs r1, # 0x38
 	str r1, [r0, # 0x18] @ ccmr1 cc1
-	movs r1, # 47
+	movs r1, # 96
 	str r1, [r0, # 0x34]
         ldr r1, = 0x68
         str r1, [r0, # 0x1c] @ ccmr2  CC3
@@ -241,10 +241,20 @@ tim1chushiha:
 	ldr r5, = 0
 	ldr r6, = 9999
 _tingting:
-	ldr r0, = dianyabiao
-	ldr r3, [r0]
+	ldr r0, = 0x20000150
+	ldr r2, = 0x20000190
+	ldrh r1, [r0]
+	ldrh r3, [r2]
+	cmp r1, r3
+	bhi __zheng
+	subs r3, r3, r1
+	b __xian_shi_led
+__zheng:
+	subs r1, r1, r3
+	mov r3, r1
+__xian_shi_led:	
 	ldr r0, = lvboqihuanchong
-	ldr r1, = 128
+	ldr r1, = 256
 	ldr r2, = lvboqizhizhen
 	bl _lvboqi
 	movs r1, # 4
@@ -252,7 +262,7 @@ _tingting:
         bl _zhuanshumaguanma
         bl _xieshumaguan
 	b _tingting
-	
+
 _xieshumaguan:			@ r0=4位10进制数
 	push {r0-r7,lr}
 	ldr r2, = shumaguanma
@@ -318,61 +328,14 @@ _xunhuanqiuma:
 	bne _xunhuanqiuma
 	pop {r0-r7,pc}
 
-
-__ji_suan_fu_du:    @ 计算幅度
-                @ 入r0= 实部，r1= 虚部
-                @ 出r0 = 幅度
-                @ Mag ~=Alpha * max(|I|, |Q|) + Beta * min(|I|, |Q|)
-                @ Alpha * Max + Beta * Min
-        push {r1-r3,lr}
-        movs r0, r0
-        bpl _shibubushifushu
-        mvns r0, r0                             @ 是负数转成正数
-        adds r0, r0, # 1
-_shibubushifushu:                               @ 实部不是负数
-        movs r1, r1
-        bpl _xububushifushu
-        mvns r1, r1                             @ 是负数转成正数
-        adds r1, r1, # 1
-_xububushifushu:                                @ 虚部不是负数
-        cmp r0, # 0
-        bne _panduanxubushibushi0
-        mov r0, r1
-        pop {r1-r3,pc}
-_panduanxubushibushi0:	
-	cmp r1, # 0
-	bne _jisuanfudu1
-	pop {r1-r3,pc}
-_jisuanfudu1:
-	ldr r2, = 31066		@ Alpha q15 0.948059448969
-	ldr r3, = 12867		@ Beta q15 0.392699081699
-	cmp r1, r0
-	bhi _alpha_min_beta_max
-_alpha_max_beta_min:
-	muls r0, r0, r2
-	muls r1, r1, r3
-	asrs r0, r0, # 15
-	asrs r1, r1, # 15
-	adds r0, r0, r1
-	movs r1, # 1
-	pop {r1-r3,pc}
-_alpha_min_beta_max:
-	muls r0, r0, r3
-	muls r1, r1, r2
-	asrs r0, r0, # 15
-	asrs r1, r1, # 15
-	adds r0, r0, r1
-	movs r1, # 0
-	pop {r1-r3,pc}
-_lvboqi:
-			@滤波器
+_lvboqi:				@滤波器
 			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
 			@出R0=结果
 	push {r1-r7,lr}	
 	ldr r5, [r2]		@读出表指针
-	lsls r6, r1, # 2	
-	str r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 4
+	lsls r6, r1, # 1	
+	strh r3, [r0, r5]	@数值写到滤波器缓冲区
+	adds r5, r5, # 2
 	cmp r5, r6
 	bne _lvboqimeidaohuanchongquding
 	movs r5, # 0
@@ -384,12 +347,12 @@ _lvboqixunhuan:
 	bne _lvbozonghe
 	movs r5, # 0
 _lvbozonghe:
-	ldr r4, [r0, r5]
-	adds r5, r5, # 4
+	ldrh r4, [r0, r5]
+	adds r5, r5, # 2
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 7	@修改
+	asrs r0, r7, # 8	@修改
 	pop {r1-r7,pc}
 _chufa:				@软件除法
 	@ r0 除以 r1 等于 商(r0)余数R1
