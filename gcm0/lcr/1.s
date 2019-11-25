@@ -36,8 +36,8 @@ dian_gan_xiao_shu_dian_wei_zhi:
 	.byte 4,3,4,1,1,1
 lcdshuju:
 	.ascii  "yjmwxwx-20190812"
-dianhua:	
-	.ascii	"     15552208295"
+dianhuan:
+	.ascii  "  15552208295   "
 qq:
 	.ascii	"   QQ:3341656346"
 _fu:
@@ -85,6 +85,7 @@ kong:
 	.equ dianganzhi,		0x20000a58
 	.equ dianganxiaoshudian,	0x20000a5c
 	.equ L_C_qie_huan,		0x20000a60
+	.equ q_zhi,			0x20000a64
 	.section .text
 vectors:
 	.word STACKINIT
@@ -352,7 +353,36 @@ _lcdchushihua:
 	bl _xielcd
 	bl _lcdyanshi
 
+        movs r0, # 0x80
+        ldr r1, = lcdshuju
+        movs r2, # 16
+	bl _lcdxianshi
 
+	movs r0, # 0xc0
+	ldr r1, = dianhuan
+	movs r2, # 16
+	bl _lcdxianshi
+
+	ldr r0, = 0xffffff
+__guang_gao_yan_shi:
+	subs r0, r0, # 1
+	bne __guang_gao_yan_shi
+
+	movs r0, # 0xc0
+	ldr r1, = qq
+	movs r2, # 16
+	bl _lcdxianshi
+	ldr r0, = 0xffffff
+__guang_gao_yan_shi1:
+	subs r0, r0, # 1
+	bne __guang_gao_yan_shi1
+	
+
+	movs r0, # 0x01
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+	
 	ldr r0, = liangcheng
 	movs r1, # 0xc0
 	str r1, [r0]
@@ -368,12 +398,13 @@ ting:
         bl __zhen_fu_lv_bo
 	bl __zu_kang_ji_suan
 	bl __fang_da_huan_suan
-	bl __dian_rong_ji_suan
+	bl __dian_rong_ji_suan		@224
 	bl __dian_gan_ji_suan
 	bl __dan_wei_xian_shi
 	bl __dian_rong_huan_suan
 	bl __dian_gan_huan_suan
 	bl __xiao_shu_dian_xian_shi
+	bl __q_zhi_ji_suan
 	ldr r0, = dianzuzhi
 	ldr r4, [r0]
 	movs r4, r4
@@ -430,6 +461,17 @@ __xian_shi_dian_kang:
 	movs r2, # 5
         bl _lcdxianshi
 
+__xian_shi_q_zhi:
+	ldr r0, = q_zhi
+	movs r1, # 6
+	ldr r0, [r0]
+	ldr r2, = asciimabiao
+	movs r3, # 3
+	bl _zhuanascii
+	movs r0, # 0xc2
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
 
 	ldr r0, = liangcheng1
         movs r1, # 2
@@ -525,6 +567,28 @@ ddd:
 
 	b ddd
 	.ltorg
+__q_zhi_ji_suan:
+	push {r0-r3,lr}
+	ldr r2, = diankangzhi
+	ldr r3, = dianzuzhi
+	ldr r0, [r2]
+	ldr r1, [r3]
+	ldr r2, = 100
+	movs r0, r0
+	bpl __diankang_q_bu_shi_fu_shu
+	mvns r0, r0
+	adds r0, r0, # 1
+__diankang_q_bu_shi_fu_shu:
+	muls r0, r0, r2
+	movs r1, r1
+	bpl __dianzu_q_bu_shi_fu_shu
+	mvns r1, r1
+	adds r1, r1, # 1
+__dianzu_q_bu_shi_fu_shu:	
+	ldr r2, = q_zhi
+	bl _chufa
+	str r0, [r2]
+	pop {r0-r3,pc}
 __xiao_shu_dian_xian_shi:
 	push {r0-r3,lr}
 	ldr r0, = liangcheng1
@@ -786,8 +850,11 @@ __dian_rong_ji_suan:
 	push {r0-r4,lr}
 	ldr r0, = diankangzhi
 	ldr r2, [r0]
+	movs r2, r2
+	bpl __dianrong_bu_shi_fu
 	mvns r2, r2
 	adds r2, r2, # 1
+__dianrong_bu_shi_fu:	
 	ldr r1, = 62831
 	muls r2, r2, r1
 	ldr r1, = 0xd4a51000
