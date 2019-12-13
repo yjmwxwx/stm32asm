@@ -20,9 +20,12 @@ yjmwxwx:
 	.equ jishu,			0x20000030
 	.equ lvboqizhizhen,		0x20000040
 	.equ lvboqihuanchong,		0x20000044
-	.equ diancitiexia,		0x20000250
-	.equ diancitieshang,		0x20000254
-	.equ pinghengdian,		0x20000258
+	.equ kp,			0x20000250
+	.equ ki,			0x20000254
+	.equ kd,			0x20000258
+	.equ dang_qin_cha,		0X2000025C
+	.equ shang_ci_i,		0x20000260
+	.equ anjianyanshi,		0x20000268
 	.equ dianyabiao,		0x20000500
 	.section .text
 vectors:
@@ -172,6 +175,9 @@ io_she_zhi:
 	ldr r1, = 0x2800a15b
 	str r1, [r0]
 
+	ldr r1, = 0x40400
+	str r1, [r0, # 0x0c] @pa5 pa9上拉
+	
 	ldr r1, = 0x11000000
 	str r1, [r0, # 0x20]	@ pa6\pa7 TIM3
 
@@ -272,13 +278,13 @@ _tim3chushiha:
 	ldr r0, = 0x40000400 @ tim3_cr1
 	movs r1, # 0
 	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 0xffff
+	ldr r1, = 4800
 	str r1, [r0, # 0x2c] @ ARR
 	ldr r1, = 0x6868
 	str r1, [r0, # 0x18] @ ccmr1
 	movs r1, # 0x11
 	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 0
+	ldr r1, = 1
 	str r1, [r0, # 0x34]
 	ldr  r1, = 100
 	str r1, [r0, # 0x38]
@@ -289,23 +295,32 @@ _tingting:
 	ldr r2, = 0x20000590
 	ldrh r1, [r0]
 	ldrh r3, [r2]
-	cmp r1, r3
-	bhi __zheng
 	subs r3, r3, r1
+		@ 1b6
+	movs r1, # 0
+	mov r0, r3
+	subs r0, r0, r1
+	bl __pid
+
+
+
+
+
+	
+__xian_shi_led:
+	movs r3, r3
+	bpl __bu_shi_fu_shu
+	mvns r3, r3
+	adds r3, r3, # 1
 	ldr r0, = fuhao
 	movs r1, # 0
 	str r1, [r0]
-	movs r0, # 0
-	b __xian_shi_led
-__zheng:
-	subs r1, r1, r3
-	mov r3, r1
+	b __led_xian_shi
+__bu_shi_fu_shu:
 	ldr r0, = fuhao
 	movs r1, # 0x02
 	str r1, [r0]
-	movs r0, # 1
-__xian_shi_led:
-	bl __pwm_ping_heng
+__led_xian_shi:	
 	ldr r0, = lvboqihuanchong
 	ldr r1, = 256
 	ldr r2, = lvboqizhizhen
@@ -317,39 +332,49 @@ __xian_shi_led:
 	movs r0, # 5
         bl _xieshumaguan
 	b _tingting
-__pwm_ping_heng:
-	push {r1-r7,lr}
+
+__pid:
+	@ 入口r0=e(t)当前差多少
+	push {r2-r7,lr}
+	mov r4, r0
+	mov r5, r0
+__bi_li:
+	ldr r2, = 40000		@ kp
+	muls r0, r0, r2
+	asrs r0, r0, # 15
+__ji_fen:
+__pid_shu_chu:
+	bl __dian_ci_tie
+	pop {r2-r7,pc}
+	
+	
+__dian_ci_tie:
+	@ 入口 R0=输入值
+	push {r1-r3,lr}
 	ldr r1, = 0x40000400
-	ldr r2, = diancitiexia
-	ldr r3, = diancitieshang
-	ldr r5, = 0x2fff
-	cmp r0, # 1
-	bne __diancitieshang
-__dian_ci_tie_xia:	
-	movs r4, # 0
-	str r0, [r1, # 0x34]
-	ldr r4, [r2]
-	adds r4, r4, # 1
-	str r4, [r2]
-	str r4, [r1, # 0x38]
-	cmp r4, r5
-	bcc __pwm_ping_heng_fan_hui
-	str r5, [r1, # 0x38]
-	str r5, [r2]
-	b __pwm_ping_heng_fan_hui
-__diancitieshang:
-	movs r4, # 0
+	ldr r3, = 3000
+	movs r0, r0
+	bpl __dian_ci_tie_shang
+__dian_ci_tie_xia:
+	mvns r0, r0
+	adds r0, r0, # 1
+	cmp r0, r3
+	bls __xia_shu_chu
+	mov r0, r3
+__xia_shu_chu:	
+	movs r2, # 0
+	str r2, [r1, # 0x34]
 	str r0, [r1, # 0x38]
-	ldr r4, [r3]
-	adds r4, r4, # 1
-	str r4, [r1, # 0x34]
-	str r4, [r3]
-	cmp r4, r5
-	bcc __pwm_ping_heng_fan_hui
-	str r5, [r1, # 0x34]
-	str r5, [r3]
-__pwm_ping_heng_fan_hui:
-	pop {r1-r7,pc}
+	pop {r1-r3,pc}
+__dian_ci_tie_shang:
+	cmp r0, r3
+	bls __shang_shu_chu
+	mov r0, r3
+__shang_shu_chu:	
+	movs r2, # 0
+	str r2, [r1, # 0x38]
+	str r0, [r1, # 0x34]
+	pop {r1-r3,pc}
 
 _zhuanshumaguanma:@ 16进制转数码管码
 	@ R0要转的数据， R1长度，R2结果表首地址
