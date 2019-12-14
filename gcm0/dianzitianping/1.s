@@ -20,11 +20,9 @@ yjmwxwx:
 	.equ jishu,			0x20000030
 	.equ lvboqizhizhen,		0x20000040
 	.equ lvboqihuanchong,		0x20000044
-	.equ kp,			0x20000250
-	.equ ki,			0x20000254
-	.equ kd,			0x20000258
 	.equ dang_qin_cha,		0X2000025C
-	.equ shang_ci_i,		0x20000260
+	.equ shang_ci_cha,		0x20000260
+	.equ shang_ci_i,		0x20000264
 	.equ anjianyanshi,		0x20000268
 	.equ dianyabiao,		0x20000500
 	.section .text
@@ -339,11 +337,27 @@ __pid:
 	mov r4, r0
 	mov r5, r0
 __bi_li:
-	ldr r2, = 40000		@ kp
+	ldr r2, = 10000		@ KP
 	muls r0, r0, r2
 	asrs r0, r0, # 15
 __ji_fen:
+	ldr r7, = shang_ci_i
+	ldr r2, = 10		@ KI
+	ldr r3, [r7]
+	muls r4, r4, r2
+	asrs r4, r4, # 15
+	adds r4, r4, r3
+	str r4, [r7]
+__wei_fen:
+	ldr r7, = shang_ci_cha
+	ldr r2, = 200		@ KD	
+	ldr r3, [r7]
+	subs r5, r5, r3
+	muls r5, r5, r2
+	asrs r5, r5, # 15
 __pid_shu_chu:
+	adds r0, r0, r4
+	adds r0, r0, r5
 	bl __dian_ci_tie
 	pop {r2-r7,pc}
 	
