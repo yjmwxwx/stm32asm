@@ -20,13 +20,11 @@ yjmwxwx:
 	.equ jishu,			0x20000030
 	.equ lvboqizhizhen,		0x20000040
 	.equ lvboqihuanchong,		0x20000044
-	.equ dang_qin_cha,		0X2000025C
+	.equ dang_qian_cha,		0X2000025C
 	.equ shang_ci_cha,		0x20000260
 	.equ shang_ci_i,		0x20000264
 	.equ anjianyanshi,		0x20000268
 	.equ dianyabiao,		0x20000500
-	.equ lvboqizhizhen1,		0x20000600
-	.equ lvboqihuanchong1,		0x20000604
 	.section .text
 vectors:
 	.word STACKINIT
@@ -296,32 +294,35 @@ _tingting:
 	ldrh r1, [r0]
 	ldrh r3, [r2]
 	subs r3, r3, r1
+	@ 1b6
+	
 	movs r1, # 0
 	mov r0, r3
 	subs r0, r0, r1
 	bl __pid
-__dian_shi_zhong_liang:
-	ldr r0, = 0x40000438
-	ldr r3, [r0]
-	b __led_xian_shi
-__xian_shi_wei_zhi:
-	movs r3, r3
-	bpl __bu_shi_fu_shu
-	mvns r3, r3
-	adds r3, r3, # 1
-	ldr r0, = fuhao
-	movs r1, # 0
-	str r1, [r0]
-	b __led_xian_shi
-__bu_shi_fu_shu:
-	ldr r0, = fuhao
-	movs r1, # 0x02
-	str r1, [r0]
-__led_xian_shi:	
-	ldr r0, = lvboqihuanchong
-	ldr r1, = 256
+        ldr r0, = lvboqihuanchong
+        ldr r1, = 256
 	ldr r2, = lvboqizhizhen
 	bl _lvboqi
+	ldr r1, = dang_qian_cha
+	str r0, [r1]
+
+__xian_shi_chuan_gan_qi:
+	ldr r0, = dang_qian_cha
+	ldr r0, [r0]
+	movs r0, r0
+	bpl __bu_shi_fu_shu
+	mvns r0, r0
+	adds r0, r0, # 1
+	ldr r3, = fuhao
+	movs r1, # 0
+	str r1, [r3]
+	b __led_xian_shi
+__bu_shi_fu_shu:
+	ldr r3, = fuhao
+	movs r1, # 0x02
+	str r1, [r3]
+__led_xian_shi:	
 	movs r1, # 4
         ldr r2, = shumaguanma
 	movs r3, # 0xff		@小数点位置
@@ -336,12 +337,12 @@ __pid:
 	mov r4, r0
 	mov r5, r0
 __bi_li:
-	ldr r2, = 15000		@ KP
+	ldr r2, = 10		@ KP
 	muls r0, r0, r2
 	asrs r0, r0, # 15
 __ji_fen:
 	ldr r7, = shang_ci_i
-	ldr r2, = 10		@ KI
+	ldr r2, = 0	@ KI
 	ldr r3, [r7]
 	muls r4, r4, r2
 	asrs r4, r4, # 15
@@ -349,7 +350,7 @@ __ji_fen:
 	str r4, [r7]
 __wei_fen:
 	ldr r7, = shang_ci_cha
-	ldr r2, = 300		@ KD	
+	ldr r2, = 0		@ KD	
 	ldr r3, [r7]
 	str r5, [r7]
 	subs r5, r5, r3
@@ -366,7 +367,7 @@ __dian_ci_tie:
 	@ 入口 R0=输入值
 	push {r1-r3,lr}
 	ldr r1, = 0x40000400
-	ldr r3, = 4800
+	ldr r3, = 2400
 	movs r0, r0
 	bpl __dian_ci_tie_shang
 __dian_ci_tie_xia:
@@ -483,25 +484,52 @@ _lvboqi:				@滤波器
 	ldr r5, [r2]		@读出表指针
 	lsls r6, r1, # 1	
 	strh r3, [r0, r5]	@数值写到滤波器缓冲区
-	adds r5, r5, # 2
+	adds r5, r5, # 4
 	cmp r5, r6
 	bne _lvboqimeidaohuanchongquding
 	movs r5, # 0
 _lvboqimeidaohuanchongquding:
-	str r5, [r2]
+	strh r5, [r2]
 	movs r7, # 0
 _lvboqixunhuan:
 	cmp r5, r6
 	bne _lvbozonghe
 	movs r5, # 0
 _lvbozonghe:
-	ldrh r4, [r0, r5]
-	adds r5, r5, # 2
+	ldr r4, [r0, r5]
+	adds r5, r5, # 4
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
 	asrs r0, r7, # 8	@修改
 	pop {r1-r7,pc}
+
+_lvboqi32:                                @滤波器
+                        @R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
+                        @出R0=结果
+	push {r1-r7,lr}
+        ldr r5, [r2]            @读出表指针
+	lsls r6, r1, # 4
+        str r3, [r0, r5]        @数值写到滤波器缓冲区
+	adds r5, r5, # 4
+        cmp r5, r6
+        bne _lvboqimeidaohuanchongquding
+        movs r5, # 0
+_lvboqimeidaohuanchongquding:
+        str r5, [r2]
+        movs r7, # 0
+_lvboqixunhuan:
+        cmp r5, r6
+        bne _lvbozonghe
+        movs r5, # 0
+_lvbozonghe:
+	ldr r4, [r0, r5]
+	adds r5, r5, # 4
+	adds r7, r7, r4
+        subs r1, r1, # 1
+        bne _lvboqixunhuan
+        asrs r0, r7, # 8        @修改
+        pop {r1-r7,pc}
 
 _chufa:				@软件除法
 	@ r0 除以 r1 等于 商(r0)余数R1
