@@ -94,36 +94,6 @@ tim1chushiha:
 	str r1, [r5, # 0x3c]
 	movs r4, # 0xe1
 	str r4, [r5]
-tim3chushihua:				
-	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, = 0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 61
-	str r1, [r0, # 0x2c] @ ARR
-	ldr r1, =   0x3800
-	str r1, [r0, # 0x1c] @ ccmr2
-	ldr r1, =  0x1000
-	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 61
-	str r1, [r0, # 0x40] @ ccr4
-	movs r1, # 0xe1
-	str r1, [r0]
-
-tim14chushihua:
-        ldr r0, = 0x40002000 @ tim14_cr1
-        ldr r1, = 127
-        str r1, [r0, # 0x28] @ psc
-        ldr r1, = 1000
-        str r1, [r0, # 0x2c] @ ARR
-        ldr r1, =   0x38
-        str r1, [r0, # 0x18] @ ccmr1
-        movs r1, # 0x01
-        str r1, [r0, # 0x20] @ ccer
-        ldr r1, = 1000
-        str r1, [r0, # 0x34] @ ccr4
-        movs r1, # 0xe1
-        str r1, [r0]
-
 
 io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -149,17 +119,9 @@ io_she_zhi:
 	ldr r0, = 0x48000000
 	ldr r1, = 0x28208000
 	str r1, [r0]
-	ldr r1, = 0x40000000
-	str r1, [r0, # 0x20]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 	
-	ldr r0, = 0x48000400
-	movs r1, # 0x08 @ pb1
-	str r1, [r0]
-	movs r1, # 0x10  @ tim3_4到PB1
-	str r1, [r0, # 0x20] @ ARRL
-
 shizhong:
         ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
