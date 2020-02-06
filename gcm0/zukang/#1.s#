@@ -1,7 +1,7 @@
 	@@单片机stm32f030f4p6
 	@@ 高频阻抗测量
 	@作者：yjmwxwx
-	@时间：2020-01-01
+	@时间：2019-06-30
 	@编译器：ARM-NONE-EABI
 	 .thumb
 	         .syntax unified
@@ -25,7 +25,6 @@ yjmwxwx:
 	.equ shibuhuanchong,		0x20000140
 	.equ lvboqizhizhen,		0x20000150
 	.equ lvboqihuanchong,		0x20000154
-	.equ dianyabiaozhizhen,		0x200001f8
 	.equ dianyabiaoman,		0x200001fc
 	.equ dianyabiao,		0x20000200
 	.section .text
@@ -192,9 +191,9 @@ dmachushihua:
 	str r1, [r0, # 0x10]
 	ldr r1, = dianyabiao
 	str r1, [r0, # 0x14]
-	ldr r1, = 912
+	ldr r1, =  512
 	str r1, [r0, # 0x0c]
-	ldr r1, = 0x583 @  0x583 	@ 5a1
+	ldr r1, = 0 @  0x583 	@ 5a1
 	str r1, [r0, # 0x08]
 
 
@@ -213,6 +212,7 @@ tim1chushiha:
 	ldr r1, = 1
 	str r1, [r5, # 0x3c]
 	movs r4, # 0xe1
+
 tim3chushihua:				
 	ldr r0, = 0x40000400 @ tim3_cr1
 	ldr r1, = 0
@@ -266,6 +266,8 @@ io_she_zhi:
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
+
+	bl __kai_dma
 ting:
 	ldr r0, = jishu
 	ldr r1, = 0x800
@@ -276,10 +278,16 @@ ting:
 	bne __xianshi
 	movs r2, # 0
 	str r2, [r0]
-	bl __kai_dma
+dd:	
+	ldr r0, = dianyabiaoman
+	ldr r1, [r0]
+	cmp r1, # 1
+	bne __xianshi
+	movs r1, # 0
+	str r1, [r0]
+	bl __dft
 __xianshi:
-	ldr r0, = dianyabiaozhizhen
-	ldr r0, [r0]
+	ldr r0, = shibu
 	ldr r0, [r0]
        @ mov r3, r0
 	@ldr r0, = lvboqihuanchong
@@ -306,26 +314,6 @@ __led_xian_shi:
 	movs r0, # 5
         bl _xieshumaguan
 	b ting
-__kai_dma:
-	push {r0-r2,lr}
-	ldr r2, = 0x40012400
-	movs r1, # 0x11
-	str r1, [r2, # 0x08]
-__deng_adc_wan:
-	ldr r1, [r2, # 0x08]
-	cmp r1, # 1
-	bne __deng_adc_wan
-	ldr r0, = 0x40020000
-	movs r1, # 0
-	str r1, [r0, # 0x08]
-	ldr r1, = 912
-	str r1, [r0, # 0x0c]
-	ldr r1, = 0x583
-	str r1, [r0, # 0x08]
-	movs r1, # 0x05
-	str r1, [r2, # 0x08]
-	pop {r0-r2,pc}
-	
 
 __dft:
 	push {r0-r7,lr}
@@ -405,7 +393,37 @@ __dft_xun_huan:
 	mov r11, r3
 	mov r12, r4
 	pop {r0-r7,pc}
-	.ltorg
+	
+__kai_dma:
+	push {r0-r4,lr}
+	l dr r2, = 0x40020000
+	ldr r3, = 0x583
+	ldr r4, = 512
+	ldr r0, = 0x40012400
+	movs r1, # 0x01
+	str r1, [r0, # 0x28]
+	ldr r1, = 0x2000
+	str r1, [r0, # 0x0c]
+	movs r1, # 0x05
+	str r1, [r0, # 0x08]
+__deng_gao_dian_ping:
+	ldr r1, [r0, # 0x40]
+	cmp r1, # 0
+	beq __deng_gao_dian_ping
+__deng_di_dian_ping:
+	ldr r1, [r0, # 0x40]
+	cmp r1, # 0
+	bne __deng_di_dian_ping
+	str r3, [r2, # 0x0c]
+	str r4, [r2, # 0x08]
+	ldr r3, = 0x8c3
+	movs r1, # 0x63
+	str r1, [r0, # 0x28]
+	str r3, [r0, # 0x0c]
+	movs r1, # 0x05
+	str r1, [r0, # 0x08]
+	pop {r0-r4,pc}
+	
 	
 	
 	
@@ -589,46 +607,6 @@ _chufaweishubudao00:
 	adds r0, r0, # 1
 _chufafanhui1:
 	pop {r1-r7,pc}
-__he_cheng_dian_ya_biao:
-	push {r0-r4,lr}
-        ldr r0, = dianyabiao
-	subs r0, r0, # 0x08
-__zhao_shang_sheng:
-	adds r0, r0, # 0x08
-	ldrh r2, [r0]
-	cmp r2, # 0
-	bne __zhao_shang_sheng
-	ldrh r3, [r0, # 0x08]
-	subs r2, r2, r3
-	bpl __zhao_shang_sheng
-	ldr r1, = dianyabiaozhizhen
-	str r0, [r1]
-        ldr r1, = 256
-        lsls r1, r1, # 2
-        movs r2, # 0
-__fu_zhi_xun_huan:
-        ldr r3, [r0, r2]
-        mov r4, r3
-        lsls r3, r3, # 16
-        lsrs r3, r3, # 16
-        lsrs r4, r4, # 16
-	subs r3, r3, r4
-        bpl __bao_cun
-        mvns r3, r3
-        adds r3, r3, # 1
-        bl __zhuan_bcd
-        ldr r4, = 0x80000000
-        orrs r3, r3, r4
-        bl __fu_shu_bao_cun
-__bao_cun:
-	bl __zhuan_bcd
-__fu_shu_bao_cun:
-        str r3, [r0, r2]
-	adds r2, r2, # 4
-	cmp r2, r1
-        bne __fu_zhi_xun_huan
-	pop {r0-r4,pc}
-	
 __zhuan_bcd:
 	push {r0-r2,r4-r7,lr}
 	movs r1, # 10
@@ -660,7 +638,7 @@ __bcd_xun_huan:
 	orrs r3, r3, r6
 	orrs r3, r3, r7
 	pop {r0-r2,r4-r7,pc}
-	.ltorg
+	
 _nmi_handler:
 	bx lr
 _hard_fault:
@@ -694,13 +672,48 @@ _systickzhongduan:
 	str r1, [r0]                 @ 清除SYSTICK中断
 	bx lr
 __dma_wan:
-	push {lr}
-	bl __he_cheng_dian_ya_biao
-	ldr r0, = 0x40020000
+	bkpt # 2
+	ldr r0, = 0x20000200
+	ldr r1, = 256
+	lsls r1, r1, # 2
+	movs r2, # 0
+__fu_zhi_xun_huan:
+	ldr r3, [r0, r2]
+	mov r4, r3
+	lsls r3, r3, # 16
+	lsrs r3, r3, # 16
+	lsrs r4, r4, # 16
+	subs r3, r3, r4
+	bpl __bao_cun
+	mvns r3, r3
+	adds r3, r3, # 1
+	bl __zhuan_bcd
+	ldr r4, = 0x80000000
+	orrs r3, r3, r4
+	bl __fu_shu_bao_cun
+__bao_cun:
+	bl __zhuan_bcd
+__fu_shu_bao_cun:	
+	str r3, [r0, r2]
+	adds r2, r2, # 4
+	cmp r2, r1
+	bne __fu_zhi_xun_huan
+	
+
+	
+	bkpt # 1
+	
+        ldr r0, = 0x40020000
+	ldr r1, = 0x583
+	ldr r3, = 1024
+	movs r2, # 0
+	str r2, [r0, # 0x08]
+	str r3, [r0, # 0x0c]
         movs r2, # 2
 	str r2, [r0, # 0x04]
+	str r1, [r0, # 0x08]
 	ldr r0, = dianyabiaoman
 	movs r1, # 1
 	str r1, [r0]
 __dma_fan_hui:
-	pop {pc}
+	bx lr
