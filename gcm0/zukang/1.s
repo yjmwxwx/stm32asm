@@ -20,8 +20,10 @@ yjmwxwx:
 	.equ dmawan,			0x200000f4
 	.equ jishu2,			0x200000f8
 	.equ jishu,			0x200000fc
-	.equ shibu,			0x20000120
-	.equ xubu,			0x20000128
+	.equ fan_she_shi_bu,		0x20000120
+	.equ ru_she_shi_bu,		0x20000124
+	.equ fan_she_xu_bu,		0x20000128
+	.equ ru_she_xu_bu,		0x2000012c
 	.equ shibuhuanchong,		0x20000140
 	.equ lvboqizhizhen,		0x20000a00
 	.equ lvboqihuanchong,		0x20000a04
@@ -279,8 +281,8 @@ ting:
 	str r2, [r0]
 	bl __kai_dma
 __xianshi:
-	ldr r0, = shibu
-	ldrh r0, [r0, # 0x04]
+	ldr r0, = fan_she_shi_bu
+	ldr r0, [r0, # 0x04]
 	movs r0, r0
 	bpl __shu_ma_guan_xian_shi
 	mvns r0, r0
@@ -330,22 +332,32 @@ __dft:
 	mov r3, r11
 	mov r4, r12
 	push {r0-r4}
-	ldr r0, = dianyabiaozhizhen
+        ldr r0, = dianyabiao
+        subs r0, r0, # 0x08
+__zhao_shang_sheng2:
+        adds r0, r0, # 0x08
+        ldrh r2, [r0, # 0x04]
+        cmp r2, # 0
+        bne __zhao_shang_sheng2
+        ldrh r3, [r0, # 0x0c]
+        subs r2, r2, r3
+	bpl __zhao_shang_sheng2
 	ldr r1, = xuanzhuanyinzi
-	ldr r0, [r0]
 	movs r2, # 1
 	lsls r2, r2, # 10
 	mov r8, r2
 	movs r3, # 0
-	mov r11, r3
+	mov r11, r3	
 	mov r12, r3
+	mov r10, r3
+	mov r9, r3
 __dft_xun_huan:
 	ldr r4, [r0, r3]
 	ldr r2, [r1, r3]	@r
 	push {r2}
 	adds r3, r3, # 4
 	ldr r5, [r0, r3]
-	ldr r2, [r0, r3]
+	ldr r2, [r1, r3]
 	adds r3, r3, # 4
 	mov r6, r4
 	mov r7, r5
@@ -370,8 +382,8 @@ __dft_xun_huan:
 	adds r2, r2, r5
 	mov r10, r2
 	pop {r2}
-	muls r6, r6, r2		@i
-	muls r7, r7, r2		@i
+	muls r6, r6, r2		@r
+	muls r7, r7, r2		@r
 	mov r2, r11		@r
 	adds r2, r2, r6
 	mov r11, r2
@@ -380,20 +392,20 @@ __dft_xun_huan:
 	mov r12, r2
 	cmp r3, r8
 	bne __dft_xun_huan
-	ldr r0, = shibu
-	ldr r1, = xubu
+	ldr r0, = fan_she_shi_bu
+	ldr r1, = fan_she_xu_bu
 	mov r2, r9
 	mov r3, r10
 	mov r4, r11
 	mov r5, r12
-	asrs r2, r2, # 8
-	asrs r3, r3, # 8
-	asrs r4, r4, # 8
-	asrs r5, r5, # 8
-	str r2, [r0]
-	str r3, [r0, # 0x04]
-	str r4, [r1]
-	str r5, [r1, # 0x04]
+	asrs r2, r2, # 6
+	asrs r3, r3, # 6
+	asrs r4, r4, # 6
+	asrs r5, r5, # 6
+	str r2, [r0]		@r
+	str r3, [r0, # 0x04]	@r
+	str r4, [r1]		@i
+	str r5, [r1, # 0x04]	@i
 	pop {r0-r4}
 	mov r8, r0
 	mov r9, r1
@@ -402,10 +414,188 @@ __dft_xun_huan:
 	mov r12, r4
 	pop {r0-r7,pc}
 	.ltorg
+__zu_kang_ji_suan:
+	push {r4-r7,lr}
+	@入口R0=反射实部 R1=反射虚部,R2=入射实部 R3=入射虚部
+	@出口R1=电抗 R2=电阻
+__ji_suan_zu_kang:
+	@ Z=50*[(a+bi)/(c+di)]=50*[(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)]
+	ldr r4, = 1000
+	movs r0, r0
+	bpl __fansheshibubushifushu
+	mvns r0, r0
+	adds r0, r0, # 1
+	muls r0, r0, r4
+	mvns r0, r0
+	b __xubupanduan
+__fansheshibubushifushu:
+	muls r0, r0, r4
+__xubupanduan:
+	movs r1, r1
+	bpl __fanshexububushifushu
+	mvns r1, r1
+	adds r1, r1, # 1
+	muls r1, r1, r4
+	mvns r1, r1
+	b __ji_suan_fu_shu
+__fanshexububushifushu:
+	muls r1, r1, r4
+	
+__ji_suan_fu_shu:
+	mov r4, r0
+	mov r5, r1
+	mov r6, r2
+	mov r7, r3
+
+	mov r1, r2
+	bl __chengfa	  @ac
+	mov r2, r0
+	mov r3, r1
+	
+	mov r0, r5
+	mov r1, r7
+	bl __chengfa	    @ bd
+	
+	adds r0, r0, r2	     @ac+bd
+	adcs r1, r1, r3
+	mov r8, r0
+	mov r9, r0
+	
+	mov r0, r6
+	mov r1, r6
+	bl __chengfa	    @c*c
+	mov r2, r0
+	mov r3, r1
+
+	mov r0, r7
+	mov r1, r7
+	bl __chengfa	      @d*d
+	
+	adds r0, r0, r2	
+	adds r1, r1, r3		@c*c+d*d
+
 	
 	
+a3:	
+	push {r1}
+	muls r5, r5, r6		@ bc
+	muls r4, r4, r7		@ ad
+	subs r5, r5, r4		@ bc-ad
+	ldr r1, = 1000
+	movs r3, # 0
+	movs r0, r5
+	bpl a4
+	mvns r0, r0
+	adds r0, r0, # 1
+	adds r3, r3, # 1
+a4:
+	movs r2, r2
+	bpl a5
+	mvns r2, r2
+	adds r2, r2, # 1
+	adds r3, r3, # 1
+a5:
+	bl __chengfa
+	bl __chufa64
+	cmp r3, # 1
+	bne __a6
+	mvns r1, r1
+	adds r1, r1, # 1	@虚
+__a6:	
+	pop {r2}		@实
+	pop {r4-r7,pc}
 	
 	
+__chufa64:
+        @64位除32位
+        @ （R0=高32位R1=低32位）除（R2)= （R0高32）（R1低32）
+        push {r3-r7,lr}
+        cmp r2, # 0
+        beq __chu_fa64_fan_hui0
+        cmp r1, # 0
+        bne __chu_fa64_ji_suan
+        cmp r0, # 0
+        beq __chu_fa64_fan_hui0
+__chu_fa64_ji_suan:	
+        movs r4, # 0
+        mov r7, r4
+        mov r3, r4
+        mov r5, r4
+        movs r6, # 1
+        lsls r6, r6, # 31
+__chu_fa64_xun_huan:
+        lsls r1, r1, # 1
+        adcs r0, r0, r0
+        adcs r4, r4, r4
+        cmp r4, r2
+        bcc __chu_fa_yi_wei
+        adds r3, r3, r6
+        adcs r5, r5, r7
+        subs r4, r4, r2
+__chu_fa_yi_wei:
+        movs r6, r6
+        beq __di_yi_wei
+        lsrs r6, r6, # 1        @高32位移位
+        bne __chu_fa64_xun_huan
+        movs r7, # 1
+        lsls r7, r7, # 31
+        b __chu_fa64_xun_huan
+__di_yi_wei:            @低32位移位
+	lsrs r7, r7, # 1
+        bne __chu_fa64_xun_huan
+        mov r0, r3
+        mov r1, r5
+        pop {r3-r7,pc}
+__chu_fa64_fan_hui0:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r3-r7,pc}
+__chengfa:
+        @入R0 乘以 R1
+        @出 R0高32 ， R1低32
+	@0xffffffff*0xffffffff
+        @4        F F F E 0 0 0 1
+        @3                F F F E 0 0 0 1
+        @2                F F F E 0 0 0 1
+        @1                        F F F E 0 0 0 1
+        @         F F F F F F F E 0 0 0 0 0 0 0 1
+	push {r2-r7,lr}
+        cmp r0, # 0
+        beq __cheng_fa_fan_hui
+        cmp r1, # 0
+        beq __cheng_fa_fan_hui
+__ji_suan_cheng_fa:	
+	mov r2, r0
+	mov r3, r1
+	lsrs r0, r0, # 16	@高16
+	lsls r2, r2, # 16	@ 低16
+	lsrs r2, r2, # 16
+        lsrs r1, r1, # 16	@高16
+	lsls r3, r3, # 16	@低16
+	lsrs r3, r3, # 16
+	mov r4, r2		
+	mov r5, r0		
+	muls r2, r2, r3		@1
+	muls r0, r0, r3		@2
+	muls r4, r4, r1		@3
+	muls r5, r5, r1		@4
+	mov r6, r0		@2
+	mov r7, r4		@3
+	lsls r0, r0, # 16	@2低
+	lsls r4, r4, # 16	@3低
+	lsrs r6, r6, # 16	@2高
+	lsrs r7, r7, # 16	@3高
+	adds r2, r2, r0
+	adcs r2, r2, r4
+	adcs r5, r5, r6
+	adcs r5, r5, r7
+	mov r0, r5
+	mov r1, r2
+	pop {r2-r7,pc}
+__cheng_fa_fan_hui:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r2-r7,pc}
 _lvboqi:
 			@滤波器
 			@R0=地址，R1=长度,r2=表指针地址,r3=ADC数值
@@ -720,8 +910,18 @@ _systickzhongduan:
 	bx lr
 __dma_wan:
 	push {lr}
-	bl __jian_bo
 	bl __dft
+	ldr r0, = fan_she_shi_bu
+	ldr r1, = fan_she_xu_bu
+	ldr r2, = ru_she_shi_bu
+	ldr r3, = ru_she_xu_bu
+	ldr r0, [r0]
+	ldr r1, [r1]
+	ldr r2, [r2]
+	ldr r3, [r3]
+	bkpt # 1
+	bl __zu_kang_ji_suan
+	bkpt # 1
 	ldr r0, = 0x40020000
         movs r2, # 2
 	str r2, [r0, # 0x04]
