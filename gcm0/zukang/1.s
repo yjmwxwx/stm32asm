@@ -1,5 +1,5 @@
 	@@单片机stm32f030f4p6
-	@@ 驻波表
+	@@ 阻抗
 	@作者：yjmwxwx
 	@时间：2020-01-01
 	@编译器：ARM-NONE-EABI
@@ -24,9 +24,17 @@ yjmwxwx:
 	.equ ru_she_shi_bu,		0x20000124
 	.equ fan_she_xu_bu,		0x20000128
 	.equ ru_she_xu_bu,		0x2000012c
-	.equ shibuhuanchong,		0x20000140
+	.equ p_shibu,			0x20000130
+	.equ p_xubu,			0x20000134
+	.equ swrshibu,			0x20000138
+	.equ swrxubu,			0x2000013c
+	.equ dianzu,			0x20000140
+	.equ diankang,			0x20000144
+	.equ zukangqiehuan,		0x20000148
 	.equ lvboqizhizhen,		0x20000a00
 	.equ lvboqihuanchong,		0x20000a04
+	.equ lvboqizhizhen1,		0x20000a30
+	.equ lvboqihuanchong1,		0x20000a34
 	.equ dianyabiaozhizhen,		0x200001f8
 	.equ dianyabiaoman,		0x200001fc
 	.equ dianyabiao,		0x20000200
@@ -268,10 +276,15 @@ io_she_zhi:
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
+	ldr r1, = 0x4000
+	str r1, [r0, # 0x0c]
+	ldr r0, = 0x48000400
+	movs r1, # 0x04
+	str r1, [r0, # 0x0c]
 	
 ting:
 	ldr r0, = jishu
-	ldr r1, = 0x800
+	ldr r1, = 0x50
 	ldr r2, [r0]
 	adds r2, r2, # 1
 	str r2, [r0]
@@ -281,28 +294,61 @@ ting:
 	str r2, [r0]
 	bl __kai_dma
 __xianshi:
-	ldr r0, = fan_she_shi_bu
-	ldr r0, [r0, # 0x04]
+	bl __an_jian
+	cmp r0, # 1
+	bne __pan_duan_an_jian
+	ldr r0, = zukangqiehuan
+	movs r1, # 0
+	str r1, [r0]
+	b __xian_shi_zu_kang
+__pan_duan_an_jian:
+	cmp r0, # 2
+	bne __xian_shi_zu_kang
+	ldr r0, = zukangqiehuan
+	movs r1, # 1
+	str r1, [r0]
+__xian_shi_zu_kang:
+	ldr r0, = zukangqiehuan
+	ldr r0, [r0]
+	cmp r0, # 1
+	bne __xian_shi_dian_zu
+__xian_shi_dian_kang:
+	ldr r0, = diankang
+	b __xian_shi
+__xian_shi_dian_zu:
+	ldr r0, = dianzu
+__xian_shi:
+	ldr r0, [r0]
 	movs r0, r0
 	bpl __shu_ma_guan_xian_shi
 	mvns r0, r0
 	adds r0, r0, # 1
-	ldr r2, = fuhao
-	movs r3, # 0
-	str r3, [r2]
-	b __led_xian_shi
-__shu_ma_guan_xian_shi:
 	ldr r3, = fuhao
 	movs r2, # 0x02
 	str r2, [r3]
+	b __led_xian_shi
+__shu_ma_guan_xian_shi:
+	ldr r2, = fuhao
+	movs r3, # 0
+	str r3, [r2]
 __led_xian_shi:	
 	movs r1, # 4
         ldr r2, = shumaguanma
-	movs r3, # 0xff		@小数点位置
+	movs r3, # 3		@小数点位置
         bl _zhuanshumaguanma
 	movs r0, # 5
         bl _xieshumaguan
 	b ting
+__an_jian:
+	push {r1,lr}
+	ldr r0, = 0x48000010
+	ldr r1, = 0x48000410
+	ldr r2, [r0]
+	ldr r0, [r1]
+	lsls r2, r2, # 24
+	lsrs r2, r2, # 31
+	orrs r0, r0, r2
+	pop {r1,pc}
 __kai_dma:
 	push {r0-r2,lr}
 	ldr r2, = 0x40012400
@@ -322,7 +368,6 @@ __deng_adc_wan:
 	movs r1, # 0x05
 	str r1, [r2, # 0x08]
 	pop {r0-r2,pc}
-	
 
 __dft:
 	push {r0-r7,lr}
@@ -384,6 +429,8 @@ __dft_xun_huan:
 	pop {r2}
 	muls r6, r6, r2		@r
 	muls r7, r7, r2		@r
+	asrs r6, r6, # 15
+	asrs r7, r7, # 15
 	mov r2, r11		@r
 	adds r2, r2, r6
 	mov r11, r2
@@ -420,62 +467,36 @@ __zu_kang_ji_suan:
 	@出口R1=电抗 R2=电阻
 __ji_suan_zu_kang:
 	@ Z=50*[(a+bi)/(c+di)]=50*[(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)]
-	ldr r4, = 1000
-	movs r0, r0
-	bpl __fansheshibubushifushu
-	mvns r0, r0
-	adds r0, r0, # 1
-	muls r0, r0, r4
-	mvns r0, r0
-	b __xubupanduan
-__fansheshibubushifushu:
-	muls r0, r0, r4
-__xubupanduan:
-	movs r1, r1
-	bpl __fanshexububushifushu
-	mvns r1, r1
-	adds r1, r1, # 1
-	muls r1, r1, r4
-	mvns r1, r1
-	b __ji_suan_fu_shu
-__fanshexububushifushu:
-	muls r1, r1, r4
-	
-__ji_suan_fu_shu:
 	mov r4, r0
 	mov r5, r1
 	mov r6, r2
 	mov r7, r3
-
-	mov r1, r2
-	bl __chengfa	  @ac
-	mov r2, r0
-	mov r3, r1
-	
-	mov r0, r5
-	mov r1, r7
-	bl __chengfa	    @ bd
-	
-	adds r0, r0, r2	     @ac+bd
-	adcs r1, r1, r3
-	mov r8, r0
-	mov r9, r0
-	
-	mov r0, r6
-	mov r1, r6
-	bl __chengfa	    @c*c
-	mov r2, r0
-	mov r3, r1
-
-	mov r0, r7
-	mov r1, r7
-	bl __chengfa	      @d*d
-	
-	adds r0, r0, r2	
-	adds r1, r1, r3		@c*c+d*d
-
-	
-	
+	muls r0, r0, r2		@ac
+	muls r1, r1, r3		@bd
+	adds r0, r0, r1		@ac+bd
+	muls r2, r2, r2		@c*c
+	muls r3, r3, r3		@d*d
+	adds r2, r2, r3		@c*c+d*d
+	ldr r1, = 1000
+	movs r3, # 0
+	movs r0, r0
+	bpl a1
+	mvns r0, r0
+	adds r0, r0, # 1
+	adds r3, r3, # 1
+a1:
+	movs r2, r2
+	bpl a2
+	mvns r2, r2
+	adds r2, r2, # 1
+	adds r3, r3, # 1
+a2:
+	bl __chengfa
+	bl __chufa64		@(ac+bd)/(c*c+d*d)
+	cmp r3, # 1
+	bne a3
+	mvns r1, r1
+	adds r1, r1, # 1
 a3:	
 	push {r1}
 	muls r5, r5, r6		@ bc
@@ -500,11 +521,10 @@ a5:
 	cmp r3, # 1
 	bne __a6
 	mvns r1, r1
-	adds r1, r1, # 1	@虚
+	adds r1, r1, # 1	@虚部
 __a6:	
 	pop {r2}		@实
-	pop {r4-r7,pc}
-	
+	pop {r4-r7,pc}	
 	
 __chufa64:
         @64位除32位
@@ -621,7 +641,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 5	@修改
+	asrs r0, r7, # 3	@修改
 	pop {r1-r7,pc}
 
 _zhuanshumaguanma:@ 16进制转数码管码
@@ -909,7 +929,7 @@ _systickzhongduan:
 	str r1, [r0]                 @ 清除SYSTICK中断
 	bx lr
 __dma_wan:
-	push {lr}
+	push {r0-r7,lr}
 	bl __dft
 	ldr r0, = fan_she_shi_bu
 	ldr r1, = fan_she_xu_bu
@@ -919,9 +939,44 @@ __dma_wan:
 	ldr r1, [r1]
 	ldr r2, [r2]
 	ldr r3, [r3]
-	bkpt # 1
 	bl __zu_kang_ji_suan
-	bkpt # 1
+	ldr r0, = p_shibu
+	ldr r3, = p_xubu
+	str r2, [r0]
+	str r1, [r3]
+	
+	movs r4, r2
+	movs r5, r1
+	ldr r0, = 1000
+	movs r1, # 0
+	mov r2, r0
+	movs r3, # 0
+
+	adds r0, r0, r4
+	adds r1, r1, r5
+	subs r2, r2, r4
+	subs r3, r3, r5
+	bl __zu_kang_ji_suan
+	ldr r3, = 0x4000
+	muls r1, r1, r3
+	muls r3, r3, r2
+	asrs r1, r1, # 15
+	asrs r3, r3, # 15
+	mov r5, r1
+	ldr r0, = lvboqihuanchong
+	ldr r1, = 8
+	ldr r2, = lvboqizhizhen
+	bl _lvboqi
+	ldr r2, = dianzu
+	str r0, [r2]
+	mov r3, r5
+        ldr r0, = lvboqihuanchong1
+        ldr r1, = 8
+        ldr r2, = lvboqizhizhen1
+        bl _lvboqi
+        ldr r2, = diankang
+        str r0, [r2]
+
 	ldr r0, = 0x40020000
         movs r2, # 2
 	str r2, [r0, # 0x04]
@@ -929,4 +984,4 @@ __dma_wan:
 	movs r1, # 1
 	str r1, [r0]
 __dma_fan_hui:
-	pop {pc}
+	pop {r0-r7,pc}
