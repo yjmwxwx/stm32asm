@@ -141,7 +141,7 @@ _waisheshizhong:			 @ 外设时钟
 	@+0X1C=RCC_APB1ENR
 	@ 1=TIM3 @ 4=TIM6 @ 5=TIM7 @ 8=TIM14 @ 11=WWDG @ 14=SPI @ 17=USRT2 @ 18=USART3 @ 20=USART5 @ 21=I2C1
 	@ 22=I2C2 @ 23=USB @ 28=PWR
-	ldr r2, = 0x102
+	ldr r2, = 0x902
 	str r2, [r0, # 0x1c]
 
 _waishezhongduan:				@外设中断
@@ -154,7 +154,19 @@ _waishezhongduan:				@外设中断
 	ldr r1, = 0x200 @0x10200  @ 0x10000
 	str r1, [r0]
 
-
+_kanmengou:
+	ldr r0, = 0x40003000
+	ldr r1, = 0x5555
+	str r1, [r0]
+	movs r1, # 7
+	str r1, [r0, # 4]
+	ldr r1, = 0xfff
+	str r1, [r0, # 8]
+	ldr r1, = 0xaaaa
+	str r1, [r0]
+	ldr r1, = 0xcccc
+	str r1, [r0]
+	
 _adcchushihua:
         ldr r0, = 0x40012400  @ adc基地址
         ldr r1, = 0x80000000
@@ -168,10 +180,11 @@ _kaiadc:
         movs r2, # 0x01
         orrs r1, r1, r2
         str r1, [r0, # 0x08]
-_dengdaiadcwending:
-       @ ldr r1, [r0]
-       @ lsls r1, r1, # 31
-        @ bpl _dengdaiadcwending @ 等ADC稳定
+	ldr r1, = 0xfffff
+_deng_adc_wen_ding:
+        ldr r1, [r0]
+        lsls r1, r1, # 31
+        bpl _deng_adc_wen_ding @ 等ADC稳定
 _tongdaoxuanze:
         ldr r1, = 0x80000000
         str r1, [r0, # 0x10]
@@ -242,6 +255,7 @@ tim3chushihua:
 	movs r1, # 0xe1
 	str r1, [r0]
 	str r4, [r5]
+
 @_systick:				@ systick定时器初始化
 @
 @	ldr r0, = 0xe000e010
@@ -276,13 +290,17 @@ io_she_zhi:
 	str r1, [r0]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
-	ldr r1, = 0x4000
+	ldr r1, = 0x44000
 	str r1, [r0, # 0x0c]
-	ldr r0, = 0x48000400
-	movs r1, # 0x04
-	str r1, [r0, # 0x0c]
+
+
 	
 ting:
+__wei_gou:
+	ldr r0, = 0x40003000
+        ldr r1, = 0xaaaa
+        str r1, [r0]
+	
 	ldr r0, = jishu
 	ldr r1, = 0x50
 	ldr r2, [r0]
@@ -331,7 +349,7 @@ __shu_ma_guan_xian_shi:
 	ldr r2, = fuhao
 	movs r3, # 0
 	str r3, [r2]
-__led_xian_shi:	
+__led_xian_shi:
 	movs r1, # 4
         ldr r2, = shumaguanma
 	movs r3, # 3		@小数点位置
@@ -342,11 +360,12 @@ __led_xian_shi:
 __an_jian:
 	push {r1,lr}
 	ldr r0, = 0x48000010
-	ldr r1, = 0x48000410
 	ldr r2, [r0]
-	ldr r0, [r1]
+	mov r0, r2
 	lsls r2, r2, # 24
 	lsrs r2, r2, # 31
+	lsls r0, r0, # 22
+	lsrs r0, r0, # 30
 	orrs r0, r0, r2
 	pop {r1,pc}
 __kai_dma:
@@ -453,6 +472,7 @@ __dft_xun_huan:
 	str r3, [r0, # 0x04]	@r
 	str r4, [r1]		@i
 	str r5, [r1, # 0x04]	@i
+__dft_fan_hui:	
 	pop {r0-r4}
 	mov r8, r0
 	mov r9, r1
