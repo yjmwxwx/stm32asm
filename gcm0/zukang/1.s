@@ -35,6 +35,7 @@ yjmwxwx:
 	.equ lvboqihuanchong,		0x20000a04
 	.equ lvboqizhizhen1,		0x20000a30
 	.equ lvboqihuanchong1,		0x20000a34
+	.equ tou_fan_qie_huan,		0x200001f4
 	.equ dianyabiaozhizhen,		0x200001f8
 	.equ dianyabiaoman,		0x200001fc
 	.equ dianyabiao,		0x20000200
@@ -293,6 +294,9 @@ io_she_zhi:
 	ldr r1, = 0x44000
 	str r1, [r0, # 0x0c]
 
+	ldr r0, = tou_fan_qie_huan
+	ldr r1, = 0x7fff
+	str r1, [r0]
 
 	
 ting:
@@ -697,12 +701,15 @@ _xieshumaguan: @ r0=位数 @数码管码
 	lsls r0, r0, # 2
 	movs r7, # 0
 	mov r6, r0
+	ldr r1, = tou_fan_qie_huan
 	ldr r5, = shumaguanma
+	ldr r1, [r1]
 	ldr r2, = shumaguanshuaxinbiao
 _shumaguanshuaxin:
 	ldr r3, [r5, r7]
 	ldr r4, [r2, r7]
 	orrs r4, r4, r3
+	ands r4, r4, r1
 	mov r0, r4
 	bl _xie595
 	adds  r7, r7, # 4

@@ -3200,22 +3200,25 @@ Wire Wire Line
 	3000 10000 5800 10000
 Wire Wire Line
 	6800 8900 6800 8950
-Text GLabel 7450 10500 2    50   Input ~ 0
-tou_she_fan_she_qie_huan
 Text GLabel 7450 10750 2    50   Input ~ 0
-tao_she_fan_she_qie_huan1
-Wire Wire Line
-	7450 10500 7200 10500
-Wire Wire Line
-	7200 10500 7200 10200
+tou_she_fan_she_qie_huan
 Wire Wire Line
 	7200 10200 6800 10200
 Wire Wire Line
 	7450 10750 6800 10750
 Wire Wire Line
 	6800 10750 6800 10300
-Text GLabel 4450 1400 2    50   Input ~ 0
+Text GLabel 4450 1300 2    50   Input ~ 0
 tou_she_fan_she_qie_huan
-Text GLabel 4450 1500 2    50   Input ~ 0
-tao_she_fan_she_qie_huan1
+$Comp
+L power:GND #PWR?
+U 1 1 5E67A733
+P 7200 10200
+F 0 "#PWR?" H 7200 9950 50  0001 C CNN
+F 1 "GND" H 7205 10027 50  0000 C CNN
+F 2 "" H 7200 10200 50  0001 C CNN
+F 3 "" H 7200 10200 50  0001 C CNN
+	1    7200 10200
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
