@@ -20,25 +20,32 @@ yjmwxwx:
 	.equ dmawan,			0x200000f4
 	.equ jishu2,			0x200000f8
 	.equ jishu,			0x200000fc
+	.equ dianzu,			0x20000100
+	.equ fan_she_r,			0x20000104
+	.equ tou_she_r,			0x20000108
+	.equ swr_shibu,			0x2000010c
+	.equ diankang,			0x20000110
+	.equ fan_she_i,			0x20000114
+	.equ tou_she_i,			0x20000118
+	.equ swr_xubu,			0x2000011c
 	.equ fan_she_shi_bu,		0x20000120
-	.equ ru_she_shi_bu,		0x20000124
+	.equ tou_she_shi_bu,		0x20000124
 	.equ fan_she_xu_bu,		0x20000128
-	.equ ru_she_xu_bu,		0x2000012c
-	.equ p_shibu,			0x20000130
-	.equ p_xubu,			0x20000134
-	.equ swrshibu,			0x20000138
-	.equ swrxubu,			0x2000013c
-	.equ dianzu,			0x20000140
-	.equ diankang,			0x20000144
-	.equ zukangqiehuan,		0x20000148
-	.equ lvboqizhizhen,		0x20000a00
-	.equ lvboqihuanchong,		0x20000a04
-	.equ lvboqizhizhen1,		0x20000a30
-	.equ lvboqihuanchong1,		0x20000a34
-	.equ tou_fan_qie_huan,		0x200001f4
-	.equ dianyabiaozhizhen,		0x200001f8
-	.equ dianyabiaoman,		0x200001fc
+	.equ tou_she_xu_bu,		0x2000012c
+	.equ ru_she_shi_bu,		0x20000130
+	.equ ru_she_xu_bu,		0x20000134
+        .equ zukangqiehuan,             0x20000138
+        .equ caidan,                    0x2000013c
+        .equ an_jian_yan_shi,           0x20000140
+        .equ tou_fan_qie_huan,          0x20000144
+        .equ dianyabiaozhizhen,         0x200001f8
+        .equ dianyabiaoman,             0x200001fc
 	.equ dianyabiao,		0x20000200
+        .equ lvboqizhizhen,             0x20000a00
+        .equ lvboqihuanchong,           0x20000a04
+        .equ lvboqizhizhen1,            0x20000a30
+        .equ lvboqihuanchong1,          0x20000a34
+
 	.section .text
 vectors:
 	.word STACKINIT
@@ -315,8 +322,38 @@ __wei_gou:
 	movs r2, # 0
 	str r2, [r0]
 	bl __kai_dma
-__xianshi:
+__xianshi:	
 	bl __an_jian
+	cmp r0, # 0
+	bne __pan_duan_an_jian1
+	ldr r0, = an_jian_yan_shi
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	ldr r2, = 1000
+	str r1, [r0]
+	cmp r1, r2
+	bne __xian_shi_cai_dan
+	movs r1, # 0
+	str r1, [r0]
+	ldr r0, = caidan
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 4
+	bne __xian_shi_cai_dan
+	movs r1, # 0
+	str r1, [r0]
+__xian_shi_cai_dan:
+	ldr r0, = caidan
+        movs r1, # 5
+	ldr r0, [r0]
+        ldr r2, = shumaguanma
+        movs r3, # 0xff            @小数点位置
+        bl _zhuanshumaguanma
+	movs r0, # 5
+        bl _xieshumaguan
+	b ting
+__pan_duan_an_jian1:	
 	cmp r0, # 1
 	bne __pan_duan_an_jian
 	ldr r0, = zukangqiehuan
@@ -333,12 +370,20 @@ __xian_shi_zu_kang:
 	ldr r0, = zukangqiehuan
 	ldr r0, [r0]
 	cmp r0, # 1
-	bne __xian_shi_dian_zu
-__xian_shi_dian_kang:
+	bne __xian_shi_shi_bu
+__xian_shi_xu_bu:
+	ldr r1, = caidan
 	ldr r0, = diankang
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	adds r0, r0, r1
 	b __xian_shi
-__xian_shi_dian_zu:
+__xian_shi_shi_bu:
+	ldr r1, = caidan
 	ldr r0, = dianzu
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	adds r0, r0, r1
 __xian_shi:
 	ldr r0, [r0]
 	movs r0, r0
@@ -361,6 +406,8 @@ __led_xian_shi:
 	movs r0, # 5
         bl _xieshumaguan
 	b ting
+__fan_she_ji_suan:
+	
 __an_jian:
 	push {r1,lr}
 	ldr r0, = 0x48000010
@@ -472,10 +519,14 @@ __dft_xun_huan:
 	asrs r3, r3, # 6
 	asrs r4, r4, # 6
 	asrs r5, r5, # 6
+	ldr r0, = fan_she_shi_bu
+	ldr r1, = ru_she_shi_bu
+	ldr r6, = fan_she_xu_bu
+	ldr r7, = ru_she_xu_bu
 	str r2, [r0]		@r
-	str r3, [r0, # 0x04]	@r
-	str r4, [r1]		@i
-	str r5, [r1, # 0x04]	@i
+	str r3, [r1]	@r
+	str r4, [r6]		@i
+	str r5, [r7]	@i
 __dft_fan_hui:	
 	pop {r0-r4}
 	mov r8, r0
@@ -967,8 +1018,8 @@ __dma_wan:
 	ldr r2, [r2]
 	ldr r3, [r3]
 	bl __zu_kang_ji_suan
-	ldr r0, = p_shibu
-	ldr r3, = p_xubu
+	ldr r0, = swr_shibu
+	ldr r3, = swr_xubu
 	str r2, [r0]
 	str r1, [r3]
 	
