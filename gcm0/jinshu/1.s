@@ -8,6 +8,7 @@ zheng_xian_biao:
 	
 	.equ STACKINIT,        	        0x20001000
 	.equ dianyabiao,		0x20000100
+	.equ jiao_0,			0x200002f0
 	.equ lvboqizhizhen,		0x20000300
 	.equ lvboqihuanchong,		0x20000304
 	.equ lvboqizhizhen1,		0x20000600
@@ -142,6 +143,9 @@ io_she_zhi:
 	ldr r1, = 0x28001300
 	str r1, [r0]
 
+	ldr r1, = 0x400
+	str r1, [r0, # 0x0c]
+	
 	ldr r0, = 0x48000400
 	movs r1, # 0x08 @ pb1
 	str r1, [r0]
@@ -245,9 +249,16 @@ __ting:
 	movs r1, # 0xff
 	bl _lvboqi
 	mov r4, r0
-	mov r12, r4
-	ldr r5, = 0xd00
-	subs r4, r4, r5
+	ldr r0, = 0x48000000
+	ldr r5, = jiao_0
+	ldr r1, [r0, # 0x10]
+	ldr r6, [r5]
+	lsls r1, r1, # 26
+	bmi __tiao_guo_jiao_0
+__jiao_0:
+	str r4, [r5]
+__tiao_guo_jiao_0:
+	subs r4, r4, r6
 	ldr r3, = 0x200001a8
 	ldr r2, = lvboqizhizhen1
 	ldr r3, [r3]
