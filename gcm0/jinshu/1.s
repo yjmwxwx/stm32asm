@@ -11,8 +11,8 @@ zheng_xian_biao:
 	.equ jiao_0,			0x200002f0
 	.equ lvboqizhizhen,		0x20000300
 	.equ lvboqihuanchong,		0x20000304
-	.equ lvboqizhizhen1,		0x20000600
-	.equ lvboqihuanchong1,		0x20000604
+	.equ lvboqizhizhen1,		0x20000900
+	.equ lvboqihuanchong1,		0x20000904
 .section .text
 vectors:
 	.word STACKINIT
@@ -246,7 +246,7 @@ __ting:
 	ldr r2, = lvboqizhizhen
 	ldr r3, [r3]
 	ldr r0, =lvboqihuanchong
-	movs r1, # 0xff
+	ldr r1, = 512
 	bl _lvboqi
 	mov r4, r0
 	ldr r0, = 0x48000000
@@ -256,6 +256,7 @@ __ting:
 	lsls r1, r1, # 26
 	bmi __tiao_guo_jiao_0
 __jiao_0:
+	subs r4, r4, # 2
 	str r4, [r5]
 __tiao_guo_jiao_0:
 	subs r4, r4, r6
@@ -263,7 +264,7 @@ __tiao_guo_jiao_0:
 	ldr r2, = lvboqizhizhen1
 	ldr r3, [r3]
 	ldr r0, = lvboqihuanchong1
-	movs r1, # 0xff
+	ldr r1, = 512
 	bl _lvboqi
 	ldr r6, = 0x48000000
 	movs r7, # 0x40
@@ -300,7 +301,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 8	@修改
+	asrs r0, r7, # 9	@修改
 	pop {r1-r7,pc}
 
 _nmi_handler:
