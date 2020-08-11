@@ -7,8 +7,11 @@
 	.syntax unified
 	.section .data
 	.align 4
-xuanzhuanyinzi:
-	.int 0x8000,0x0000,0x7E9D,0xFFFFED38,0x7A7D,0xFFFFDAD8,0x73B5,0xFFFFC946,0x6A6D,0xFFFFB8E4,0x5ED7,0xFFFFAA0B,0x5133,0xFFFF9D0E,0x41CE,0xFFFF9236,0x30FB,0xFFFF89BF,0x1F19,0xFFFF83D7,0x0C8B,0xFFFF809E,0xFFFFF9B9,0xFFFF8028,0xFFFFE708,0xFFFF8276,0xFFFFD4E1,0xFFFF877C,0xFFFFC3AA,0xFFFF8F1E,0xFFFFB3C1,0xFFFF9931,0xFFFFA57E,0xFFFFA57E,0xFFFF9931,0xFFFFB3C1,0xFFFF8F1E,0xFFFFC3AA,0xFFFF877C,0xFFFFD4E1,0xFFFF8276,0xFFFFE708,0xFFFF8028,0xFFFFF9B9,0xFFFF809E,0x0C8B,0xFFFF83D7,0x1F19,0xFFFF89BF,0x30FB,0xFFFF9236,0x41CE,0xFFFF9D0E,0x5133,0xFFFFAA0B,0x5ED7,0xFFFFB8E4,0x6A6D,0xFFFFC946,0x73B5,0xFFFFDAD8,0x7A7D,0xFFFFED38,0x7E9D,0x0000,0x8000,0x12C8,0x7E9D,0x2528,0x7A7D,0x36BA,0x73B5,0x471C,0x6A6D,0x55F5,0x5ED7,0x62F1,0x5133,0x6DCA,0x41CE,0x7641,0x30FB,0x7C29,0x1F1A,0x7F62,0x0C8B,0x7FD8,0xFFFFF9B9,0x7D8A,0xFFFFE708,0x7884,0xFFFFD4E1,0x70E2,0xFFFFC3AA,0x66CF,0xFFFFB3C1,0x5A82,0xFFFFA57E,0x4C3F,0xFFFF9931,0x3C56,0xFFFF8F1E,0x2B1F,0xFFFF877C,0x18F8,0xFFFF8276,0x0647,0xFFFF8028,0xFFFFF375,0xFFFF809E,0xFFFFE0E7,0xFFFF83D7,0xFFFFCF05,0xFFFF89BF,0xFFFFBE32,0xFFFF9236,0xFFFFAECD,0xFFFF9D0E,0xFFFFA129,0xFFFFAA0B,0xFFFF9593,0xFFFFB8E4,0xFFFF8C4B,0xFFFFC946,0xFFFF8583,0xFFFFDAD8,0xFFFF8163,0xFFFFED38,0xFFFF8000,0x0000,0xFFFF8163,0x12C7,0xFFFF8583,0x2527,0xFFFF8C4B,0x36BA,0xFFFF9593,0x471C,0xFFFFA129,0x55F5,0xFFFFAECD,0x62F1,0xFFFFBE32,0x6DCA,0xFFFFCF05,0x7641,0xFFFFE0E6,0x7C29,0xFFFFF375,0x7F62,0x0647,0x7FD8,0x18F8,0x7D8A,0x2B1F,0x7884,0x3C56,0x70E2,0x4C3F,0x66CF,0x5A82,0x5A82,0x66CF,0x4C3F,0x70E2,0x3C56,0x7884,0x2B1F,0x7D8A,0x18F8,0x7FD8,0x0647,0x7F62,0xFFFFF375,0x7C29,0xFFFFE0E7,0x7641,0xFFFFCF05,0x6DCA,0xFFFFBE32,0x62F2,0xFFFFAECD,0x55F5,0xFFFFA129,0x471D,0xFFFF9593,0x36BA,0xFFFF8C4B,0x2528,0xFFFF8584,0x12C8,0xFFFF8163,0x0000,0xFFFF8000,0xFFFFED39,0xFFFF8163,0xFFFFDAD9,0xFFFF8583,0xFFFFC946,0xFFFF8C4B,0xFFFFB8E4,0xFFFF9593,0xFFFFAA0B,0xFFFFA129,0xFFFF9D0F,0xFFFFAECD,0xFFFF9236,0xFFFFBE32,0xFFFF89BF,0xFFFFCF05,0xFFFF83D7,0xFFFFE0E6,0xFFFF809E,0xFFFFF375,0xFFFF8028,0x0647,0xFFFF8276,0x18F8,0xFFFF877C,0x2B1F,0xFFFF8F1E,0x3C56,0xFFFF9931,0x4C3F,0xFFFFA57E,0x5A82,0xFFFFB3C1,0x66CF,0xFFFFC3AA,0x70E2,0xFFFFD4E1,0x7884,0xFFFFE708,0x7D8A,0xFFFFF9B9,0x7FD8,0x0C8B,0x7F62,0x1F19,0x7C2A,0x30FB,0x7641,0x41CE,0x6DCA,0x5133,0x62F2,0x5ED7,0x55F5,0x6A6D,0x471D,0x73B5,0x36BA,0x7A7C,0x2528,0x7E9D,0x12C8
+zheng_xian_biao:
+	.short 7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4
+	.align 4
+xuan_zhuan_yin_zi:
+	.int 0x8000,0x0000,0x4B3C,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD873,0xFFFF9873,0x4B3C,0x0000,0x8000,0x678D,0x4B3C,0x79BC,0xFFFFD873,0x278D,0xFFFF8644,0xFFFFB4C4,0xFFFF9873,0xFFFF8000,0x0000,0xFFFFB4C4,0x678D,0x278D,0x79BC,0x79BC,0x278D,0x678D,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C4,0xFFFF8644,0x278D,0xFFFFD873,0x79BC,0x4B3C,0x678D,0x8000,0x0000,0x4B3C,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD872,0xFFFF9873,0x4B3C,0x0000,0x8000,0x678D,0x4B3C,0x79BC,0xFFFFD873,0x278E,0xFFFF8644,0xFFFFB4C4,0xFFFF9873,0xFFFF8000,0x0000,0xFFFFB4C4,0x678D,0x278D,0x79BC,0x79BC,0x278E,0x678D,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C4,0xFFFF8644,0x278D,0xFFFFD872,0x79BC,0x4B3C,0x678E,0x8000,0x0000,0x4B3C,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD872,0xFFFF9872,0x4B3C,0x0000,0x8000,0x678D,0x4B3C,0x79BC,0xFFFFD873,0x278E,0xFFFF8644,0xFFFFB4C4,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C4,0x678D,0x278D,0x79BC,0x79BC,0x278E,0x678E,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C4,0xFFFF8644,0x278D,0xFFFFD872,0x79BC,0x4B3C,0x678E,0x8000,0x0000,0x4B3C,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD872,0xFFFF9872,0x4B3C,0x0000,0x8000,0x678D,0x4B3C,0x79BC,0xFFFFD873,0x278E,0xFFFF8644,0xFFFFB4C4,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C4,0x678D,0x278D,0x79BC,0x79BC,0x278E,0x678E,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C4,0xFFFF8644,0x278D,0xFFFFD872,0x79BC,0x4B3C,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD872,0xFFFF9872,0x4B3C,0x0000,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD873,0x278E,0xFFFF8644,0xFFFFB4C4,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C4,0x678D,0x278D,0x79BC,0x79BC,0x278E,0x678E,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C4,0xFFFF8644,0x278D,0xFFFFD872,0x79BB,0x4B3C,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8644,0xFFFFD872,0xFFFF9872,0x4B3C,0x0000,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD873,0x278E,0xFFFF8645,0xFFFFB4C5,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C3,0x678D,0x278D,0x79BC,0x79BC,0x278E,0x678E,0xFFFFB4C5,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C3,0xFFFF8644,0x278D,0xFFFFD872,0x79BB,0x4B3B,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8645,0xFFFFD872,0xFFFF9872,0x4B3B,0x0000,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD874,0x278E,0xFFFF8645,0xFFFFB4C5,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C3,0x678D,0x278D,0x79BC,0x79BB,0x278E,0x678E,0xFFFFB4C5,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C3,0xFFFF8644,0x278D,0xFFFFD872,0x79BC,0x4B3C,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8645,0xFFFFD872,0xFFFF9872,0x4B3B,0x0000,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD874,0x278E,0xFFFF8644,0xFFFFB4C5,0xFFFF9872,0xFFFF8000,0x0000,0xFFFFB4C3,0x678D,0x278C,0x79BC,0x79BB,0x278F,0x678E,0xFFFFB4C5,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C3,0xFFFF8644,0x278C,0xFFFFD872,0x79BB,0x4B3B,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD874,0xFFFF8644,0xFFFF8645,0xFFFFD872,0xFFFF9872,0x4B3B,0xFFFFFFFF,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD874,0x278E,0xFFFF8645,0xFFFFB4C5,0xFFFF9872,0xFFFF8000,0xFFFFFFFF,0xFFFFB4C3,0x678D,0x278C,0x79BC,0x79BB,0x278E,0x678E,0xFFFFB4C4,0x0000,0xFFFF8000,0xFFFF9873,0xFFFFB4C3,0xFFFF8644,0x278D,0xFFFFD872,0x79BB,0x4B3B,0x678E,0x8000,0x0000,0x4B3D,0xFFFF9873,0xFFFFD873,0xFFFF8644,0xFFFF8645,0xFFFFD872,0xFFFF9872,0x4B3B,0xFFFFFFFF,0x8000,0x678D,0x4B3D,0x79BC,0xFFFFD874,0x278E,0xFFFF8644,0xFFFFB4C5,0xFFFF9872,0xFFFF8000,0xFFFFFFFF,0xFFFFB4C3,0x678D,0x278C,0x79BC,0x79BB,0x278F,0x678E,0xFFFFB4C5,0x0000,0xFFFF8000,0xFFFF9874,0xFFFFB4C3,0xFFFF8644,0x278C,0xFFFFD871,0x79BB,0x4B3B,0x678E
 	.align 4
 cordic_yong_cos_sin:
 	.int 0x0000,0x4000,0x2D41,0x2D41,0x3B20,0x187D,0x3EC5,0x0C7C,0x3FB1,0x0645,0x3FEC,0x0323,0x3FFB,0x0192,0x3FFE,0x00C9,0x3FFF,0x0064,0x3FFF,0x0032,0x3FFF,0x0019,0x3FFF,0x000C,0x3FFF,0x0006,0x3FFF,0x0003,0x3FFF,0x0001,0x3FFF,0x0000
@@ -89,12 +92,14 @@ cai_dan_biao:
         .equ dianyabiaozhizhen,         0x200001f8
         .equ dianyabiaoman,             0x200001fc
 	.equ dianyabiao,		0x20000200
+	.equ zhengxiangbiao,		0x20000390
+	.equ fanxiangbiao,		0x20000520
         .equ lvboqizhizhen,             0x20000a00
         .equ lvboqihuanchong,           0x20000a04
         .equ lvboqizhizhen1,            0x20000b08
         .equ lvboqihuanchong1,          0x20000b0c
-        .equ lvboqizhizhen2,             0x20000c20
-        .equ lvboqihuanchong2,           0x20000c24
+        .equ lvboqizhizhen2,            0x20000c20
+        .equ lvboqihuanchong2,          0x20000c24
 	.equ lvboqizhizhen3,            0x20000d30
         .equ lvboqihuanchong3,          0x20000d34
 	.equ kai_lu_r,			0x08002000
@@ -130,7 +135,7 @@ vectors:
 	.word aaa +1      @ _exti2_3 +1      @ 6
 	.word aaa +1       @_exti4_15 +1     @ 7
 	.word aaa +1                         @ 8
-	.word __dma_wan  +1		     @ 9
+	.word aaa +1	@__dma_wan  +1	     @ 9
 	.word aaa +1    @_dma1_2_3 +1        @ 10
 	.word aaa +1       @_dma1_4_5 +1     @ 11
 	.word aaa +1	 @_adc1 +1           @ 12
@@ -260,13 +265,13 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2800540f
+	ldr r1, = 0x2820540f
 	str r1, [r0]
 	movs r1, # 0xe0
 	str r1, [r0, # 0x04]
-	ldr r1, = 0x100
-	str r1, [r0, # 0x0c]
-
+	ldr r1, = 0x200
+	str r1, [r0, # 0x24]
+	
 	ldr r0, = 0x48000400
 	movs r1, # 0x02
 	str r1, [r0, # 0x04]
@@ -324,11 +329,11 @@ _deng_adc_wen_ding:
         lsls r1, r1, # 31
         bpl _deng_adc_wen_ding @ 等ADC稳定
 _tongdaoxuanze:
-        ldr r1, = 0x80000000
+        ldr r1, = 0x40000000
         str r1, [r0, # 0x10]
-        ldr r1, = 0x01
+        ldr r1, = 0x02
         str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
-        ldr r1, = 0x8c3 @0x2003 @0x8c3
+        ldr r1, = 0xc03 @ 0xc43		@TIM3 0x8c3 @0x2003 @0x8c3
         str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
         movs r1, # 0
 	str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
@@ -345,6 +350,18 @@ dmachushihua:
         @+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
         @+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
         @+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
+        @tim1ch3DMA
+
+        @tim1ch3DMA
+        ldr r0, = 0x40020000
+        ldr r1, = 0x40012c3c @ 外设地址
+        str r1, [r0, # 0x60]
+        ldr r1, = zheng_xian_biao @ 储存器地址
+        str r1, [r0, # 0x64]
+        ldr r1, = 200             @点数
+        str r1, [r0, # 0x5c]
+        ldr r1, = 0x35b1         @ 储存到外设
+        str r1, [r0, # 0x58]
 
 	@ adc dma
 	ldr r0, = 0x40020000
@@ -352,207 +369,60 @@ dmachushihua:
 	str r1, [r0, # 0x10]
 	ldr r1, = dianyabiao
 	str r1, [r0, # 0x14]
-	ldr r1, = 912
+	ldr r1, = 200
 	str r1, [r0, # 0x0c]
 	ldr r1, = 0x5a1 @  0x583 	@ 5a1
 	str r1, [r0, # 0x08]
-tim3chushihua:				
-	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, = 0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 349	@699 40k @11199 2.5k		@2799 10Khz
-	str r1, [r0, # 0x2c] @ ARR
-	ldr r1, =  0x3800 @ 0x3800
-	str r1, [r0, # 0x1c] @ ccmr2
-	ldr r1, =  0x1000
-	str r1, [r0, # 0x20] @ ccer
-	ldr r1, = 349  @ 2799
-	str r1, [r0, # 0x40] @ ccr4
-	movs r1, # 0x70
-	str r1, [r0, # 0x04]
-	@movs r1, # 0x01
-	@str r1, [r0, # 0x0c]
-	movs r1, # 0xe1
-	str r1, [r0]
-	ldr r0, = 0xffffff
-__deng_dma:
-	subs r0, r0, # 1
-	bne __deng_dma
 
-ting:
+	
+tim1chushiha:				
+        ldr r0, = 0x40012c00 @ tim1_cr1
+        movs r1, # 0
+        str r1, [r0, # 0x28] @ psc
+	ldr r1, = 13
+        str r1, [r0, # 0x2c] @ ARR
+	@movs r1, # 0x40
+        movs r1, # 0x20
+        str r1, [r0, # 0x04] @ TRGO
+        movs r1, # 0x38
+        str r1, [r0, # 0x18] @ ccmr1 cc1
+        movs r1, # 13
+        str r1, [r0, # 0x34]
+        ldr r1, = 0x68
+        str r1, [r0, # 0x1c] @ ccmr2  CC3
+	ldr r1, = 0x100    @  CC3
+	str r1, [r0, # 0x20] @ ccer
+	ldr r1, = 0x8000
+	str r1, [r0, # 0x44] @ BDTR
+        ldr r1, = 0x800 @ CC3 DMA
+        str r1, [r0, # 0x0c] @ DIER
+        ldr r1, = 0x81
+	str r1, [r0]
+
+	ldr r0, = 0xffffff
+adc_yanshi:
+	subs r0, r0, # 1
+	bne adc_yanshi
+
+
+	
+	bl __tong_dao_qie_huan
+	ldr r0, = zhengxiangbiao
+	ldr r1, = fanxiangbiao
+	bl __DFT_ji_suan
+ting:	
 	b ting
 
 	
 __cai_dan_0:
-	bl __dma
-__xianshi_zukang:	
-        movs r0, # 0x8f
-	ldr r1, = ou
-        movs r2, # 1
-        bl _lcdxianshi
-	ldr r0, = dianzu	@dianzu
-	ldr r1, [r0]
-       movs r4, r1
-	bpl __dian_zu_bu_shi_zheng
-	movs r0, # 0x80
-        ldr r1, = _fu
-        movs r2, # 1
-        bl _lcdxianshi
-        mvns r4, r4
-        adds r4, r4, # 1
-        b __xian_shi_dian_zu
-__dian_zu_bu_shi_zheng:
-	movs r0, # 0x80
-	ldr r1, = kong
-	movs r2, # 1
-        bl _lcdxianshi
-__xian_shi_dian_zu:
-        mov r0, r4
-        movs r1, # 6
-        ldr r2, = asciimabiao
-        movs r3, # 4
-        bl _zhuanascii
-        movs r0, # 0x81
-        ldr r1, = asciimabiao
-        movs r2, # 6
-        bl _lcdxianshi
 
-        ldr r0, = diankang	@diankang
-        ldr r1, [r0]
-       movs r4, r1
-        bpl __dian_kang_bu_shi_zheng
-        movs r0, # 0x87
-        ldr r1, = _fu
-        movs r2, # 1
-        bl _lcdxianshi
-        mvns r4, r4
-        adds r4, r4, # 1
-        b __xian_shi_dian_kang
-__dian_kang_bu_shi_zheng:
-        movs r0, # 0x87
-        ldr r1, = kong
-        movs r2, # 1
-        bl _lcdxianshi
-__xian_shi_dian_kang:
-        mov r0, r4
-        movs r1, # 6
-        ldr r2, = asciimabiao
-        movs r3, # 4
-        bl _zhuanascii
-        movs r0, # 0x88
-        ldr r1, = asciimabiao
-        movs r2, # 6
-        bl _lcdxianshi
-	bl __xian_shi_fan_she_xi_shu
-	bl __an_jian
-	cmp r0, # 0
-	bne __ting_fanhui
-	bl __cai_dan_diao_du
-__ting_fanhui:	
 	b __cai_dan_0
 
-	
-__xian_shi_jiao_du:	
-       ldr r0, = jiaodu
-        ldr r1, [r0]
-       movs r4, r1
-        bpl __jiaodu_bu_shi_zheng
-        movs r0, # 0x87
-        ldr r1, = _fu
-        movs r2, # 1
-        bl _lcdxianshi
-        mvns r4, r4
-        adds r4, r4, # 1
-        b __xian_shi_jiaodu
-__jiaodu_bu_shi_zheng:
-        movs r0, # 0x87
-        ldr r1, = kong
-        movs r2, # 1
-        bl _lcdxianshi
-__xian_shi_jiaodu:
-        mov r0, r4
-        movs r1, # 5
-        ldr r2, = asciimabiao
-        movs r3, # 0xff
-        bl _zhuanascii
-        movs r0, # 0x88
-        ldr r1, = asciimabiao
-        movs r2, # 5
-        bl _lcdxianshi
-	.ltorg
-
-
 __cai_dan_1:
-	ldr r0, = jiaozhunkaiguan
-	movs r1, # 1
-	str r1, [r0]
-        movs r0, # 0x80
-        ldr r1, = kai_lu_jiao_zhun
-        movs r2, # 16
-        bl _lcdxianshi
-	bl __dma
-	bl __xian_shi_fan_she_xi_shu
-	bl __an_jian
-	cmp r0, # 0
-	bne __cai_dan_1
-	ldr r0, = p_shibu
-	ldr r1, = p_xubu
-	ldr r2, = pm1
-	ldr r3, = pm1i
-	ldr r0, [r0]
-	ldr r1, [r1]
-	str r0, [r2]
-	str r1, [r3]
-	bl __cai_dan_diao_du
 	b __cai_dan_1
 __cai_dan_2:
-        movs r0, # 0x80
-        ldr r1, = duan_lu_jiao_zhun
-        movs r2, # 16
-        bl _lcdxianshi
-	bl __dma
-	bl __xian_shi_fan_she_xi_shu
-	bl __an_jian
-	cmp r0, # 0
-	bne __cai_dan_2
-        ldr r0, = p_shibu
-        ldr r1, = p_xubu
-        ldr r2, = pm2
-        ldr r3, = pm2i
-        ldr r0, [r0]
-        ldr r1, [r1]
-        str r0, [r2]
-        str r1, [r3]
-	bl __cai_dan_diao_du
 	b __cai_dan_2
 __cai_dan_3:
-	movs r0, # 0x80
-        ldr r1, = pi_pei_jiao_zhun
-        movs r2, # 16
-	bl _lcdxianshi
-	ldr r0, = 0xffffff
-__cai_dan_3_yanshi:
-	subs r0, r0, # 1
-	bne __cai_dan_3_yanshi
-__cai_dan_3_xun_huan:	
-	bl __dma
-        bl __xian_shi_fan_she_xi_shu
-        bl __an_jian
-        cmp r0, # 0
-        bne __cai_dan_3_xun_huan
-        ldr r0, = p_shibu
-        ldr r1, = p_xubu
-        ldr r2, = pm3
-        ldr r3, = pm3i
-        ldr r0, [r0]
-        ldr r1, [r1]
-        str r0, [r2]
-        str r1, [r3]
-	bl __jiaozhun
-	ldr r0, = jiaozhunkaiguan
-	movs r1, # 0
-	str r1, [r0]
-	b _xieflash
 
 __cai_dan_4:
 __cai_dan_5:
@@ -586,43 +456,123 @@ __cai_dan_qie_huan:
         ldr r0, = cai_dan_biao
         ldr r1, [r0, r2]
 	mov pc, r1
-
-__d_m_a:
-	push {r0-r2,lr}
-        ldr r0, = jishu
-        ldr r1, = 20
-        ldr r2, [r0]
-        adds r2, r2, # 1
-        str r2, [r0]
-        cmp r2, r1
-        bne __d_m_a_fanhui
-        movs r2, # 0
-        str r2, [r0]
-        bl __kai_dma
-__d_m_a_fanhui:
-	pop {r0-r2,pc}
-__dma:
-	push {r0-r1,lr}       
-        ldr r0, = 0x200008c0
-	movs r1, # 0
-	str r1, [r0]
-	cpsid i
-__deng_dma_wan:
+__tong_dao_qie_huan:
+	push {r0-r3,lr}
+	ldr r0, = dianyabiao
+	ldr r3, = 0x40012428
+	movs r1, # 0x01
+	str r1, [r3]
+	bl __tong_dao_qie_huan_yan_shi
+	ldr r1, = zhengxiangbiao
+	movs r2, # 200
+	bl __fu_zhi_nei_cun
+	movs r1, # 0x02
+	str r1, [r3]
+	bl __tong_dao_qie_huan_yan_shi
+	ldr r1, = fanxiangbiao
+	movs r2, # 200
+	bl __fu_zhi_nei_cun
+	pop {r0-r3,pc}
+	
+__tong_dao_qie_huan_yan_shi:
+	push {r7,lr}
+	ldr r7, = 0xffff
+__tong_dao_qie_huan_yan_shi_xun_huan:
+	subs r7, r7, # 1
+	bne __tong_dao_qie_huan_yan_shi_xun_huan
+	pop {r7,pc}
+__fu_zhi_nei_cun:
+	@ 入口 R0 = 要复制的地址，R1=目标地址，R2=复制的数量
+	push {r3-r4,lr}
+	movs r4, # 0
+__fu_zhi_xun_huan:	
+	ldrh r3, [r0, r4]
+	strh r3, [r1, r4]
+	adds r4, r4, # 2
+	subs r2, r2, # 1
+	bne __fu_zhi_xun_huan
+	pop {r3-r4,pc}
+__DFT_ji_suan:
+	@入口R0=正相表，R1=反相表
+	push {r2-r7,lr}
+	mov r4, r8
+	mov r5, r9
+	mov r6, r10
+	push {r4-r6}
+	movs r6, # 0
+	mov r8, r6
+	mov r9, r6
+	movs r2, # 200
+	adds r2, r2, r2
+	mov r10, r2
+	mov r2, r6
+__ji_suan_dft_xun_huan:
+	ldrh r3, [r0, r2]
+	ldrh r4, [r1, r2]
+	cmp r3, # 0
+	beq __qu_fan_r4
+	b __ji_suan_dft
+__qu_fan_r4:
+	mvns r4, r4
+	adds r4, r4, # 1
+	mov r3, r4
+__ji_suan_dft:
+	ldr r5, = xuan_zhuan_yin_zi
+	ldr r7, [r5, r6]
+	adds r6, r6, # 4
+	muls r7, r7, r3		@ 实部
+	asrs r7, r7, # 15
+	mov r4, r8
+	adds r4, r4, r7
+	mov r8, r4
+	ldr r7, [r5, r6]
+	adds r6, r6, # 4
+	muls r7, r7, r3		@ 虚部
+	asrs r7, r7, # 15
+	mov r4, r9
+	adds r4, r4, r7
+	mov r9, r4
+	adds r2, r2, # 2
+	cmp r2, r10
+	bne __ji_suan_dft_xun_huan
+	mov r0, r8
+	mov r1, r9
+	pop {r4-r6}
+	mov r8, r4
+	mov r9, r5
+	mov r10, r6
+	pop {r2-r7,pc}
+__xian_shi_jiao_du:
+	push {r0-r4,lr}
+       ldr r0, = jiaodu
         ldr r1, [r0]
-        cmp r1, # 0
-        beq __deng_dma_wan
-	cpsie i
-        ldr r2, = 0x40000400
-        movs r1, # 0
-        str r1, [r2]
-        bl __dma_wan
-        ldr r0, = 0x200008c0
-        movs r1, # 0
-        str r1, [r0]
-        movs r1, # 0xe1
-	str r1, [r2]
-__dma_fanhui:	
-	pop {r0-r1,pc}
+       movs r4, r1
+        bpl __jiaodu_bu_shi_zheng
+        movs r0, # 0x87
+        ldr r1, = _fu
+        movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+	adds r4, r4, # 1
+        b __xian_shi_jiaodu
+__jiaodu_bu_shi_zheng:
+        movs r0, # 0x87
+	ldr r1, = kong
+	movs r2, # 1
+        bl _lcdxianshi
+__xian_shi_jiaodu:
+        mov r0, r4
+        movs r1, # 5
+	ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+	movs r0, # 0x88
+        ldr r1, = asciimabiao
+	movs r2, # 5
+	bl _lcdxianshi
+	pop {r0-r4,pc}
+        .ltorg
+
 __xian_shi_fan_she_xi_shu:
 	push {r0-r4,lr}
         ldr r0, = p_shibu       
@@ -1117,25 +1067,7 @@ __xuan_zhuan_wan:
 	pop {r2-r7,pc}
 	.ltorg
 
-__kai_dma:
-	push {r0-r2,lr}
-	ldr r2, = 0x40012400
-	movs r1, # 0x11
-	str r1, [r2, # 0x08]
-__deng_adc_wan:
-	ldr r1, [r2, # 0x08]
-	cmp r1, # 1
-	bne __deng_adc_wan
-	ldr r0, = 0x40020000
-	movs r1, # 0
-	str r1, [r0, # 0x08]
-	ldr r1, = 912
-	str r1, [r0, # 0x0c]
-	ldr r1, = 0x583
-	str r1, [r0, # 0x08]
-	movs r1, # 0x05
-	str r1, [r2, # 0x08]
-	pop {r0-r2,pc}
+
 __xian_shi_ru_she_fan_she:
 @入口 R0= 下臂实部，R1=上臂实部，R2=下臂虚部，R3=上臂虚部
 	push {r0-r7,lr}
@@ -1468,110 +1400,6 @@ _alpha_min_beta_max:
 	adds r0, r0, r1
 	movs r1, # 0
 	pop {r1-r3,pc}
-__dft:
-	push {r0-r7,lr}
-	mov r0, r8
-	mov r1, r9
-	mov r2, r10
-	mov r3, r11
-	mov r4, r12
-	push {r0-r4}
-        ldr r0, = dianyabiao
-        subs r0, r0, # 0x08
-__zhao_shang_sheng2:
-        adds r0, r0, # 0x08
-        ldrh r2, [r0, # 0x04]
-	ldrh r3, [r0, # 0x06]
-	subs r3, r3, r2
-        bmi __zhao_shang_sheng2
-        ldrh r2, [r0, # 0x0c]
-	ldrh r3, [r0, # 0x0e]
-        subs r3, r3, r2
-	bpl __zhao_shang_sheng2
-	ldr r1, = xuanzhuanyinzi
-	movs r2, # 1
-	lsls r2, r2, # 10
-	mov r8, r2
-	movs r3, # 0
-	mov r11, r3	
-	mov r12, r3
-	mov r10, r3
-	mov r9, r3
-__dft_xun_huan:
-	ldr r4, [r0, r3]
-	ldr r2, [r1, r3]	@r
-	push {r2}
-	adds r3, r3, # 4
-	ldr r5, [r0, r3]
-	ldr r2, [r1, r3]	@i
-	adds r3, r3, # 4
-	mov r6, r4
-	mov r7, r5
-	lsls r4, r4, # 16
-	lsrs r4, r4, # 16
-	lsrs r6, r6, # 16
-	lsls r5, r5, # 16
-	lsrs r5, r5, # 16
-	lsrs r7, r7, # 16
-
-	push {r3}
-	ldr r3, = 41962   @振幅矫正
-	subs r4, r4, r6
-	muls r4, r4, r3
-	asrs r4, r4, # 15
-	pop {r3}
-	subs r5, r5, r7
-	mov r6, r4
-	mov r7, r5
-	muls r4, r4, r2		@i
-	muls r5, r5, r2		@i
-	asrs r4, r4, # 15
-	asrs r5, r5, # 15
-	mov r2, r9
-	adds r2, r2, r4
-	mov r9, r2
-	mov r2, r10
-	adds r2, r2, r5
-	mov r10, r2
-	pop {r2}
-	muls r6, r6, r2		@r
-	muls r7, r7, r2		@r
-	asrs r6, r6, # 15
-	asrs r7, r7, # 15
-	mov r2, r11		@r
-	adds r2, r2, r6
-	mov r11, r2
-	mov r2, r12
-	adds r2, r2, r7
-	mov r12, r2
-	cmp r3, r8
-	bne __dft_xun_huan
-	ldr r0, = fan_she_shi_bu
-	ldr r1, = fan_she_xu_bu
-	mov r2, r9
-	mov r3, r10
-	mov r4, r11
-	mov r5, r12
-	asrs r2, r2, # 6
-	asrs r3, r3, # 6
-	asrs r4, r4, # 6
-	asrs r5, r5, # 6
-	ldr r0, = fan_she_shi_bu
-	ldr r1, = ru_she_shi_bu
-	ldr r6, = fan_she_xu_bu
-	ldr r7, = ru_she_xu_bu
-	str r2, [r6]		@r
-	str r3, [r7]	@r
-	str r4, [r0]		@i
-	str r5, [r1]	@i
-__dft_fan_hui:	
-	pop {r0-r4}
-	mov r8, r0
-	mov r9, r1
-	mov r10, r2
-	mov r11, r3
-	mov r12, r4
-	pop {r0-r7,pc}
 	.ltorg
 __fu_shu_chu_fa:
 	push {r4-r7,lr}
@@ -1883,78 +1711,40 @@ _chufaweishubudao00:
 	adds r0, r0, # 1
 _chufafanhui1:
 	pop {r1-r7,pc}
-__he_cheng_dian_ya_biao:
-	push {r0-r5,lr}
-        ldr r0, = dianyabiao
-	subs r0, r0, # 0x08
-__zhao_shang_sheng:
-        adds r0, r0, # 0x08
-        ldrh r2, [r0, # 0x04]
-        ldrh r3, [r0, # 0x06]
-        subs r3, r3, r2
-        bmi __zhao_shang_sheng
-        ldrh r2, [r0, # 0x0c]
-        ldrh r3, [r0, # 0x0e]
-        subs r3, r3, r2
-	bpl __zhao_shang_sheng
-	ldr r1, = dianyabiaozhizhen
-	str r0, [r1]
-        ldr r1, = 256
-        lsls r1, r1, # 2
-        movs r2, # 0
-__fu_zhi_xun_huan:
-        ldr r3, [r0, r2]
-        mov r4, r3
-        lsls r3, r3, # 16
-        lsrs r3, r3, # 16
-        lsrs r4, r4, # 16
-	subs r3, r3, r4
-        bpl __bao_cun
-        mvns r3, r3
-        adds r3, r3, # 1
-        bl __zhuan_bcd
-        ldr r4, = 0x80000000
-        orrs r3, r3, r4
-        b __fu_shu_bao_cun
-__bao_cun:
+
+__he_bing_dian_ya_biao:
+	push {r0-r7,lr}
+	ldr r0, = zhengxiangbiao
+	ldr r1, = fanxiangbiao
+	ldr r2, = 0x20000750
+	movs r3, # 0
+	mov r6, r3
+	movs r7, # 200
+	mov r8, r3
+__he_bing_dian_ya_biao_xun_huan:
+	ldrh r4, [r0, r3]
+	ldrh r5, [r1, r3]
+	mov r8, r3
+	cmp r4, r5
+	bhi __zheng_dian_ya
+	mov r3, r5
 	bl __zhuan_bcd
-__fu_shu_bao_cun:
-        str r3, [r0, r2]
-	adds r2, r2, # 4
-	cmp r2, r1
-        bne __fu_zhi_xun_huan
-	pop {r0-r5,pc}
-__jian_bo:
-       push {r0-r5,lr}
-        ldr r0, = dianyabiao
-	subs r0, r0, # 0x08
-__zhao_shang_sheng1:
-        adds r0, r0, # 0x08
-        ldrh r2, [r0, # 0x04]
-        ldrh r3, [r0, # 0x06]
-        subs r3, r3, r2
-	bmi __zhao_shang_sheng1
-        ldrh r2, [r0, # 0x0c]
-        ldrh r3, [r0, # 0x0e]
-        subs r3, r3, r2
-        bpl __zhao_shang_sheng1
-        ldr r1, = dianyabiaozhizhen
-        str r0, [r1]
-        ldr r1, = 256
-        lsls r1, r1, # 2
-        movs r2, # 0
-__fu_zhi_xun_huan1:
-        ldr r3, [r0, r2]
-        mov r4, r3
-        lsls r3, r3, # 16
-        lsrs r3, r3, # 16
-        lsrs r4, r4, # 16
-        subs r3, r3, r4
-        str r3, [r0, r2]
-	adds r2, r2, # 4
-	cmp r2, r1
-        bne __fu_zhi_xun_huan1
-	pop {r0-r5,pc}
+	ldr r5, = 0x80000000
+	orrs r5, r5, r3
+	str r5, [r2, r6]
+	b __dian_ya_biao_jia
+__zheng_dian_ya:
+	mov r3, r4
+	bl __zhuan_bcd
+	str r3, [r2, r6]
+__dian_ya_biao_jia:
+	mov r3, r8
+	adds r3, r3, # 2
+	adds r6, r6, # 4
+	subs r7, r7, # 1
+	bne __he_bing_dian_ya_biao_xun_huan
+	pop {r0-r7,pc}
+	
 
 __zhuan_bcd:
 	push {r0-r2,r4-r7,lr}
@@ -1999,90 +1789,5 @@ _pendsv_handler:
 _systickzhongduan:
 aaa:
 	bx lr
-__dma_wan:
-@	bl __he_cheng_dian_ya_biao
-@	bkpt # 22
-	push {r0-r7,lr}
-	bl __dft
-	ldr r0, = fan_she_shi_bu
-	ldr r1, = fan_she_xu_bu
-	ldr r2, = ru_she_shi_bu
-	ldr r3, = ru_she_xu_bu
-	ldr r0, [r0]
-	ldr r1, [r1]
-	ldr r2, [r2]
-	ldr r3, [r3]
-	bl __fu_shu_chu_fa
-	mov r3, r2
-	mov r7, r1
-        ldr r0, = lvboqihuanchong
-        ldr r1, = 128
-        ldr r2, = lvboqizhizhen
-        bl _lvboqi
-
-	mov r3, r7
-	mov r7, r0
-
-        ldr r0, = lvboqihuanchong2
-        ldr r1, = 128
-        ldr r2, = lvboqizhizhen2
-        bl _lvboqi
-	mov r1, r0
-	mov r2, r7
-
-	
-	ldr r0, = p_shibu
-	ldr r3, = p_xubu
-	str r2, [r0]
-	str r1, [r3]
-
-	ldr r4, = jiaozhunkaiguan
-	ldr r5, [r4]
-	cmp r5, # 0
-	bne  __jiao_zhun_kai
-	bl __osm_jiao_zhun
-	ldr r0, = p_shibu
-	ldr r3, = p_xubu
-	str r2, [r0]
-	str r1, [r3]
-__jiao_zhun_kai:	
-	movs r4, r2
-	movs r5, r1
-	ldr r0, = 1000
-	movs r1, # 0
-	mov r2, r0
-	movs r3, # 0
-	adds r0, r0, r4
-	adds r1, r1, r5
-	subs r2, r2, r4
-	subs r3, r3, r5
-	bl __fu_shu_chu_fa
-	ldr r6, = swr_shibu
-	ldr r5, = swr_xubu
-	str r2, [r6]
-	str r1, [r5]
-	ldr r3, = 0x4000	@Q15 0.5
-	muls r1, r1, r3
-	muls r3, r3, r2
-	asrs r1, r1, # 15
-	asrs r3, r3, # 15
-	ldr r2, = dianzu
-        str r3, [r2]
-        ldr r2, = diankang
-        str r1, [r2]
-@	mov r0, r3
-@	bl __atan2_ji_suan
-@	ldr r1, = jiaodu
-@	str r0, [r1]
-@	bl __chuan_lian_zhuan_bing_lian
-@	bl __fu_jie_dian_chang_shu
-__dma_fan_hui:	
-	ldr r0, = 0x40020000
-       movs r2, # 2
-	str r2, [r0, # 0x04]
-@	ldr r0, = dianyabiaoman
-@	movs r1, # 1
-@	str r1, [r0]
-	pop {r0-r7,pc}
 	.ltorg
 	.end
