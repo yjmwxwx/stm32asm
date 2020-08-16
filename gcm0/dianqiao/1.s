@@ -7,7 +7,7 @@
 	.syntax unified
 	.section .data
 	.align 4
-zheng_xian_biao:
+zheng_xian_200khz:	@20*10
 	.short 7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4,7,9,10,12,13,13,13,12,10,9,7,4,3,1,0,0,0,1,3,4
 	.align 4
 xuan_zhuan_yin_zi:
@@ -265,9 +265,9 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820540f
+	ldr r1, = 0x2824555f
 	str r1, [r0]
-	movs r1, # 0xe0
+	ldr r1, =  0x2fc
 	str r1, [r0, # 0x04]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
@@ -356,7 +356,7 @@ dmachushihua:
         ldr r0, = 0x40020000
         ldr r1, = 0x40012c3c @ 外设地址
         str r1, [r0, # 0x60]
-        ldr r1, = zheng_xian_biao @ 储存器地址
+        ldr r1, = zheng_xian_200khz @ 储存器地址
         str r1, [r0, # 0x64]
         ldr r1, = 200             @点数
         str r1, [r0, # 0x5c]
@@ -399,18 +399,127 @@ tim1chushiha:
         ldr r1, = 0x81
 	str r1, [r0]
 
+	ldr r0,= 0x48000000
+	movs r1, # 0x1c
+	str r1, [r0, # 0x18]
+
+	
 	ldr r0, = 0xffffff
 adc_yanshi:
 	subs r0, r0, # 1
 	bne adc_yanshi
-
+        movs r0, # 0x01
+        movs r1, # 0
+        bl _xielcd
+	bl _lcdyanshi
 
 	
+ting:
+	ldr r0, = 0x48000000
+	ldr r1, = 0x200
+	str r1, [r0, # 0x18]
 	bl __tong_dao_qie_huan
 	ldr r0, = zhengxiangbiao
 	ldr r1, = fanxiangbiao
 	bl __DFT_ji_suan
-ting:	
+	mov r6, r0
+	mov r7, r1
+	ldr r0, = 0x48000000
+        ldr r1, = 0x200
+        str r1, [r0, # 0x28]
+        bl __tong_dao_qie_huan
+	ldr r0, = zhengxiangbiao
+	ldr r1, = fanxiangbiao
+        bl __DFT_ji_suan
+
+	mov r2, r6
+	mov r3, r7
+	mvns r2, r2
+	adds r3, r3, # 1
+	mvns r3, r3
+	adds r3, r3, # 1
+	bl __fu_shu_chu_fa
+	mov r3, r2
+	mov r7, r1
+        ldr r0, = lvboqihuanchong
+        ldr r1, = 128
+        ldr r2, = lvboqizhizhen
+        bl _lvboqi
+
+	mov r3, r7
+	mov r7, r0
+
+        ldr r0, = lvboqihuanchong2
+        ldr r1, = 128
+        ldr r2, = lvboqizhizhen2
+        bl _lvboqi
+	mov r1, r0
+	mov r2, r7
+	
+	ldr r4, = dianzu
+	ldr r5, = diankang
+	str r2, [r4]
+	str r1, [r5]
+
+
+__xianshi_zukang:	
+        movs r0, # 0x8f
+	ldr r1, = ou
+        movs r2, # 1
+        bl _lcdxianshi
+	ldr r0, = dianzu	@dianzu
+	ldr r1, [r0]
+       movs r4, r1
+	bpl __dian_zu_bu_shi_zheng
+	movs r0, # 0x80
+        ldr r1, = _fu
+        movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+        adds r4, r4, # 1
+        b __xian_shi_dian_zu
+__dian_zu_bu_shi_zheng:
+	movs r0, # 0x80
+	ldr r1, = kong
+	movs r2, # 1
+        bl _lcdxianshi
+__xian_shi_dian_zu:
+        mov r0, r4
+        movs r1, # 10
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x81
+        ldr r1, = asciimabiao
+        movs r2, # 10
+        bl _lcdxianshi
+
+        ldr r0, = diankang	@diankang
+        ldr r1, [r0]
+       movs r4, r1
+        bpl __dian_kang_bu_shi_zheng
+        movs r0, # 0xc0
+        ldr r1, = _fu
+        movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+        adds r4, r4, # 1
+        b __xian_shi_dian_kang
+__dian_kang_bu_shi_zheng:
+        movs r0, # 0xc0
+        ldr r1, = kong
+        movs r2, # 1
+        bl _lcdxianshi
+__xian_shi_dian_kang:
+        mov r0, r4
+        movs r1, # 10
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0xc1
+        ldr r1, = asciimabiao
+        movs r2, # 10
+        bl _lcdxianshi
 	b ting
 
 	
