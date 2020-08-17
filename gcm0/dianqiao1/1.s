@@ -18,6 +18,22 @@ cordic_yong_cos_sin:
 	.align 4
 dian_rong_dan_wei:
 	.int  0x4670
+dang_wei_biao:
+	.word __dang_wei0 +1
+	.word __dang_wei1 +1
+	.word __dang_wei2 +1
+	.word __dang_wei3 +1
+	.word __dang_wei4 +1
+	.word __dang_wei5 +1
+an_jian_biao:
+	.word __an_jian0         	   	   +1	
+	.word __dang_wei_jia     	   	   +1
+	.word __pin_lv_jia      	   	   +1
+	.word __an_jian3         	           +1
+	.word __an_jian4 		   	   +1
+	.word __an_jian5          	          +1
+	.word __an_jian6 		          +1
+	.word __an_jian7			   +1
 	.align 4
 yjmwxwx:
 	.ascii "yjmwxwx-20200808"
@@ -34,16 +50,7 @@ duan_lu_jiao_zhun:
 	.ascii "duan lu jiaozhun"
 pi_pei_jiao_zhun:
 	.ascii "pi pei jiao zhun"
-	.align 4
-cai_dan_biao:
-	.word __cai_dan_0 +1
-	.word __cai_dan_1 +1
-	.word __cai_dan_2 +1
-	.word __cai_dan_3 +1
-	.word __cai_dan_4 +1
-	.word __cai_dan_5 +1
-	.word __cai_dan_6 +1
-	
+	.align 4	
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
 	.equ fuhao,			0x200000f0
@@ -53,9 +60,11 @@ cai_dan_biao:
 	.equ jiaodu,			0x20000108
 	.equ kailu_r,			0x2000010c
 	.equ liangcheng,		0x20000110
-	.equ caidanzhizhen,		0x2000018c
-	.equ caidanyanshi,		0x20000190
+	.equ dangwei,			0x20000114
 	.equ jiaozhunkaiguan,		0x20000194
+	.equ dangweijiayanshi,		0x200001d8
+	.equ caidanzhizhen,		0x200001dc
+	.equ caidanbiao,		0x200001e0
         .equ dianyabiaozhizhen,         0x200001f8
         .equ dianyabiaoman,             0x200001fc
 	.equ dianyabiao,		0x20000200
@@ -175,6 +184,26 @@ _neicunqinglingxunhuan:
 	subs r3, # 4
 	str r1, [r0, r3]
 	bne _neicunqinglingxunhuan
+
+__fu_zhi_cai_dan_biao:
+	ldr r0, = an_jian_biao
+	ldr r1, = caidanbiao
+	ldr r2, [r0]
+	ldr r3, [r0, # 0x04]
+        ldr r4, [r0, # 0x08]
+        ldr r5, [r0, # 0x0c]
+        ldr r6, [r0, # 0x10]
+        ldr r7, [r0, # 0x14]
+        str r2, [r1]
+        str r3, [r1, # 0x04]
+        str r4, [r1, # 0x08]
+        str r5, [r1, # 0x0c]
+        str r6, [r1, # 0x10]
+        str r7, [r1, # 0x14]
+	ldr r2, [r0, # 0x18]
+	ldr r3, [r0, # 0x1c]
+	str r2, [r1, # 0x18]
+	str r3, [r1, # 0x1c]
 _waishezhongduan:				@外设中断
 	@0xE000E100    0-31  写1开，写0没效
 	@0XE000E180    0-31 写1关，写0没效
@@ -228,12 +257,14 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2824555f
+	ldr r1, = 0x2824544f
 	str r1, [r0]
-	ldr r1, =  0x2fc
+	ldr r1, =  0x2e8
 	str r1, [r0, # 0x04]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
+	ldr r1, = 0x110
+	str r1, [r0, # 0x0c]
 	
 	ldr r0, = 0x48000400
 	movs r1, # 0x02
@@ -363,8 +394,8 @@ tim1chushiha:
 	str r1, [r0]
 
 	ldr r0,= 0x48000000
-	movs r1, # 0x1c
-	str r1, [r0, # 0x18]
+	movs r1, # 0x08
+	str r1, [r0, # 0x28]
 
 	
 	ldr r0, = 0xffffff
@@ -376,9 +407,54 @@ adc_yanshi:
         bl _xielcd
 	bl _lcdyanshi
 
-
-	
+	ldr r0, = liangcheng
+	movs r1, # 0x80
+	str r1, [r0]
+	b ting
+	.ltorg
+__an_jian7:
+	bl __an_jian
+	b __cai_dan_diao_du
+__dang_wei_jia:
+	ldr r0, = dangweijiayanshi
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 100
+	bne __dang_wei_fan_hui
+	movs r1, # 0
+	str r1, [r0]
+	ldr r0, = dangwei
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 5
+	bne __dang_wei_fan_hui
+	movs r1, # 0
+	str r1, [r0]
+__dang_wei_fan_hui:
+	bl __dang_wei_she_zhi
+	bl __dang_wei_xian_shi
+        bl __an_jian
+	b __cai_dan_diao_du
+__pin_lv_jia:
+        bl __an_jian
+	b __cai_dan_diao_du
+__an_jian3:
+        bl __an_jian
+        b __cai_dan_diao_du
+__an_jian4:
+        bl __an_jian
+        b __cai_dan_diao_du
+__an_jian5:
+        bl __an_jian
+        b __cai_dan_diao_du
+__an_jian6:
+        bl __an_jian
+	b __cai_dan_diao_du
+__an_jian0:	
 ting:
+	bl __dang_wei_xian_shi
 	bl __ji_suan_zu_kang
 	bl __dian_rong_ji_suan
 __xianshi_zukang:	
@@ -471,52 +547,65 @@ __xian_shi_dian_rong_dan_wei:
 	movs r0, # 0xce
 	movs r2, # 2
 	bl _lcdxianshi
-	b ting
-
-	
-__cai_dan_0:
-
-	b __cai_dan_0
-
-__cai_dan_1:
-	b __cai_dan_1
-__cai_dan_2:
-	b __cai_dan_2
-__cai_dan_3:
-
-__cai_dan_4:
-__cai_dan_5:
-__cai_dan_6:
-
-	
+	bl __an_jian
 __cai_dan_diao_du:
-        mov r12, lr
-        ldr r1, = caidanzhizhen
-        ldr r0, = caidanyanshi
-        ldr r2, [r1]
-        ldr r3, [r0]
-        adds r3, r3, #1
-	cmp r3, # 10
-        bhi __cai_dan_zhi_zhen_jia
-        str r3, [r0]
-        mov pc, r12
-__cai_dan_zhi_zhen_jia:
-        movs r3, # 0
-        str r3, [r0]
-        adds r2, r2, # 4
-	cmp r2, # 0x14
-        bls __cai_dan_qie_huan
-        movs r2, # 0
-__cai_dan_qie_huan:
-        str r2, [r1]
-	movs r0, # 0x01
-        movs r1, # 0
-        bl _xielcd
-	bl _lcdyanshi
-        ldr r0, = cai_dan_biao
-        ldr r1, [r0, r2]
-	mov pc, r1	
+	lsls r0, r0, # 2
+	ldr r1, = caidanbiao
+	ldr r2, [r1, r0]
+	mov pc, r2
 	
+	
+__dang_wei_she_zhi:	
+	@ liangcheng 0x00=100,0x80=1K,0x40=10K,0xc0=100K
+	@0=9,1=100,2=1k,3=10k,4=100k,5=900k
+	push {r0-r5,lr}
+	ldr r1, = dangwei
+	ldr r0, = dang_wei_biao
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	ldr r2, [r0, r1]
+	mov pc, r2
+__dang_wei0:
+	movs r0, # 0
+	mov r12, r0
+        pop {r0-r5,pc}
+__dang_wei1:
+	ldr r0, = liangcheng
+	movs r1, # 0x00
+	str r1, [r0]
+        pop {r0-r5,pc}
+__dang_wei2:
+	ldr r0, = liangcheng
+	movs r1, # 0x80
+	str r1, [r0]
+        pop {r0-r5,pc}
+__dang_wei3:
+	ldr r0, = liangcheng
+	movs r1, # 0x40
+	str r1, [r0]
+        pop {r0-r5,pc}
+__dang_wei4:
+	ldr r0, = liangcheng
+	movs r1, # 0xc0
+	str r1, [r0]
+        pop {r0-r5,pc}
+__dang_wei5:
+	movs r0, # 4
+	mov r12, r0
+	pop {r0-r5,pc}
+__dang_wei_xian_shi:
+        push {r0-r3,lr}
+	ldr r0, = dangwei
+	movs r1, # 1
+	ldr r0, [r0]
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x80
+        ldr r1, = asciimabiao
+        movs r2, # 1
+        bl _lcdxianshi
+        pop {r0-r3,pc}
 __dian_rong_ji_suan:
 	push {r0-r4,lr}
 	ldr r0, = Xs
@@ -784,12 +873,19 @@ __an_jian:
 	ldr r1, = 0x48000410
 	ldr r2, [r0]	@pa4
 	ldr r3, [r1]	@pb1
+	mov r0, r2	@pa2
+	lsls r0, r0, # 29
+	lsrs r0, r0, # 31
 	lsls r2, r2, # 27
 	lsrs r2, r2, # 31
+	lsls r2, r2, # 1
 	lsls r3, r3, # 30
-	lsrs r3, r3, # 30
-	orrs r3, r3, r2
-	mov r0, r3	
+	lsrs r3, r3, # 29
+	orrs r0, r0, r2
+	orrs r0, r0, r3
+	mvns r0, r0
+	lsls r0, r0, # 29
+	lsrs r0, r0, # 29
 	pop {r1-r3,pc}
 __atan2_ji_suan:
 	@入口R0=实部，R1=虚部，结果=R0
