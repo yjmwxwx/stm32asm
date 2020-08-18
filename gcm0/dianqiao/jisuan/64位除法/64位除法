@@ -1,0 +1,184 @@
+__chufa64:
+        @64位除64位
+        @ （R0=高32位R1=低32位）除（R2)= （R0高32）（R1低32）
+        push {r4-r7,lr}
+	cmp r2, # 0
+	bne __pan_duan_chu_shu
+	cmp r3, # 0
+	beq __chu_fa64_fan_hui0
+__pan_duan_chu_shu:
+	cmp r0, # 0
+	bne __chu_fa64_ji_suan
+	cmp r1, # 0
+	beq __chu_fa64_fan_hui0
+__chu_fa64_ji_suan:
+	mov r4, r8
+	mov r5, r9
+	mov r6, r10
+	mov r7, r11
+	push {r4-r7}
+        movs r4, # 0
+        mov r7, r4
+        mov r5, r4
+	mov r8, r4
+	mov r9, r4
+	mov r10, r4
+	mov r11, r4
+        movs r6, # 1
+        lsls r6, r6, # 31
+__chu_fa64_xun_huan:
+        lsls r1, r1, # 1
+        adcs r0, r0, r0
+        adcs r4, r4, r4
+	adcs r5, r5, r5
+        bl __cmp64
+        bcc __chu_fa_yi_wei
+	mov r8, r0
+	mov r9, r1
+	mov r0, r10
+	mov r1, r11
+	adds r0, r0, r6
+	adcs r1, r1, r7
+	mov r10, r0
+	mov r11, r1
+	mov r0, r8
+	mov r1, r9
+	subs r4, r4, r3
+	sbcs r5, r5, r2
+__chu_fa_yi_wei:
+        movs r6, r6
+        beq __di_yi_wei
+        lsrs r6, r6, # 1        @高32位移位
+        bne __chu_fa64_xun_huan
+        movs r7, # 1
+        lsls r7, r7, # 31
+        b __chu_fa64_xun_huan
+__di_yi_wei:            @低32位移位
+	lsrs r7, r7, # 1
+        bne __chu_fa64_xun_huan
+	bkpt # 1
+        mov r0, r10
+        mov r1, r11
+	pop {r4-r7}
+	mov r8, r4
+	mov r9, r5
+	mov r10, r6
+	mov r11, r7
+        pop {r4-r7,pc}
+__chu_fa64_fan_hui0:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r3-r7,pc}
+	
+__cmp64:
+        @入口r4r5, r2r3
+	cmp r2, # 0
+	beq __bi_jiao_di32
+        cmp r5, r2
+        bcc __cmp_xiaoyu
+__bi_jiao_di32:	
+        cmp r4, r3
+        bcc __cmp_xiaoyu
+__cmp_xiaoyu:
+        bx lr
+__fu_shu_chu_fa:
+	push {r4-r7,lr}
+	@入口R0=a R1=b,R2=c R3=d
+	@出口R0=实部 R1=虚部
+	mov r4, r8
+	mov r5, r9
+	mov r6, r10
+	mov r7, r11
+	push {r4-r7}
+__ji_suan_chu_fa:
+	mov r8, r0	@a
+	mov r9, r1	@b
+	mov r10, r2	@c
+	mov r11, r3	@d
+	movs r7, # 0
+	bkpt # 1
+	@ (a+bi)/(c+di)=(ac+bd)/(c*c+d*d)+(bc-ad)/(c*c+d*d)
+	movs r0, r0
+	bpl b1
+	mvns r0, r0
+	adds r0, r0, # 1
+	movs r7, # 1
+b1:	
+	mov r1, r10
+	movs r1, r1
+	bpl b2
+	mvns r1, r1
+	adds r1, r1, # 1
+	adds r7, r7, # 1
+b2:	
+	bl __chengfa
+	bkpt # 2
+b3:
+	mov r4, r0	@a*c高32
+	mov r5, r1	@a*c低32
+	mov r0, r9
+	mov r1, r11
+	movs r0, r0
+	bpl b4
+	mvns r0, r0
+	adds r0, r0, # 1
+	adds r7, r7, # 1
+b4:
+	movs r1, r1
+	bpl b5
+	mvns r1, r1
+	adds r1, r1, # 1
+	adds r7, r7, # 1
+b5:
+	bl __chengfa
+	bkpt # 3
+b6:	
+	adds r1, r1, r5	@ac+bd低32
+	adcs r0, r0, r4	@ac+bd高32
+	mov r6, r0
+	mov r7, r1
+	mov r0, r10
+	mov r1, r0
+bkpt # 1
+	bl __chengfa
+	mov r4, r0	@c*c高32
+	mov r5, r1	@c*c低32
+	mov r0, r11
+	mov r1, r0
+	bl __chengfa
+	adds r1, r1, r5	@cc+dd低32
+	adcs r0, r0, r4	@cc+dd高32
+	push {r0-r1}
+	mov r2, r0
+	mov r3, r1
+	mov r0, r6
+	mov r1, r7
+	bl __chufa64
+	mov r6, r0	@实部高32
+	mov r7, r1	@实部低32
+	@r8=a, r9=b, r10=c, r11=d
+	@(b*c-a*d)/(c*c+d*d)
+	mov r0, r9
+	mov r1, r10
+        bl __chengfa
+        mov r4, r0      @b*c高32
+        mov r5, r1      @b*c低32
+        mov r0, r8
+        mov r1, r11
+        bl __chengfa
+        subs r5, r5, r1 @bc-ad低32
+        sbcs r4, r4, r0 @bc-ad高32
+	pop {r2-r3}
+	mov r0, r4
+	mov r1, r5
+        bl __chufa64
+	mov r2, r0	@虚部高32
+	mov r3, r1	@虚部低32
+	mov r0, r6	@实部高32
+	mov r1, r7	@实部低32
+	pop {r4-r7}
+	mov r8, r4
+	mov r9, r5
+	mov r10, r6
+	mov r11, r7
+	pop {r4-r7,pc}
