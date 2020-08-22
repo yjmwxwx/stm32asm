@@ -6,7 +6,7 @@ void main() {
 
   int rr,ii, n,i;
   n=400;
-  m=1;
+  m=4;
   pi=3.141592;    
 	for(i=0;i<n;i++){
 	   sr=cos(2*pi*i*m/n);
