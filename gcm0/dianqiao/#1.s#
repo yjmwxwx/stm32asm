@@ -81,8 +81,8 @@ pi_pei_jiao_zhun:
 	.equ kailu_r,			0x2000010c
 	.equ liangcheng,		0x20000110
 	.equ dangwei,			0x20000114
-	.equ shibu,			0x20000190
-	.equ xubu,			0x20000194
+	.equ dangweijia,		0x20000190
+	.equ dangweijian,		0x20000194
 	.equ shangbidianya,		0x20000198
 	.equ xiabidianya,		0x2000019c
 	.equ xuanzhuanyinzi,		0x200001a0
@@ -413,7 +413,7 @@ tim3chushihua:
         str r1, [r0, # 0x08]
 	movs r1, # 0x80
 	str r1, [r0]
-tim1chushiha:				
+@tim1chushiha:				
         ldr r0, = 0x40012c00 @ tim1_cr1
         movs r1, # 0
         str r1, [r0, # 0x28] @ psc
@@ -456,7 +456,7 @@ adc_yanshi:
 	
 ff:	
         ldr r0, = dangwei
-	movs r1, # 5
+	movs r1, # 1
 	str r1, [r0]
 	bl __dang_wei_she_zhi
         ldr r0, = pinlv
@@ -531,7 +531,7 @@ ting:
 	bl __dang_wei_xian_shi
 	bl __ji_suan_zu_kang
 	bl __dian_rong_ji_suan
-	bl __zi_dong_dang_wei
+	bl __zi_dong_liang_cheng
 	bl __dang_wei_xian_shi
 	bl __pin_lv_xian_shi
 __xianshi_zukang:
@@ -1016,62 +1016,46 @@ __pin_lv_xian_shi:
         bl _lcdxianshi
         pop {r0-r3,pc}
 	.ltorg
-__zi_dong_dang_wei:
+__zi_dong_liang_cheng:
 	push {r0-r3,lr}
-	ldr r0, = shibu
-	ldr r1, = xubu
+	ldr r0, = shangbidianya
+	ldr r1, = xiabidianya
 	ldr r2, [r0]
 	ldr r3, [r1]
-	movs r2, r2
-	bpl __jian_ce_xu_bu_shi_bu_shi_fu_shu
-	mvns r2, r2
-	adds r2, r2, # 1
-__jian_ce_xu_bu_shi_bu_shi_fu_shu:
-	movs r3, r3
-	bpl __bi_jiao_shi_xu_da_xiao
-	mvns r3, r3
-	adds r3, r3, # 1
-__bi_jiao_shi_xu_da_xiao:	
 	cmp r2, r3
-	bcs __dang_wei_pan_duan
-	mov r2, r3
-__dang_wei_pan_duan:		
-	ldr r3, = 900
-	cmp r2, r3
-	bcc __dang_wei_jian
-	ldr r3, = 9000
-	cmp r2, r3
-	bcc __zi_dong_dang_wei_fan_hui
+	bcc __dang_wei_jian_pan_duan
+__dang_wei_jia_pan_duan:	
+	mov r0, r2
+	mov r1, r3
+	bl _chufa
+	cmp r0, # 10
+	bcc __zi_dong_liang_cheng_fan_hui
 	ldr r0, = dangwei
 	ldr r1, [r0]
 	adds r1, r1, # 1
 	str r1, [r0]
 	cmp r1, # 6
-	bne __bao_cun_dang_wei
+	bne __zi_dong_liang_cheng_fan_hui
 	movs r1, # 5
 	str r1, [r0]
-	b __bao_cun_dang_wei
-__dang_wei_jian:
+	b __zi_dong_liang_cheng_fan_hui
+__dang_wei_jian_pan_duan:
+	mov r0, r3
+	mov r1, r2
+	bl _chufa
+	cmp r0, # 10
+	bcc __zi_dong_liang_cheng_fan_hui
 	ldr r0, = dangwei
 	ldr r1, [r0]
 	subs r1, r1, # 1
 	str r1, [r0]
 	cmp r1, # 0xff
-	bcc __bao_cun_dang_wei
+	bcc __zi_dong_liang_cheng_fan_hui
 	movs r1, # 0
 	str r1, [r0]
-__bao_cun_dang_wei:	
+__zi_dong_liang_cheng_fan_hui:
 	bl __dang_wei_she_zhi
-__zi_dong_dang_wei_fan_hui:	
 	pop {r0-r3,pc}
-
-
-
-
-
-
-
-	
 __dian_rong_ji_suan:
 	push {r0-r4,lr}
 	ldr r0, = Xs
@@ -1093,6 +1077,23 @@ __dianrong_bu_shi_fu:
 	ldr r3, = Cs
 	str r1, [r3]
 	pop {r0-r4,pc}
+__xia_bi_dian_ya:
+	push {r1-r5,lr}
+	ldr r4, = zhengxiangbiao
+	movs r1, # 200
+	adds r1, r1, r1
+	movs r2, # 0
+	str r2, [r0]
+	mov r3, r2
+	mov r5, r3
+__xia_bi_dian_ya_lei_jia:
+	ldrh r3, [r4, r2]
+	adds r5, r5, r3
+	adds r2, r2, # 2
+	subs r1, r1, # 1
+	bne __xia_bi_dian_ya_lei_jia
+	str r5, [r0]
+	pop {r1-r5,pc}
 __ji_suan_zu_kang:
 	push {r0-r7,lr}
 	ldr r3, = xiabifangdakaiguan
@@ -1109,6 +1110,8 @@ __xiabifangdaguan:
 	str r1, [r0, # 0x28]
 __jian_bo:	
 	bl __tong_dao_qie_huan
+	ldr r0, = xiabidianya
+	bl __xia_bi_dian_ya
 	ldr r0, = zhengxiangbiao
 	ldr r1, = fanxiangbiao
 	bl __DFT_ji_suan
@@ -1128,6 +1131,8 @@ __shangbifangdaguan:
          str r1, [r0, # 0x28]
 __jian_bo1:	
         bl __tong_dao_qie_huan
+        ldr r0, = shangbidianya
+        bl __xia_bi_dian_ya
 	ldr r0, = zhengxiangbiao
 	ldr r1, = fanxiangbiao
         bl __DFT_ji_suan
@@ -1144,10 +1149,6 @@ __jian_bo1:
 	bl __fu_shu_chu_fa
 	mov r3, r2
 	mov r7, r1
-	ldr r0, = shibu
-	ldr r1, = xubu
-	str r7, [r1]
-	str r3, [r0]
 	ldr r1, = lvboqijishu
         ldr r0, = lvboqihuanchong
         ldr r1, [r1]
