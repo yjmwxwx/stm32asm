@@ -8,7 +8,8 @@
 	.section .data
 	.align 4
 
-
+cordic_yong_atan_biao:
+	.int 0x00006487,0x00003B58,0x00001F5B,0x00000FEA,0x000007FD,0x000003FF,0x000001FF,0x000000FF,0x0000007F,0x0000003F,0x0000001F,0x0000000F,0x00000007,0x00000003,0x00000001,0x00000000
 zheng_xian_100khz:
 	.short 0x7,0x9,0xb,0xd,0xe,0xe,0xe,0xd,0xb,0x9,0x7,0x5,0x3,0x1,0x0,0x0,0x0,0x1,0x3,0x5
 	.align 4
@@ -140,7 +141,61 @@ vectors:
 	.word aaa +1                         @ 26
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
-_start:	
+_start:
+	ldr r0, = 1029
+	bl __cordic_cos_sin
+	bkpt # 1
+__cordic_cos_sin:
+	@入口R0
+	@出口R0=COS，R1=SIN
+	@ x= 0x4dba
+	@ r1=x,r2=y,r0=z,r4=d,r5=k,r6=cordic_mabiao
+
+	push {r2-r7,lr}
+	mov r2, r8
+	mov r3, r9
+	push {r2-r3}
+	movs r5, # 0
+	mov r2, r5
+	mov r4, r5
+	ldr r1, = 0x4dba
+cordicxunhuan:	 @ 循环
+	asrs r4, r0, # 15
+	@ x
+	mov r7, r2
+	asrs r2, r2, r5
+	eors r2, r2, r4
+	subs r2, r2, r4
+	subs r3, r1, r2
+	@ y
+	mov r6, r1
+	asrs r1, r1, r5
+	eors r1, r1, r4
+	subs r1, r1, r4
+	adds r7, r7, r1
+	@ z
+	ldr r6, = cordic_yong_atan_biao
+	lsls r2, r5, # 2
+	ldr r1, [r6, r2]
+	eors r1, r1, r4
+	subs r1, r1, r4
+	subs r0, r0, r1
+	mov r1, r3  		
+	mov r2, r7
+	adds r5, # 1
+	cmp r5, # 16
+	bne cordicxunhuan
+	mov r0, r3
+	mov r1, r7
+	pop {r2-r3}
+	mov r8, r2
+	mov r9, r3
+	pop {r2-r7,pc}
+
+	
+	
+	
+	
 shizhong:
         ldr r2, = 0x40022000   @FLASH访问控制
         movs r1, # 0x32
@@ -453,7 +508,46 @@ t:
 	ldr r2, [r2]
 	ldr r3, [r3]
 	bl __xian_shi_shang_xia_bi
-	b t
+	bl __an_jian
+	cmp r0, # 4
+	bne t
+        movs r0, # 0x01
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+__jiaodu:
+	bl __ji_suan_zu_kang
+	ldr r0, = shangbi_r
+	ldr r1, = shangbi_i
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __atan2_ji_suan
+       movs r4, r0
+        bpl __jiaodu_bu_shi_zheng1
+        movs r0, # 0x82
+        ldr r1, = _fu
+        movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+        adds r4, r4, # 1
+        b __xian_shi_jiaodu1
+__jiaodu_bu_shi_zheng1:
+        movs r0, # 0x82
+        ldr r1, = kong
+        movs r2, # 1
+        bl _lcdxianshi
+__xian_shi_jiaodu1:
+        mov r0, r4
+        movs r1, # 10
+        ldr r2, = asciimabiao
+        movs r3, # 0xff
+        bl _zhuanascii
+        movs r0, # 0x83
+        ldr r1, = asciimabiao
+        movs r2, # 10
+        bl _lcdxianshi
+
+	b __jiaodu
 __dang_wei_jia:
 	ldr r0, = dangweijiayanshi
 	ldr r1, [r0]
