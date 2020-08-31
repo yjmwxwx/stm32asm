@@ -69,7 +69,6 @@ pi_pei_jiao_zhun:
 	.equ kailu_r,			0x2000010c
 	.equ liangcheng,		0x20000110
 	.equ dangwei,			0x20000114
-	.equ xiangweijiaozheng,		0x20000170
 	.equ zjiaozheng,		0x20000174
 	.equ z,				0x20000178
 	.equ cos,			0x2000017c
@@ -436,13 +435,7 @@ adc_yanshi:
 	str r1, [r0]
 	bl __dang_wei_she_zhi
 
-	ldr r0, = cos
-	ldr r1, = sin
-	ldr r2, = 0x8000
-	str r2, [r0]
-	movs r2, # 0
-	str r2, [r1]
-	b t1
+	b ting
 	.ltorg
 __an_jian7:
 t1:	
@@ -468,70 +461,81 @@ t:
 	bl __an_jian
 	cmp r0, # 4
 	bne t
+__z_jiao_zheng:
 	movs r0, # 0x01
-        movs r1, # 0
-        bl _xielcd
+	movs r1, # 0
+	bl _xielcd
 	bl _lcdyanshi
-        bl __jiao_zhun_yan_shi
-	bl __jiao_zhun_yan_shi
-	bl __jiao_zhun_yan_shi
-	bl __jiao_zhun_yan_shi
 
-__xiang_wei_jiao_zheng:
 	bl __ji_suan_zu_kang
-	ldr r0, = Rs
-	ldr r1, = Xs
+	ldr r0, = shangbi_r
+	ldr r1, = shangbi_i
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __ji_suan_fu_du
+	mov r4, r0
+	ldr r0, = xiabi_r
+	ldr r1, = xiabi_i
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __ji_suan_fu_du
+	mov r1, r0
+	mov r0, r4
+	ldr r4, = 1000
+	muls r0, r0, r4
+	ldr r2, = zjiaozheng
+	ldr r2, [r2]
+	adds r0, r0, r2
+	bl _chufa
+	ldr r1, = z
+	str r0, [r1]
+	bl __z_xian_shi
+	bl __jiao_zhun_yan_shi
+	b __z_jiao_zheng
+	
+
+
+
+
+
+
+
+	
+	ldr r0, = shangbi_r
+	ldr r1, = shangbi_i
 	ldr r0, [r0]
 	ldr r1, [r1]
 	bl __atan2_ji_suan
-	ldr r1, = jiaodu
-	str r0, [r1]
-	bl __xian_shi_jiao_du
-	ldr r0, = xiangweijiaozheng
+	mov r4, r0
+	ldr r0, = xiabi_r
+	ldr r1, = xiabi_i
 	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __atan2_ji_suan
+	subs r4, r4, r0
+	mov r0, r4
+	movs r1, # 9
+	bl _chufa
+	asrs r0, r0, # 15
+	ldr r1, = 51474
+	muls r0, r0, r1
+	ldr r1, = 1000
+	bl _chufa
 	bl __cordic_cos_sin
 	ldr r2, = cos
 	ldr r3, = sin
 	str r0, [r2]
 	str r1, [r3]
-	bl __an_jian
-	cmp r0, # 4
-	bne __xiang_wei_jiao_zheng
-	
         movs r0, # 0x01
-        movs r1, # 0
+	movs r1, # 0
 	bl _xielcd
-        bl _lcdyanshi
-	bl __jiao_zhun_yan_shi
-        bl __jiao_zhun_yan_shi
-	bl __jiao_zhun_yan_shi
-        bl __jiao_zhun_yan_shi
-__z_jiao_zheng:	
-        bl __ji_suan_zu_kang
-	ldr r0, = Rs
-	ldr r0, [r0]
-	ldr r1, = z
-	str r0, [r1]
-	bl __z_xian_shi
-	bl __an_jian
-	cmp r0, # 4
-        bne __z_jiao_zheng
-	movs r0, # 0x01
-        movs r1, # 0
-	bl _xielcd
-        bl _lcdyanshi
+	bl _lcdyanshi
 
 
-	
 	b ting
-
-
-
-
-	
 __jiao_zhun_yan_shi:
 	push {r0}
-	ldr r0, = 0xfffff
+	ldr r0, = 0xffff
 __jiao_zheng_yan_shi_xun_huan:
 	subs r0, r0, # 1
 	bne __jiao_zheng_yan_shi_xun_huan
@@ -1039,7 +1043,7 @@ __jian_bo1:
         bl __tong_dao_qie_huan
 	ldr r0, = zhengxiangbiao
 	ldr r1, = fanxiangbiao
-        bl __DFT_ji_suan1
+        bl __DFT_ji_suan
 	mov r2, r6
 	mov r3, r7
 	mvns r2, r2
@@ -1059,10 +1063,6 @@ __jian_bo1:
 	str r1, [r5]
 	str r2, [r6]
 	str r3, [r7]
-	bl __xiang_wei_xuan_zhuan
-	ldr r4, = 1000
-	muls r0, r0, r4
-	muls r1, r1, r4
 	bl __fu_shu_chu_fa
 	ldr r4, = Rs
 	ldr r5, = Xs
@@ -1139,7 +1139,7 @@ __fu_zhi_xun_huan:
 	bne __fu_zhi_xun_huan
 	pop {r3-r4,pc}
 __DFT_ji_suan:
-	@入口R0=正相表，R1=反相表,
+	@入口R0=正相表，R1=反相表
 	push {r2-r7,lr}
 	mov r4, r8
 	mov r5, r9
@@ -1153,28 +1153,28 @@ __DFT_ji_suan:
 	mov r10, r2
 	mov r2, r6
 __ji_suan_dft_xun_huan:
-        ldrh r3, [r0, r2]
-        ldrh r4, [r1, r2]
-        subs r3, r3, r4
+	ldrh r3, [r0, r2]
+	ldrh r4, [r1, r2]
+	subs r3, r3, r4
 __ji_suan_dft:
-        ldr r5, = xuan_zhuan_yin_zi
+	ldr r5, = xuan_zhuan_yin_zi
 	ldr r7, [r5, r6]
-        adds r6, r6, # 4
-        muls r7, r7, r3         @ 实部
-        asrs r7, r7, # 15
-        mov r4, r8
-        adds r4, r4, r7
-        mov r8, r4
-        ldr r7, [r5, r6]
-        adds r6, r6, # 4
-        muls r7, r7, r3         @ 虚部
-        asrs r7, r7, # 15
-        mov r4, r9
-        adds r4, r4, r7
-        mov r9, r4
-        adds r2, r2, # 2
-        cmp r2, r10
-        bne __ji_suan_dft_xun_huan
+	adds r6, r6, # 4
+	muls r7, r7, r3		@ 实部
+	asrs r7, r7, # 15
+	mov r4, r8
+	adds r4, r4, r7
+	mov r8, r4
+	ldr r7, [r5, r6]
+	adds r6, r6, # 4
+	muls r7, r7, r3		@ 虚部
+	asrs r7, r7, # 15
+	mov r4, r9
+	adds r4, r4, r7
+	mov r9, r4
+	adds r2, r2, # 2
+	cmp r2, r10
+	bne __ji_suan_dft_xun_huan	
 	mov r0, r8
 	mov r1, r9
 	pop {r4-r6}
@@ -1182,62 +1182,6 @@ __ji_suan_dft:
 	mov r9, r5
 	mov r10, r6
 	pop {r2-r7,pc}
-
-
-__DFT_ji_suan1:
-        @入口R0=正相表，R1=反相表,
-        push {r2-r7,lr}
-        mov r4, r8
-        mov r5, r9
-	mov r6, r10
-	mov r7, r11
-	push {r4-r7}
-	movs r6, # 0
-	mov r8, r6
-	mov r9, r6
-	movs r2, # 1
-        lsls r2, r2, # 9
-	mov r10, r2
-	ldr r2, = zjiaozheng
-	ldr r2, [r2]
-	mov r11, r2
-	mov r2, r6
-__ji_suan_dft_xun_huan1:
-        ldrh r3, [r0, r2]
-        ldrh r4, [r1, r2]
-        subs r3, r3, r4
-	mov r4, r11
-	muls r3, r3, r4
-	asrs r3, r3, # 15
-__ji_suan_dft1:
-        ldr r5, = xuan_zhuan_yin_zi
-        ldr r7, [r5, r6]
-        adds r6, r6, # 4
-        muls r7, r7, r3         @ 实部
-        asrs r7, r7, # 15
-        mov r4, r8
-        adds r4, r4, r7
-        mov r8, r4
-        ldr r7, [r5, r6]
-        adds r6, r6, # 4
-        muls r7, r7, r3         @ 虚部
-        asrs r7, r7, # 15
-        mov r4, r9
-        adds r4, r4, r7
-        mov r9, r4
-        adds r2, r2, # 2
-        cmp r2, r10
-        bne __ji_suan_dft_xun_huan1
-	mov r0, r8
-        mov r1, r9
-        pop {r4-r7}
-        mov r8, r4
-        mov r9, r5
-        mov r10, r6
-	mov r11, r6
-        pop {r2-r7,pc}
-
-	
 __xian_shi_jiao_du:
 	push {r0-r4,lr}
        ldr r0, = jiaodu
@@ -1465,7 +1409,7 @@ __xuan_zhuan_wan:
 	mov r0, r8
 	mvns r0, r0
 	adds r0, r0, # 1
-	asrs r0, r0, # 15      @除32768等于角度
+@	asrs r0, r0, # 15      @除32768等于角度
 	mov r2, r8
 	pop {r2}
 	pop {r2-r7,pc}
@@ -1676,7 +1620,7 @@ _alpha_min_beta_max:
 __fu_shu_chu_fa:
 	push {r4-r7,lr}
 	@入口R0=a R1=b,R2=c R3=d
-	@出口R2=实部 R1=虚部
+	@出口R0=实部 R1=虚部
 	mov r4, r8
 	mov r5, r9
 	mov r6, r10
@@ -1703,7 +1647,6 @@ b1:
 	adds r7, r7, # 1
 b2:	
 	bl __chengfa
-b3:
 	cmp r7, # 1
 	bne a1
 	mvns r0, r0
@@ -1727,6 +1670,7 @@ b4:
 	adds r7, r7, # 1
 b5:
 	bl __chengfa
+	bkpt # 2
 b6:
 	cmp r7, # 1
 	bne a2
@@ -1745,6 +1689,7 @@ a2:
 	adds r0, r0, r4	
 	push {r0}
 	mov r1, r7
+	bkpt # 3
 	movs r7, # 0
 	movs r2, r0
 	bpl b7
@@ -1759,6 +1704,7 @@ b7:
 	adds r7, r7, # 1
 b8:
 	bl __chufa64
+	bkpt # 4
 	cmp r7, # 1
 	bne __bao_cun_chu_fa_shi_bu_jie_guo
 	mvns r0, r0
@@ -1829,14 +1775,17 @@ b13:
 	mvns r1, r1
 	adds r5, r5, # 1
 b14:
+	bkpt # 7
         bl __chufa64
+	bkpt # 6
 	cmp r5, # 1
 	bne __bao_cun_chu_fa_xu_bu_jie_guo
 	mvns r1, r1
 	mvns r0, r0
 	adds r1, r1, # 1
 __bao_cun_chu_fa_xu_bu_jie_guo:	
-	mov r2, r7
+	mov r2, r1
+	mov r1, r7
 	pop {r4-r7}
 	mov r8, r4
 	mov r9, r5

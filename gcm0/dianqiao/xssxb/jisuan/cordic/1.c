@@ -8,9 +8,9 @@ int main(int argc, char **argv)
     double p;
     int s,c,ss,cc,pp;
     int i;    
-    for(i=0;i<50;i++)
+    for(i=0;i<9000;i++)
     {
-        p = (i/50.0)*M_PI/2;        
+        p = (i/9000.0)*M_PI/2;        
         //use 32 iterations
 	pp=p*32768;
         cordic((p*MUL), &s, &c, 16);
