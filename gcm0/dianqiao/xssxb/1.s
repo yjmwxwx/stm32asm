@@ -25,7 +25,7 @@ xuan_zhuan_yin_zi:
 	.align 4
 cordic_yong_cos_sin:
 	.int 0x0000,0x4000,0x2D41,0x2D41,0x3B20,0x187D,0x3EC5,0x0C7C,0x3FB1,0x0645,0x3FEC,0x0323,0x3FFB,0x0192,0x3FFE,0x00C9,0x3FFF,0x0064,0x3FFF,0x0032,0x3FFF,0x0019,0x3FFF,0x000C,0x3FFF,0x0006,0x3FFF,0x0003,0x3FFF,0x0001,0x3FFF,0x0000
-	.align 4
+	.align 4	
 jiao_zhun_shu_ju_biao:
 	.word hz100
 	.word hz1k
@@ -105,10 +105,15 @@ jiaodu1:
 	.int 0x3df2
 jiaodufuhao:
 	.int 0xdf
-_Rs:
-	.ascii "Rs="
-_Xs:
-	.ascii "Xs=" 
+mF:
+	.ascii "mF"
+uF:
+	.ascii "uF"
+nF:	
+	.ascii "nF"
+pF:
+	.ascii "pF"
+	
 __jiao__zhun:
 	.ascii "   jiao  zhun   "
 	.align 4	
@@ -153,6 +158,12 @@ __jiao__zhun:
         .equ caidanbiao,                0x2000098c
         .equ dianyabiaozhizhen,         0x200009a0
         .equ dianyabiaoman,             0x200009a4
+	.equ jiaopinlv,			0x200009a8
+	.equ dianrong_chushu_di,	0x200009ac
+	.equ dianrong_chushu_gao,	0x200009b0
+	.equ dianrong_yiwei,		0x200009b4
+	.equ dianrong_xiaoshudian,	0x200009b8
+	.equ dianrong_danwei,		0x200009bc
         .equ lvboqizhizhen,             0x20000a00
         .equ lvboqihuanchong,           0x20000a04
         .equ lvboqizhizhen1,            0x20000b04
@@ -295,7 +306,6 @@ _neicunqinglingxunhuan:
 	subs r3, # 4
 	str r1, [r0, r3]
 	bne _neicunqinglingxunhuan
-
 __fu_zhi_cai_dan_biao:
 	ldr r0, = an_jian_biao
 	ldr r1, = caidanbiao
@@ -592,12 +602,6 @@ t1:
 	bl _lcdyanshi
 
 __jiao_zhun_xun_huan:
-	ldr r0, = zjiaozheng
-        ldr r1, = 0x8000
-	str r1, [r0]
-	ldr r2, = zjiaozheng
-	movs r1, # 0
-	str r1, [r2]
 	bl __dang_wei_she_zhi
 	bl __pin_lv_she_zhi
 	bl __dang_wei_xian_shi
@@ -669,6 +673,9 @@ __jiao_zhun_xun_huan:
 	
 __jiao_zhun:
 	push {r0-r7,lr}
+	ldr r2, = xiangweijiaozheng
+	movs r1, # 0
+	str r1, [r2]
 __xiang_wei_jiao_zheng:
 	bl __ji_suan_zu_kang
 	ldr r0, = Rs
@@ -706,6 +713,9 @@ __xiang_wei_jiao_zheng:
         bl __jiao_zhun_yan_shi
 	bl __jiao_zhun_yan_shi
         bl __jiao_zhun_yan_shi
+	ldr r2, = zjiaozheng
+	ldr r1, = 0x8000
+	str r1, [r2]
 __z_jiao_zheng:
         bl __ji_suan_zu_kang
 	bl __xianshi_zukang1
@@ -732,6 +742,22 @@ __z_jiao_zheng:
 	
 __jiao_zhun_xian_shi:
         push {r0-r3,lr}
+        movs r4, r0
+        bpl __jiao_zhun_shi_zheng
+        movs r0, # 0xc8
+        ldr r1, = _fu
+	movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+        adds r4, r4, # 1
+	b __xian_shi_jiao_zhun
+__jiao_zhun_shi_zheng:
+	movs r0, # 0xc8
+	ldr r1, = kong
+        movs r2, # 1
+	bl _lcdxianshi
+__xian_shi_jiao_zhun:
+	mov r0, r4
         movs r1, # 6
         ldr r2, = asciimabiao
         movs r3, # 0xff
@@ -896,23 +922,56 @@ ting:
 @	bl __zi_dong_dang_wei
 	bl __dian_rong_ji_suan
 	bl __xianshi_zukang
+	bl __xianshi_dianrong
         bl __an_jian
 __cai_dan_diao_du:
         lsls r0, r0, # 2
-        ldr r1, = caidanbiao
+        ldr r1, = an_jian_biao
         ldr r2, [r1, r0]
         mov pc, r2
 
+__xianshi_dianrong:
+	push {r0-r4,lr}
+        movs r0, # 0xce
+	ldr r1, = dianrong_danwei
+	ldr r1, [r1]
+        movs r2, # 2
+        bl _lcdxianshi
+
+	ldr r1, = dianrong_yiwei
+        ldr r0, = Cs            @dianrong
+        ldr r1, [r1]
+        ldr r0, [r0]
+	bl _chufa
+       movs r4, r0
+        bpl __dian_rong_bu_shi_zheng
+        movs r0, # 0xc7
+        ldr r1, = _fu
+        movs r2, # 1
+        bl _lcdxianshi
+        mvns r4, r4
+        adds r4, r4, # 1
+	b __xian_shi_dian_rong
+__dian_rong_bu_shi_zheng:
+        movs r0, # 0xc7
+        ldr r1, = kong
+        movs r2, # 1
+        bl _lcdxianshi
+__xian_shi_dian_rong:
+	mov r0, r4
+        movs r1, # 6
+	ldr r3, = dianrong_xiaoshudian
+        ldr r2, = asciimabiao
+	ldr r3, [r3]
+        bl _zhuanascii
+        movs r0, # 0xc8
+	ldr r1, = asciimabiao
+        movs r2, # 6
+	bl _lcdxianshi
+	pop {r0-r4,pc}
+	
 __xianshi_zukang:
 	push {r0-r4,lr}
-        movs r0, # 0x82
-	ldr r1, = _Rs
-	movs r2, # 3
-        bl _lcdxianshi
-        movs r0, # 0xc2
-	ldr r1, = _Xs
-	movs r2, # 3
-        bl _lcdxianshi
 	ldr r2, = cankaodianzu
 	ldr r0, = Rs		@dianzu
 	ldr r2, [r2]
@@ -921,7 +980,7 @@ __xianshi_zukang:
 	asrs r1, r1, # 15
        movs r4, r1
 	bpl __dian_zu_bu_shi_zheng
-	movs r0, # 0x85
+	movs r0, # 0x82
         ldr r1, = _fu
         movs r2, # 1
         bl _lcdxianshi
@@ -929,20 +988,20 @@ __xianshi_zukang:
         adds r4, r4, # 1
         b __xian_shi_dian_zu
 __dian_zu_bu_shi_zheng:
-	movs r0, # 0x85
+	movs r0, # 0x82
 	ldr r1, = kong
 	movs r2, # 1
         bl _lcdxianshi
 __xian_shi_dian_zu:
         mov r0, r4
-        movs r1, # 8
+        movs r1, # 5
 	ldr r3, = xiaoshudianweizhi
         ldr r2, = asciimabiao
         ldr r3, [r3]
         bl _zhuanascii
-        movs r0, # 0x86
+        movs r0, # 0x83
         ldr r1, = asciimabiao
-        movs r2, # 8
+        movs r2, # 5
         bl _lcdxianshi
 
 	ldr r2, = cankaodianzu
@@ -953,7 +1012,7 @@ __xian_shi_dian_zu:
 	asrs r1, r1, # 15
        movs r4, r1
         bpl __dian_kang_bu_shi_zheng
-        movs r0, # 0xc5
+        movs r0, # 0x88
         ldr r1, = _fu
         movs r2, # 1
         bl _lcdxianshi
@@ -961,20 +1020,20 @@ __xian_shi_dian_zu:
         adds r4, r4, # 1
         b __xian_shi_dian_kang
 __dian_kang_bu_shi_zheng:
-        movs r0, # 0xc5
+        movs r0, # 0x88
         ldr r1, = kong
         movs r2, # 1
         bl _lcdxianshi
 __xian_shi_dian_kang:
         mov r0, r4
-        movs r1, # 8
+        movs r1, # 5
 	ldr r3, = xiaoshudianweizhi
         ldr r2, = asciimabiao
         ldr r3, [r3]
         bl _zhuanascii
-        movs r0, # 0xc6
+        movs r0, # 0x89
         ldr r1, = asciimabiao
-        movs r2, # 8
+        movs r2, # 5
         bl _lcdxianshi
 	pop {r0-r4,pc}
 
@@ -1021,8 +1080,19 @@ __dang_wei_she_zhi:
 	ldr r2, [r0, r1]
 	mov pc, r2
 __dang_wei0:
+	ldr r0, = dianrong_danwei
+	ldr r1, = mF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+	ldr r1, = 1
+	str r1, [r0]
+	ldr r0, = dianrong_xiaoshudian
+	movs r1, # 0xff
+	str r1, [r0]
+
+	
         ldr r0, = xiaoshudianweizhi
-        movs r1, # 0xff
+        movs r1, # 2
         ldr r2, = cankaodianzu
         str r1, [r0]
         ldr r1, = 32768
@@ -1034,7 +1104,7 @@ __dang_wei0:
         movs r1, # 0
         str r1, [r0]
 	movs r0, # 0x8e
-        ldr r1, = hao_ou
+        ldr r1, = ou
         movs r2, # 2
 	bl _lcdxianshi
         ldr r0, = liangcheng
@@ -1042,8 +1112,20 @@ __dang_wei0:
         str r1, [r0]
         pop {r0-r5,pc}
 __dang_wei1:
+	ldr r0, = dianrong_danwei
+	ldr r1, = uF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+        ldr r1, = 10000
+        str r1, [r0]
+        ldr r0, = dianrong_xiaoshudian
+        movs r1, # 3
+        str r1, [r0]
+
+	
+
 	ldr r0, = xiaoshudianweizhi
-	movs r1, # 6
+	movs r1, # 3
 	ldr r2, = cankaodianzu
 	str r1, [r0]
 	ldr r1, = 32768
@@ -1062,6 +1144,18 @@ __dang_wei1:
 	str r1, [r0]
         pop {r0-r5,pc}
 __dang_wei2:
+	ldr r0, = dianrong_danwei
+	ldr r1, = nF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+        ldr r1, = 100
+        str r1, [r0]
+        ldr r0, = dianrong_xiaoshudian
+        movs r1, # 3
+        str r1, [r0]
+
+
+	
         ldr r0, = xiaoshudianweizhi
         movs r1, # 0xff
         ldr r2, = cankaodianzu
@@ -1082,8 +1176,21 @@ __dang_wei2:
 	str r1, [r0]
         pop {r0-r5,pc}
 __dang_wei3:
-        ldr r0, = xiaoshudianweizhi
+	ldr r0, = dianrong_danwei
+	ldr r1, = pF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+        ldr r1, = 100
+        str r1, [r0]
+        ldr r0, = dianrong_xiaoshudian
         movs r1, # 0xff
+        str r1, [r0]
+
+
+
+	
+        ldr r0, = xiaoshudianweizhi
+        movs r1, # 2
         ldr r2, = cankaodianzu
         str r1, [r0]
         ldr r1, = 32768
@@ -1102,8 +1209,20 @@ __dang_wei3:
 	str r1, [r0]
         pop {r0-r5,pc}
 __dang_wei4:
+	ldr r0, = dianrong_danwei
+	ldr r1, = pF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+        ldr r1, = 100
+        str r1, [r0]
+        ldr r0, = dianrong_xiaoshudian
+        movs r1, # 4
+        str r1, [r0]
+
+
+	
         ldr r0, = xiaoshudianweizhi
-        movs r1, # 0xff
+        movs r1, # 3
         ldr r2, = cankaodianzu
         str r1, [r0]
         ldr r1, = 32768
@@ -1122,8 +1241,21 @@ __dang_wei4:
 	str r1, [r0]
         pop {r0-r5,pc}
 __dang_wei5:
-        ldr r0, = xiaoshudianweizhi
+	ldr r0, = dianrong_danwei
+	ldr r1, = pF
+	str r1, [r0]
+	ldr r0, = dianrong_yiwei
+        ldr r1, = 1
+        str r1, [r0]
+        ldr r0, = dianrong_xiaoshudian
         movs r1, # 0xff
+        str r1, [r0]
+
+
+	
+	
+        ldr r0, = xiaoshudianweizhi
+        movs r1, # 2
         ldr r2, = cankaodianzu
         str r1, [r0]
         ldr r1, = 32768
@@ -1152,7 +1284,13 @@ __pin_lv_she_zhi:
 	lsls r1, r1, # 2
         ldr r2, [r0, r1]
 	mov pc, r2
+
+	
 __pin_lv100:
+        ldr r0, = jiaopinlv
+	ldr r1, = 1000
+        str r1, [r0]
+
 	
         ldr r0, = 0x40021000
         ldr r1, = 0x154002
@@ -1183,10 +1321,10 @@ __pin_lv100:
         ldr r0, = 0x40000400
         ldr r1, = 55999
         str r1, [r0, # 0x2c]
-
        ldr r0, = 0x40012c00 @ tim1_cr1
 	ldr r1, = 139
 	str r1, [r0, # 0x2c]
+	
 	ldr r2, = tongdaoqiehuanyanshi
         ldr r3, = 0x3fffff
 	str r3, [r2]
@@ -1210,7 +1348,12 @@ __pin_lv100:
 	bl __pin_lv_xian_shi
 	pop {r0-r3,pc}
 __pin_lv1K:
+        ldr r0, = jiaopinlv
+        ldr r1, = 100
+        str r1, [r0]
 
+
+	
 	ldr r0, = 0x40021000
 	ldr r1, = 0x154002
 	str r1, [r0, # 0x04]
@@ -1267,6 +1410,11 @@ __pin_lv1K:
 	pop {r0-r3,pc}
 	
 __pin_lv10K:
+        ldr r0, = jiaopinlv
+	ldr r1, = 10
+	str r1, [r0]
+
+	
 	ldr r0, = 0x40021000
 	ldr r1, = 0x154002
 	str r1, [r0, # 0x04]
@@ -1321,6 +1469,10 @@ __pin_lv10K:
         bl __pin_lv_xian_shi
 	pop {r0-r3,pc}
 __pin_lv100K:
+	ldr r0, = jiaopinlv
+	movs r1, # 1
+	str r1, [r0]
+	
         ldr r0, = 0x40021000
         ldr r1, = 0x150002
         str r1, [r0, # 0x04]
@@ -1348,10 +1500,10 @@ __pin_lv100K:
 	ldr r0, = 0x40000400
         ldr r1, = 27
 	str r1, [r0, # 0x2c]
-
        ldr r0, = 0x40012c00 @ tim1_cr1
         ldr r1, = 27
 	str r1, [r0, # 0x2c]
+	
 	ldr r2, = tongdaoqiehuanyanshi
 	ldr r3, = 0x4ffff
 	str r3, [r2]
@@ -1509,10 +1661,13 @@ __dianrong_bu_shi_fu:
 	movs r1, # 10
 	bl __chu_fa
 	mov r2, r0
-	ldr r1, = 628318
-	muls r2, r2, r1
+	ldr r1, = jiaopinlv
+	ldr r0, = 628318
+	ldr r1, [r1]
+	bl _chufa
+	muls r2, r2, r0
 	ldr r1, = 0xd4a51000
-	movs r0, # 0xe8
+	movs r0, # 0xe8 
 	bl __chufa64
 	ldr r3, = Cs
 	str r1, [r3]
