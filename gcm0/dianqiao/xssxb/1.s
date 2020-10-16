@@ -542,7 +542,7 @@ adc_yanshi:
 
 
         ldr r0, = dangwei
-	movs r1, # 1
+	movs r1, # 5
 	str r1, [r0]
 	bl __dang_wei_she_zhi
 
@@ -1081,10 +1081,10 @@ __dang_wei_she_zhi:
 	mov pc, r2
 __dang_wei0:
 	ldr r0, = dianrong_danwei
-	ldr r1, = mF
+	ldr r1, = uF
 	str r1, [r0]
 	ldr r0, = dianrong_yiwei
-	ldr r1, = 1
+	ldr r1, = 100000
 	str r1, [r0]
 	ldr r0, = dianrong_xiaoshudian
 	movs r1, # 0xff
@@ -1258,7 +1258,7 @@ __dang_wei5:
         movs r1, # 2
         ldr r2, = cankaodianzu
         str r1, [r0]
-        ldr r1, = 32768
+        ldr r1, = 3276
         str r1, [r2]
         ldr r0, = shangbifangdakaiguan
 	movs r1, # 0
@@ -1774,6 +1774,13 @@ __xiang_wei_xuan_zhuan:
 	ldr r5, = sin         @sin
 	ldr r4, [r4]
 	ldr r5, [r5]
+	movs r4, r4
+	bpl __xuan_zhuan_xiang_wei
+	mov r6, r4
+	mov r7, r5
+	mov r4, r7
+	mov r5, r6
+__xuan_zhuan_xiang_wei:	
         mov r6, r4
         mov r7, r5
         muls r4, r4, r3         @x*cos
