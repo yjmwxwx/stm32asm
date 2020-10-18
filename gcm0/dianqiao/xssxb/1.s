@@ -1550,9 +1550,9 @@ __pin_lv1K:
         str r3, [r2]
 	ldr r0, = lvboqijishu
         ldr r1, = lvboqiyiwei
-        movs r3, # 16
+        movs r3, # 32
 	str r3, [r0]
-	movs r3, # 4
+	movs r3, # 5
         str r3, [r1]
 	ldr r0, = lvboqizhizhen
         ldr r3, = lvboqizhizhen1
@@ -1918,6 +1918,14 @@ __dang_wei_pan_duan:
 	str r1, [r0]
 	b __bao_cun_dang_wei
 __dang_wei_jian:
+	ldr r0, = huandangyanshi
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 4
+	bne __zi_dong_dang_wei_fan_hui
+	movs r1, # 0
+	str r1, [r0]
 	ldr r0, = dangwei
 	ldr r1, [r0]
 	subs r1, r1, # 1
@@ -1930,7 +1938,8 @@ __bao_cun_dang_wei:
 	bl __dang_wei_she_zhi
 __zi_dong_dang_wei_fan_hui:	
 	pop {r0-r3,pc}
-	
+
+	bx lr
 __xiang_wei_xuan_zhuan:
 	push {r2-r7,lr}
 	@R0=R,R1=I
