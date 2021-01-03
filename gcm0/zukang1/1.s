@@ -8,7 +8,18 @@
 yjmwxwx:
 	.ascii "yjmwxwx-20210101"
 	
-	.align 4	
+	.align 4
+si5351:		@0=148999000,1=149000000,2=28000000
+	.byte 0x00,2,0x13,3,0,4,0,7,0,15,0,16,0x7F,17,0x5F,18,0x1F
+	.byte 19,0x8C,20,0x8C,21,0x8C,22,0x8C,23,0x8C,26,0,27,0x19,28,0
+	.byte 29,0x0F,30,0xE1,31,0,32,0,33,0x07,34,0x30,35,0xD4,36,0
+	.byte 37,0x0F,38,0xE1,39,0,40,0x0C,41,0x2C,42,0,43,0x01,44,0
+	.byte 45,0x01,46,0,47,0,48,0,49,0,50,0,51,0x01,52,0
+	.byte 53,0x01,54,0,55,0,56,0,57,0,58,0,59,0x0E,60,0
+	.byte 61,0x0D,62,0xF6,63,0,64,0,65,0x0C,90,0,91,0,149,0
+	.byte 150,0,151,0,152,0,153,0,154,0,155,0,162,0,163,0
+	.byte 164,0,165,0,166,0,167,0,183,0x92
+	.align 4
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
         .equ liangcheng,                0x20000924
@@ -174,6 +185,8 @@ io_she_zhi:
 	str r1, [r0]
 	ldr r1, =  0x6f0
 	str r1, [r0, # 0x04]
+	ldr r1, = 0x0c3c0000
+	str r1, [r0, # 0x08]
 	ldr r1, = 0x100
 	str r1, [r0, # 0x0c]
 	
@@ -182,6 +195,28 @@ io_she_zhi:
 	str r1, [r0, # 0x04]
 	movs r1, # 0x04
 	str r1, [r0, # 0x0c]
+
+__si5351_chu_shi_hua:
+	movs r3, # 0
+	ldr r4, = si5351
+	ldr r5, = 138           @76
+__xie_si5351_xun_huan:
+	cmp r3, r5
+	beq __xie_wan_si5351
+	movs r0, # 0xc0
+	adds r3, r3, # 1
+	ldrb r1, [r4, r3]
+	adds r3, r3, # 1
+	ldrb r2, [r4, r3]
+	bl __xie_i2c_8_wei
+	cmp r1, # 0xf0
+	beq __si5351_mang
+	b __xie_si5351_xun_huan
+__si5351_mang:
+	subs r3, r3, # 2
+	b __xie_si5351_xun_huan
+__xie_wan_si5351:
+	
 _lcdchushihua:
 	movs r0, # 0x33
 	movs r1, # 0
@@ -213,10 +248,273 @@ _lcdchushihua:
 yjmwxwx_yanshi:
 	subs r0, r0, # 1
 	bne yjmwxwx_yanshi
-
 ting:
 	b ting
 	
+__xie_i2c_8_wei:
+	push {r3-r7,lr}
+	@r0=从地址，r1=数据地址，r2=数据
+	ldr r7, = 0x48000000
+	ldr r3, = 0x200 	@pa9=SDA
+	ldr r4, = 0x400		@pa10=SCL
+__i2c_qi_8:
+	str r3, [r7, # 0x18]	@ SDA=1
+	str r4, [r7, # 0x18]	@ SCL=1
+	bl __i2c_yan_shi
+	str r3, [r7, # 0x28]	@ SDA=0
+	bl __i2c_yan_shi
+	str r4, [r7, # 0x28]	@ SCL=0
+	bl __i2c_yan_shi
+	movs r6, # 0
+__xie_cong_di_zhi_8:
+	movs r5, # 8
+	lsls r0, r0, # 23
+	b __xie_shu_ju_8
+__xie_cong_ji_di_zhi:
+	mov r0, r1
+	movs r5, # 8
+	lsls r0, r0, # 23
+	b __xie_shu_ju_8
+__xie_cong_ji_shu_ju:
+	mov r0, r2
+	movs r5, # 8
+	lsls r0, r0, # 23
+__xie_shu_ju_8:
+	lsls r0, r0, # 1
+	bpl __SDA_8_deng_yu_0
+	str r3, [r7, # 0x18]	@SDA=1
+	b __SCL_8_gao
+__SDA_8_deng_yu_0:
+	str r3, [r7, # 0x28]	@SDA=0
+__SCL_8_gao:
+	str r4, [r7, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r4, [r7, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	subs r5, r5, # 1
+	bne __xie_shu_ju_8
+	str r3, [r7, # 0x18]	@SDA=1
+	bl __i2c_yan_shi
+	str r4, [r7, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+__du_apk_8:
+	ldr r5, [r7, # 0x10]	@读APK
+	lsls r5, r5, # 22
+	bpl __apk_di_8
+__apk_gao_8:
+	movs r1, # 0xf0
+	b __i2c_ting_8
+__apk_di_8:
+	str r4, [r7, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	adds r6, r6, # 1
+	cmp r6, # 1
+	beq __xie_cong_ji_di_zhi
+	cmp r6, # 2
+	beq __xie_cong_ji_shu_ju
+__i2c_ting_8:
+	str r3, [r7, # 0x28]	@SDA=0
+	bl __i2c_yan_shi
+	str r4, [r7, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r3, [r7, # 0x18]	@SDA=1
+	pop {r3-r7,pc}
+__xie_i2c:
+	push {r2-r7,lr}
+	adds r1, r1, # 2
+	ldr r2, = 0x48000000
+	ldr r3, = 0x200 	@pa9=SDA
+	ldr r4, = 0x400		@pa10=SCL
+__i2c_qi:
+	str r3, [r2, # 0x18]	@ SDA=1
+	str r4, [r2, # 0x18]	@ SCL=1
+	bl __i2c_yan_shi
+	str r3, [r2, # 0x28]	@ SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@ SCL=0
+	bl __i2c_yan_shi
+	movs r7, # 0
+__xie_shu_ju_xun_huan:
+	movs r5, # 8
+	ldrb r6, [r0, r7]
+	lsls r6, r6, # 23
+__xie_shu_ju:
+	lsls r6, r6, # 1
+	bpl __SDA_deng_yu_0
+	str r3, [r2, # 0x18]	@SDA=1
+	b __SCL_gao
+__SDA_deng_yu_0:
+	str r3, [r2, # 0x28]	@SDA=0
+__SCL_gao:
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	subs r5, r5, # 1
+	bne __xie_shu_ju
+	str r3, [r2, # 0x18]	@SDA=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+__du_apk:
+	ldr r5, [r2, # 0x10]	@读APK
+	lsls r5, r5, # 22
+	bpl __apk_di
+__apk_gao:
+	b __apk_gao
+__apk_di:
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	adds r7, r7, # 1
+	subs r1, r1, # 1
+	bne __xie_shu_ju_xun_huan
+__i2c_ting:
+	str r3, [r2, # 0x28]	@SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r3, [r2, # 0x18]	@SDA=1
+	pop {r2-r7,pc}
+__du_i2c:
+	push {r2-r7,lr}
+	mov r8, r1
+	movs r1, # 0
+	ldr r2, = 0x48000000
+	ldr r3, = 0x200 	@pa9=SDA
+	ldr r4, = 0x400		@pa10=SCL
+__i2c_qi1:
+	str r3, [r2, # 0x18]	@ SDA=1
+	str r4, [r2, # 0x18]	@ SCL=1
+	bl __i2c_yan_shi
+	str r3, [r2, # 0x28]	@ SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@ SCL=0
+	bl __i2c_yan_shi
+	movs r5, # 8
+	movs r7, # 2
+	movs r6, # 0xc0
+	lsls r6, r6, # 23
+	b __xie_shu_ju1
+__yao_du_de_di_zhi:
+	movs r6, # 0xb7
+	lsls r6, r6, # 23
+	movs r5, # 8
+__xie_shu_ju1:
+	lsls r6, r6, # 1
+	bpl __SDA_deng_yu0_1
+	str r3, [r2, # 0x18]	@SDA=1
+	b __SCL_gao1
+__SDA_deng_yu0_1:
+	str r3, [r2, # 0x28]	@SDA=0
+__SCL_gao1:
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	subs r5, r5, # 1
+	bne __xie_shu_ju1
+	str r3, [r2, # 0x18]	@SDA=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+__du_apk1:
+	ldr r5, [r2, # 0x10]	@读APK
+	lsls r5, r5, # 22
+	bpl __apk_di1
+__apk_gao1:
+	b __apk_gao1
+__apk_di1:
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	cmp r7, # 0xff
+	beq __du_shu_ju
+	subs r7, r7, # 1
+	bne __yao_du_de_di_zhi
+__i2c_qi2:
+	str r3, [r2, # 0x18]    @ SDA=1
+	str r4, [r2, # 0x18]    @ SCL=1
+	bl __i2c_yan_shi
+	str r3, [r2, # 0x28]    @ SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]    @ SCL=0
+	bl __i2c_yan_shi
+	movs r6, # 0xc1		@读
+	lsls r6, r6, # 23
+	movs r5, # 8
+	movs r7, # 0xff
+	b __xie_shu_ju1
+__du_shu_ju:
+	movs r5, # 8
+	movs r7, # 0
+	str r3, [r2, # 0x18]	@ SDA=1
+__du_shu_ju_xun_huan:
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	ldr r6, [r2, # 0x10]	@读SDA
+	lsls r6, r6, # 22
+	lsrs r6, r6, # 31
+	lsls r7, r7, # 1
+	orrs r7, r7, r6
+	subs r5, r5, # 1
+	bne __du_shu_ju_xun_huan
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	strb r7, [r0, r1]
+	adds r1, r1, # 1
+	cmp r1, r8
+	bne __ying_da
+__fei_ying_da:
+	str r3, [r2, # 0x18]	@SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]    @SCL=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]    @SCL=0
+	bl __i2c_yan_shi
+	b __i2c_ting1
+__ying_da:
+	str r3, [r2, # 0x28]	@SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x28]	@SCL=0
+	bl __i2c_yan_shi
+	b  __du_shu_ju
+__i2c_ting1:
+	str r3, [r2, # 0x28]	@SDA=0
+	bl __i2c_yan_shi
+	str r4, [r2, # 0x18]	@SCL=1
+	bl __i2c_yan_shi
+	str r3, [r2, # 0x18]	@SDA=1
+	pop {r2-r7,pc}	
+__i2c_yan_shi:
+	push {r3, lr}
+	ldr r3, = 0x500
+__i2c_yan_shi_xun_huan:
+	subs r3, r3, # 1
+	bne __i2c_yan_shi_xun_huan
+	pop {r3, pc}
+__kai_dma:
+	push {r0-r2,lr}
+	ldr r2, = 0x40012400
+	movs r1, # 0x11
+	str r1, [r2, # 0x08]
+__deng_adc_wan:
+	ldr r1, [r2, # 0x08]
+	cmp r1, # 1
+	bne __deng_adc_wan
+	ldr r0, = 0x40020000
+	movs r1, # 0
+	str r1, [r0, # 0x08]
+	ldr r1, = 912
+	str r1, [r0, # 0x0c]
+	ldr r1, = 0x583
+	str r1, [r0, # 0x08]
+	movs r1, # 0x05
+	str r1, [r2, # 0x08]
+	pop {r0-r2,pc}
 _lcdxianshi:	  		@r0=LCD位置，r1=数据地址，r2=长度
 	push {r0-r4,lr}
 	mov r4, r1
