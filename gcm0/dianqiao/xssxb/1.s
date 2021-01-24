@@ -2885,48 +2885,48 @@ __chu_fa64_fan_hui0:
 	movs r0, # 0
 	movs r1, # 0
 	pop {r3-r7,pc}
-
-	
 __chengfa:
-        @入R0 乘以 R1
-        @出 R0高32 ， R1低32
+	@入R0 乘以 R1
+	@出 R0高32 ， R1低32
 	@0xffffffff*0xffffffff
-        @4        F F F E 0 0 0 1
-        @3                F F F E 0 0 0 1
-        @2                F F F E 0 0 0 1
-        @1                        F F F E 0 0 0 1
-        @         F F F F F F F E 0 0 0 0 0 0 0 1
+	@4        F F F E 0 0 0 1                       @4
+	@3                F F F E 0 0 0 1               @3
+	@2                F F F E 0 0 0 1               @2
+	@1                        F F F E 0 0 0 1       @1
+	@         F F F F F F F E 0 0 0 0 0 0 0 1
 	push {r2-r7,lr}
-        cmp r0, # 0
-        beq __cheng_fa_fan_hui
-        cmp r1, # 0
-        beq __cheng_fa_fan_hui
-__ji_suan_cheng_fa:	
+	cmp r0, # 0
+	beq __cheng_fa_fan_hui
+	cmp r1, # 0
+	beq __cheng_fa_fan_hui
+__ji_suan_cheng_fa:
 	mov r2, r0
 	mov r3, r1
-	lsrs r0, r0, # 16	@高16
-	lsls r2, r2, # 16	@ 低16
+	lsrs r0, r0, # 16       @高16
+	lsls r2, r2, # 16       @ 低16
 	lsrs r2, r2, # 16
-        lsrs r1, r1, # 16	@高16
-	lsls r3, r3, # 16	@低16
+	lsrs r1, r1, # 16       @高16
+	lsls r3, r3, # 16       @低16
 	lsrs r3, r3, # 16
-	mov r4, r2		
-	mov r5, r0		
-	muls r2, r2, r3		@1
-	muls r0, r0, r3		@2
-	muls r4, r4, r1		@3
-	muls r5, r5, r1		@4
-	mov r6, r0		@2
-	mov r7, r4		@3
-	lsls r0, r0, # 16	@2低
-	lsls r4, r4, # 16	@3低
-	lsrs r6, r6, # 16	@2高
-	lsrs r7, r7, # 16	@3高
-	adds r2, r2, r0
-	adcs r2, r2, r4
-	adcs r5, r5, r6
-	adcs r5, r5, r7
-	mov r0, r5
+	mov r4, r2
+	mov r5, r0
+	muls r2, r2, r3         @1
+	muls r0, r0, r3         @2
+	muls r4, r4, r1         @3
+	muls r5, r5, r1         @4
+	mov r6, r0
+	mov r7, r4
+	lsls r0, r0, # 16       @2低32
+	lsls r4, r4, # 16       @3低32
+	lsrs r6, r6, # 16       @2高32
+	lsrs r7, r7, # 16       @3高32
+	movs r1, # 0
+	adds r2, r2, r0         @低32
+	adcs r6, r6, r1         @高32
+	adds r2, r2, r4
+	adcs r6, r6, r7
+	adds r6, r6, r5
+	mov r0, r6
 	mov r1, r2
 	pop {r2-r7,pc}
 __cheng_fa_fan_hui:
