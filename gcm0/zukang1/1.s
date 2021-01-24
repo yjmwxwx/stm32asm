@@ -10,15 +10,11 @@ yjmwxwx:
 	
 	.align 4
 si5351:		@0=148999000,1=149000000,2=28000000
-	.byte 0x00,2,0x13,3,0,4,0,7,0,15,0,16,0x7F,17,0x5F,18,0x1F
-	.byte 19,0x8C,20,0x8C,21,0x8C,22,0x8C,23,0x8C,26,0,27,0x19,28,0
-	.byte 29,0x0F,30,0xE1,31,0,32,0,33,0x07,34,0x30,35,0xD4,36,0
-	.byte 37,0x0F,38,0xE1,39,0,40,0x0C,41,0x2C,42,0,43,0x01,44,0
-	.byte 45,0x01,46,0,47,0,48,0,49,0,50,0,51,0x01,52,0
-	.byte 53,0x01,54,0,55,0,56,0,57,0,58,0,59,0x0E,60,0
-	.byte 61,0x0D,62,0xF6,63,0,64,0,65,0x0C,90,0,91,0,149,0
-	.byte 150,0,151,0,152,0,153,0,154,0,155,0,162,0,163,0
-	.byte 164,0,165,0,166,0,167,0,183,0x92
+	.byte 0x00,17,0x80,26,0xFF,27,0xFF,28,0x00
+	.byte 29,0x10,30,0x00,31,0xF0,32,0x00
+	.byte 33,0x00,50,0xFF,51,0xFF,52,0x73
+	.byte 53,0xFD,54,0x80,55,0xF7,56,0xBF
+	.byte 57,0x80,177,0x20,17,0x4C
 	.align 4
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
@@ -199,7 +195,7 @@ io_she_zhi:
 __si5351_chu_shi_hua:
 	movs r3, # 0
 	ldr r4, = si5351
-	ldr r5, = 138           @76
+	ldr r5, = 38           @76
 __xie_si5351_xun_huan:
 	cmp r3, r5
 	beq __xie_wan_si5351
@@ -249,8 +245,59 @@ yjmwxwx_yanshi:
 	subs r0, r0, # 1
 	bne yjmwxwx_yanshi
 ting:
+	bkpt # 1
+	movs r3, # 35
+	ldr r1, = 1048575
+	bl __si5351_pll_ji_suan
+	movs r1, # 9
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc0
+	ldr r1, = asciimabiao
+	movs r2, # 9
+	bl _lcdxianshi
 	b ting
+__si5351_ji_suan:
+
+__si5351_sheding_pll:
 	
+
+	
+__si5351_pll_ji_suan:
+	@入口R1=b,R3=a,返回R0=PLL频率,r2=b/c
+	push {r1,r3,lr}
+	ldr r2, = 1048575
+	ldr r0, = 100000000
+	bl __chengfa
+	bl __chufa64
+	mov r2, r1
+	movs r0, # 25
+	muls r0, r0, r1
+	movs r1, # 100
+	bl _chufa
+	ldr r1, = 25000000
+	muls r1, r1, r3
+	adds r0, r0, r1 	@PLL频率
+	pop {r1,r3,pc}
+__si5351_xiaoshu_fenpin:
+	@入口R1=b,R3=a,返回r0=分频比，r2=b/c
+	push {r1,r3,lr}
+	ldr r2, = 1048575
+	ldr r0, = 100000000
+	muls r3, r3, r0
+	bl __chengfa
+	bl __chufa64
+	mov r2, r1
+	adds r3, r3, r1
+	mov r0, r3
+	pop {r1,r3,pc}
+	
+	
+
+
+
+	.ltorg
 __xie_i2c_8_wei:
 	push {r3-r7,lr}
 	@r0=从地址，r1=数据地址，r2=数据
@@ -669,7 +716,122 @@ _chufaweishubudao0:
 	bne _chufaxunhuan
 _chufafanhui:
 	pop {r1-r4,pc}
-
+__chufa64:
+	@64位除32位
+	@ （R0=高32位R1=低32位）除（R2)= （R0高32）（R1低32）
+	push {r3-r7,lr}
+	cmp r2, # 0
+	beq __chu_fa64_fan_hui0
+	cmp r1, # 0
+	bne __chu_fa64_ji_suan
+	cmp r0, # 0
+	beq __chu_fa64_fan_hui0
+__chu_fa64_ji_suan:
+	movs r4, # 0
+	mov r7, r4
+	mov r3, r4
+	mov r5, r4
+	movs r6, # 1
+	lsls r6, r6, # 31
+__chu_fa64_xun_huan:
+	lsls r1, r1, # 1
+	adcs r0, r0, r0
+	adcs r4, r4, r4
+	cmp r4, r2
+	bcc __chu_fa_yi_wei
+	adds r3, r3, r6
+	adcs r5, r5, r7
+	subs r4, r4, r2
+__chu_fa_yi_wei:
+	movs r6, r6
+	beq __di_yi_wei
+	lsrs r6, r6, # 1        @高32位移位
+	bne __chu_fa64_xun_huan
+	movs r7, # 1
+	lsls r7, r7, # 31
+	b __chu_fa64_xun_huan
+__di_yi_wei:	            @低32位移位
+	lsrs r7, r7, # 1
+	bne __chu_fa64_xun_huan
+	mov r0, r3
+	mov r1, r5
+	pop {r3-r7,pc}
+__chu_fa64_fan_hui0:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r3-r7,pc}
+__chengfa:
+	@入R0 乘以 R1
+	@出 R0高32 ， R1低32
+	@0xffffffff*0xffffffff
+	@4        F F F E 0 0 0 1			@4
+	@3                F F F E 0 0 0 1		@3
+	@2                F F F E 0 0 0 1		@2
+	@1                        F F F E 0 0 0 1	@1
+	@         F F F F F F F E 0 0 0 0 0 0 0 1
+	push {r2-r7,lr}
+	cmp r0, # 0
+	beq __cheng_fa_fan_hui
+	cmp r1, # 0
+	beq __cheng_fa_fan_hui
+__ji_suan_cheng_fa:
+	mov r2, r0
+	mov r3, r1
+	lsrs r0, r0, # 16	@高16
+	lsls r2, r2, # 16	@ 低16
+	lsrs r2, r2, # 16
+	lsrs r1, r1, # 16	@高16
+	lsls r3, r3, # 16	@低16
+	lsrs r3, r3, # 16
+	mov r4, r2
+	mov r5, r0
+	muls r2, r2, r3		@1
+	muls r0, r0, r3		@2
+	muls r4, r4, r1		@3
+	muls r5, r5, r1		@4
+	mov r6, r0
+	mov r7, r4
+	lsls r0, r0, # 16	@2低32
+	lsls r4, r4, # 16	@3低32
+	lsrs r6, r6, # 16	@2高32
+	lsrs r7, r7, # 16	@3高32
+	movs r1, # 0
+	adds r2, r2, r0		@低32
+	adcs r6, r6, r1		@高32
+	adds r2, r2, r4
+	adcs r6, r6, r7
+	adds r6, r6, r5
+	mov r0, r6
+	mov r1, r2
+	pop {r2-r7,pc}
+__cheng_fa_fan_hui:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r2-r7,pc}
+__dai_yu_shu_chufa:	                         @软件除法
+	@ r0 除以 r1 等于 商(r0)余R1
+	push {r2-r4,lr}
+	cmp r0, # 0
+	beq __dai_yu_shu_chufafanhui
+	cmp r1, # 0
+	beq __dai_yu_shu_chufafanhui
+	mov r2, r0
+	movs r3, # 1
+	lsls r3, r3, # 31
+	movs r0, # 0
+	mov r4, r0
+__dai_yu_shu_chufaxunhuan:
+	lsls r2, r2, # 1
+	adcs r4, r4, r4
+	cmp r4, r1
+	bcc __dai_yu_shu_chufaweishubudao0
+	adds r0, r0, r3
+	subs r4, r4, r1
+__dai_yu_shu_chufaweishubudao0:
+	lsrs r3, r3, # 1
+	bne __dai_yu_shu_chufaxunhuan
+__dai_yu_shu_chufafanhui:
+	        pop {r2-r4,pc}
 _nmi_handler:
 	bx lr
 _hard_fault:
