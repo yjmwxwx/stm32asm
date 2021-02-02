@@ -1,13 +1,15 @@
-	@@ 单片机stm32f030f4p6						
+	@@ 单片机stm32f030f4p6
+	@旋转变压器+SI5351
 	@作者：yjmwxwx
-	@时间：2021-01-01
+	@时间：2021-02-02
 	@编译器：ARM-NONE-EABI
 	.thumb
 	.syntax unified
 	.section .data
 yjmwxwx:
-	.ascii "yjmwxwx-20210101"
-	
+	.ascii "yjmwxwx-20210202"
+zheng_xian_biao:
+	.short 28,29,31,33,34,36,38,39,41,42,44,45,46,48,49,50,51,52,52,53,54,54,55,55,55,55,55,55,55,54,54,53,52,52,51,50,49,48,46,45,44,42,41,39,38,36,34,33,31,29,28,26,24,22,21,19,17,16,14,13,11,10,9,7,6,5,4,3,3,2,1,1,0,0,0,0,0,0,0,1,1,2,3,3,4,5,6,7,9,10,11,13,14,16,17,19,21,22,24,26,28	
 	.align 4
 si5351:		@0=148999000,1=149000000,2=28000000
 	.byte 0x00,17,0x80,26,0xFF,27,0xFF,28,0x00
@@ -26,6 +28,7 @@ r_fenpin:
 	.int 585938,292969,146485,74243,36622,18311,9156,4578
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
+	.equ dianyabiao,		0x20000100
         .equ liangcheng,                0x20000924
 	.equ si5351_pll_pinlv,		0x20000928
 	.section .text
@@ -194,13 +197,104 @@ io_she_zhi:
 	str r1, [r0, # 0x08]
 	ldr r1, = 0x100
 	str r1, [r0, # 0x0c]
-	
-	ldr r0, = 0x48000400
-	movs r1, # 0x02
-	str r1, [r0, # 0x04]
-	movs r1, # 0x04
-	str r1, [r0, # 0x0c]
 
+	ldr r0, = 0x48000400
+	movs r1, # 0x08 @ pb1
+	str r1, [r0]
+	movs r1, # 0x20
+	str r1, [r0, # 0x20]
+_adcchushihua:
+	ldr r0, = 0x40012400  @ adc基地址
+	ldr r1, = 0x80000000
+	str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
+_dengadcjiaozhun:
+	ldr r1, [r0, # 0x08]
+	movs r1, r1
+	bmi _dengadcjiaozhun   @ 等ADC校准
+	movs r1, # 1
+	str r1, [r0]
+_kaiadc:
+	ldr r1, [r0, # 0x08]
+	movs r2, # 0x01
+	orrs r1, r1, r2
+	str r1, [r0, # 0x08]
+_deng_adc_wen_ding:
+	ldr r1, [r0]
+	lsls r1, r1, # 31
+	bpl _deng_adc_wen_ding @ 等ADC稳定
+_tongdaoxuanze:
+	ldr r1, = 0x80000000
+	str r1, [r0, # 0x10]
+	movs r1, # 0x10
+	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
+	ldr r1, = 0x803
+	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
+	movs r1, # 0
+	str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
+	ldr r1, [r0, # 0x08]
+	ldr r2, = 0x04         @ 开始转换
+	orrs r1, r1, r2
+	str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
+
+
+
+dmachushihua:
+	@+0=LSR,+4=IFCR,
+	@+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
+	@+1c=CCR2,+20=CNDTR2,+24=CPAR2,+28=CMAR2
+	@+30=CCR3,+34=CNDTR3,+38=CPAR2,+3c=CMAR3
+	@+44=CCR4,+48=CNDTR4,+4c=CPAR4,+50=CMAR4
+	@+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
+	@+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
+	@+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
+
+	@tim1ch3DMA
+	ldr r0, = 0x40020000
+	ldr r1, = 0x40012c3c @ 外设地址
+	str r1, [r0, # 0x60]
+	ldr r1, = zheng_xian_biao @ 储存器地址
+	str r1, [r0, # 0x64]
+	ldr r1, = 100             @点数
+	str r1, [r0, # 0x5c]
+	ldr r1, = 0x35b1         @ 储存到外设
+	str r1, [r0, # 0x58]
+	@ adc dma
+	ldr r0, = 0x40020000
+	ldr r1, = 0x40012440
+	str r1, [r0, # 0x10]
+	ldr r1, = dianyabiao
+	str r1, [r0, # 0x14]
+	ldr r1, =  100
+	str r1, [r0, # 0x0c]
+	ldr r1, = 0xaa1		@ 5a1
+	str r1, [r0, # 0x08]
+
+tim1chushiha:
+	ldr r0, = 0x40012c00 @ tim1_cr1
+	movs r1, # 0
+	str r1, [r0, # 0x28] @ psc
+	ldr r1, = 56
+	str r1, [r0, # 0x2c] @ ARR
+	@	movs r1, # 0x40
+	movs r1, # 0x20
+	str r1, [r0, # 0x04] @ TRGO
+	movs r1, # 0x38
+	str r1, [r0, # 0x18] @ ccmr1 cc1
+	movs r1, # 56
+	str r1, [r0, # 0x34]
+	ldr r1, = 0x68
+	str r1, [r0, # 0x1c] @ ccmr2  CC3
+	ldr r1, = 0x400    @  CC3
+	str r1, [r0, # 0x20] @ ccer
+	ldr r1, = 0x8000
+	str r1, [r0, # 0x44] @ BDTR
+	ldr r1, = 0x800 @ CC3 DMA
+	str r1, [r0, # 0x0c] @ DIER
+	ldr r1, = 0x81
+	str r1, [r0]
+
+	b _lcdchushihua
+	
 __si5351_chu_shi_hua:
 	movs r3, # 0
 	ldr r4, = si5351
