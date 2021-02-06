@@ -1,4 +1,4 @@
-update=2021年02月06日 星期六 06时55分30秒
+update=2021年02月06日 星期六 07时27分09秒
 version=1
 last_client=kicad
 [general]
@@ -34,7 +34,7 @@ LibDir=
 [schematic_editor]
 version=1
 PageLayoutDescrFile=
-PlotDirectoryName=
+PlotDirectoryName=./
 SubpartIdSeparator=0
 SubpartFirstId=65
 NetFmtName=
