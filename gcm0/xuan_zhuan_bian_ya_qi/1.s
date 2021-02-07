@@ -27,6 +27,10 @@ cordic_yong_atan_biao:
 	.align 4
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
+	.equ cos_jiaozheng,		0x200000e0
+	.equ sin_jiaozheng,		0x200000e4
+	.equ jiaodu_jiaozheng,		0x200000e8
+	.equ guoling,			0x200000ec
 	.equ jiaodu,			0x200000f0
 	.equ sin_zheng,			0x200000f4
 	.equ sin_fu,			0x200000f8
@@ -36,8 +40,6 @@ cordic_yong_atan_biao:
 	.equ lvboqihuanchong,		0x20000304
 	.equ lvboqizhizhen1,		0x20000900
 	.equ lvboqihuanchong1,		0x20000904
-	.equ jianbo_zheng,		0x20000710
-	.equ jianbo_fu,			0x20000750
 	.section .text
 vectors:
 	.word STACKINIT
@@ -346,6 +348,7 @@ __caiji_chuanganqi:
 	mov r6, r1
 	mov r7, r0
 
+
 	bl __atan2_ji_suan
 	ldr r1, = jiaodu
 	str r0, [r1]
@@ -401,16 +404,40 @@ b2:
 	ldr r1, = asciimabiao
 	movs r2, # 4
 	bl _lcdxianshi
-	b ting
 
 	
+	ldr r0, = jiaodu_jiaozheng
+	ldr r4, [r0]
+        movs r4, r4
+	bpl c1
+	movs r0, # 0x80
+	ldr r1, = _fu
+	movs r2, # 1
+	bl _lcdxianshi
+	mvns r4, r4
+	adds r4, r4, # 1
+	b c2
+c1:
+	movs r0, # 0x80
+	ldr r1, = kong
+	movs r2, # 1
+	bl _lcdxianshi
+c2:
+	mov r0, r4
+	movs r1, # 4
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x81
+	ldr r1, = asciimabiao
+	movs r2, # 4
+	bl _lcdxianshi
+	
+	b ting
 
+		
 __xian_shi_jiao_du:
 	push {r0-r4,lr}
-	movs r0, # 0x85
-	ldr r1, = jiaodu1
-	movs r2, # 2
-	bl _lcdxianshi
 	movs r0, # 0x8f
 	ldr r1, = jiaodufuhao
 	movs r2, # 1
@@ -444,7 +471,86 @@ __xian_shi_jiaodu:
 	bl _lcdxianshi
 	pop {r0-r4,pc}
 
+		
 
+__xiang_wei_xuan_zhuan:
+	push {r2-r7,lr}
+	@R0=R,R1=I
+	mov r3, r0
+	mov r0, r1
+	ldr r4, = cos_jiaozheng         @cos
+	ldr r5, = sin_jiaozheng         @sin
+	ldr r4, [r4]
+	ldr r5, [r5]
+	movs r4, r4
+	bpl __xuan_zhuan_xiang_wei
+	mov r6, r4
+	mov r7, r5
+	mov r4, r7
+	mov r5, r6
+__xuan_zhuan_xiang_wei:
+	mov r6, r4
+	mov r7, r5
+	muls r4, r4, r3         @x*cos
+	muls r6, r6, r0         @y*cos
+	muls r5, r5, r3         @x*sin
+	muls r7, r7, r0         @y*sin
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	asrs r6, r6, # 15
+	asrs r7, r7, # 15
+
+	adds r4, r4, r7         @x
+	subs r6, r6, r5         @y
+	mov r1, r6		@i
+	mov r0, r4		@r
+	pop {r2-r7,pc}
+__cordic_cos_sin:
+	@入口R0
+	@出口R0=COS，R1=SIN
+	@ x= 0x4dba
+	@ r1=x,r2=y,r0=z,r4=d,r5=k,r6=cordic_mabiao
+
+	push {r2-r7,lr}
+	mov r2, r8
+	mov r3, r9
+	push {r2-r3}
+	movs r5, # 0
+	mov r2, r5
+	mov r4, r5
+	ldr r1, = 0x4dba
+cordicxunhuan:		 @ 循环
+	asrs r4, r0, # 15
+	@ x
+	mov r7, r2
+	asrs r2, r2, r5
+	eors r2, r2, r4
+	subs r2, r2, r4
+	subs r3, r1, r2
+	@ y
+	mov r6, r1
+	asrs r1, r1, r5
+	eors r1, r1, r4
+	subs r1, r1, r4
+	adds r7, r7, r1
+	@ z
+	ldr r6, = cordic_yong_atan_biao
+	lsls r2, r5, # 2
+	ldr r1, [r6, r2]
+	eors r1, r1, r4
+	subs r1, r1, r4
+	subs r0, r0, r1
+	mov r1, r3
+	mov r2, r7
+	adds r5, # 1
+	cmp r5, # 16
+	bne cordicxunhuan
+	mov r0, r3
+	mov r1, r7
+	pop {r2-r3}
+	mov r8, r2
+	mov r9, r3
+	pop {r2-r7,pc}
 __atan2_ji_suan:
 	@入口R0=实部，R1=虚部，结果=R0
 	push {r2-r7,lr}
@@ -506,6 +612,39 @@ __xuan_zhuan_wan:
 	pop {r2-r7,pc}
 	.ltorg
 
+
+	
+__xiangwei_jiaozheng:
+	push {r0-r5,lr}
+	ldr r0, = jiaodu_jiaozheng
+	ldr r1, = 9000
+	ldr r0, [r0]
+	ldr r2, = 51471
+	movs r0, r0
+	bpl __jiaozheng_jiaodu_bushi0
+	mvns r0, r0
+	adds r0, r0, # 1
+	movs r4, # 1
+__jiaozheng_jiaodu_bushi0:
+	movs r4, # 0
+	ldr r5, = 10000
+	muls r0, r0, r5
+	bl _chufa
+	muls r0, r0, r2
+	mov r1, r5
+	bl _chufa
+	cmp r4, # 1
+	bne __suan_cos_sin
+	mvns r0, r0
+	adds r0, r0, # 1
+__suan_cos_sin:
+	bl __cordic_cos_sin
+	ldr r2, = cos_jiaozheng
+	ldr r3, = sin_jiaozheng
+	str r0, [r2]
+	str r1, [r3]
+	pop {r0-r5,pc}
+	
 __chuan_gan_qi_lvbo:
 	push {r2-r7,lr}
 	ldr r0, = 0x20000174 @sin_zheng
@@ -516,9 +655,42 @@ __chuan_gan_qi_lvbo:
 	ldr r5, [r1]
 	ldr r6, [r2]
 	ldr r7, [r3]
+	ldr r2, = guoling
 	subs r4, r4, r5
 	subs r6, r6, r7
-
+	ldr r3, [r2j
+	movs r4, r4
+	bpl __zheng
+__fan:	
+	movs r1, # 0
+	str r1, [r2]
+	b __guo_ling_jian_ce
+__zheng:
+	movs r1, # 1
+	str r1, [r2]
+__guo_ling_jian_ce:
+	ldr r2, = jiaodu
+	ldr r0, = jiaodu_jiaozheng
+	ldr r2, [r2]
+	subs r1, r1, r3
+	bmi __zheng_90
+	beq __lv_bo
+__fu_90:
+	ldr r1, = -9000
+	subs r1, r1, r2
+	b __baocun_jiaozheng
+__zheng_90:
+	ldr r1, = 9000
+	subs r1, r1, r2
+__baocun_jiaozheng:
+	str r1, [r0]
+	bl __xiangwei_jiaozheng
+	mov r0, r4
+	mov r1, r6
+	bl __xiang_wei_xuan_zhuan
+	mov r6, r1
+	mov r4, r0
+__lv_bo:	
 	mov r3, r6
 	ldr r2, = lvboqizhizhen
 	ldr r0, =lvboqihuanchong
