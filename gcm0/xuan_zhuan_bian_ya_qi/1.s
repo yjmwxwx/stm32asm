@@ -415,7 +415,7 @@ b2:
 	mov r0, r4
 	movs r1, # 6
 	ldr r2, = asciimabiao
-	movs r3, # 4
+	movs r3, # 0xff
 	bl _zhuanascii
 	movs r0, # 0x80
 	ldr r1, = asciimabiao
@@ -426,10 +426,10 @@ b2:
 
 
 __jisuan_zhuansu:
-	@角度差0.1秒
+	@角度差0.01秒
 	push {r0-r3,lr}
 	ldr r0, = jiaodu_cha
-	ldr r1, = 108000000
+	ldr r1, = 18849555
 	ldr r0, [r0]
 	movs r0, r0
 	bpl __suan_zhuansu
@@ -702,13 +702,13 @@ __lv_bo:
 	mov r3, r6
 	ldr r2, = lvboqizhizhen
 	ldr r0, =lvboqihuanchong
-	ldr r1, = 256
+	ldr r1, = 16
 	bl _lvboqi
 	mov r3, r4
 	mov r6, r0
 	ldr r2, = lvboqizhizhen1
 	ldr r0, = lvboqihuanchong1
-	ldr r1, = 256
+	ldr r1, = 16
 	bl _lvboqi
 	mov r1, r6
 	pop {r2-r7,pc}
@@ -739,7 +739,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 8	@修改
+	asrs r0, r7, # 4	@修改
 	pop {r1-r7,pc}
 
 _lvboqi1:
@@ -767,7 +767,7 @@ _lvbozonghe1:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan1
-	asrs r0, r7, # 5        @修改
+	asrs r0, r7, # 9        @修改
 	pop {r1-r7,pc}
 	
 	.ltorg
@@ -1054,37 +1054,13 @@ _systickzhongduan:
 	ldr r0, = 0xe0000d04
 	ldr r1, = 0x02000000
 	str r1, [r0]                 @ 清除SYSTICK中断
-	b __dd
-        ldr r0, = 0x20000174 @sin_zheng
-	ldr r1, = 0x2000023c @sin_fu
-	ldr r3, = 0x20000170 @cos_zheng
-	ldr r2, = 0x20000238 @cos_fu
-	ldr r4, [r0]
-	ldr r5, [r1]
-	ldr r6, [r2]
-	ldr r7, [r3]
-	subs r4, r4, r5
-	subs r6, r6, r7
-	mov r3, r6
-	ldr r2, = lvboqizhizhen
-	ldr r0, =lvboqihuanchong
-	ldr r1, = 256
-	bl _lvboqi
-	mov r3, r4
-	mov r6, r0
-	ldr r2, = lvboqizhizhen1
-	ldr r0, = lvboqihuanchong1
-	ldr r1, = 256
-	bl _lvboqi
-	mov r1, r6      @i
-__dd:	
 	bl __chuan_gan_qi_lvbo
 	ldr r2, = cos
 	ldr r3, = sin
 	str r0, [r2]		@r
 	str r1, [r3]		@i
 	bl __atan2_ji_suan
-	ldr r2, = jiaodu
+	ldr r4, = jiaodu
 	movs r0, r0
 	bpl __jiaodu_bushi_fu
 	ldr r1, = 36000
@@ -1092,7 +1068,7 @@ __dd:
 	adds r0, r0, # 1
 	subs r0, r1, r0
 __jiaodu_bushi_fu:
-	str r0, [r2]
+	str r0, [r4]
 	ldr r3, = jishu
 	ldr r2, [r3]
 	adds r2, r2, # 1
@@ -1101,7 +1077,7 @@ __jiaodu_bushi_fu:
 	bne __budao_jiaodu
 	movs r2, # 0
 	str r2, [r3]
-	ldr r2, = 3000
+	ldr r2, = 10000
 	ldr r1, = jiaodu_1
 	ldr r3, = jiaodu_cha
 	ldr r1, [r1]
@@ -1114,7 +1090,7 @@ __jiaodu_cha_bushi_fu:
 	cmp r0, r2
 	bhi __jiaodu_kua_360
 	cmp r0, # 10
-	bls __mei_zhuan
+	bls __mei_zhuan 
 	str r0, [r3]
 	b __systick_fanhui
 __mei_zhuan:
