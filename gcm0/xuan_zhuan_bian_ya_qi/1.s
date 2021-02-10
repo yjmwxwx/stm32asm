@@ -27,11 +27,14 @@ cordic_yong_atan_biao:
 	.align 4
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
-	.equ jiaodu2,			0x200000b0
-	.equ zhuansu,			0x200000b4
-	.equ jishu,			0x200000b8
-	.equ cos,			0x200000c0
-	.equ sin,			0x200000c4
+	.equ guoling_jishu,		0x200000a8
+	.equ jiaodu2,			0x200000ac
+	.equ zhuansu,			0x200000b0
+	.equ jishu,			0x200000b4
+	.equ cos,			0x200000b8
+	.equ sin,			0x200000bc
+	.equ cos1,			0x200000c0
+	.equ sin1,			0x200000c4
 	.equ jiaodu_cha,		0x200000c8
 	.equ jiaodu_1,			0x200000cc
 	.equ cos_jiaozheng,		0x200000e0
@@ -198,7 +201,7 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x281457c0
+	ldr r1, = 0x281457c1
 	str r1, [r0]
 	ldr r1, =  0x6e0
 	str r1, [r0, # 0x04]
@@ -210,6 +213,41 @@ io_she_zhi:
 	str r1, [r0]
 	movs r1, # 0x20
 	str r1, [r0, # 0x20]
+	
+_lcdchushihua:
+	movs r0, # 0x33
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+
+	movs r0, # 0x32
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+	movs r0, # 0x28
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+	movs r0, # 0x0c
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+	movs r0, # 0x01
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+
+	movs r0, # 0x80
+	ldr r1, = yjmwxwx
+	movs r2, # 16
+	bl _lcdxianshi
+	
+
+
+
+
+
+	
 _adcchushihua:
 	ldr r0, = 0x40012400  @ adc基地址
 	ldr r1, = 0x80000000
@@ -279,7 +317,7 @@ dmachushihua:
 _systick:	@ systick定时器初始化
 
 	ldr r7, = 0xe000e010
-	ldr r6, = 56000
+	ldr r6, = 5600
 	str r6, [r7, # 4]
 	str r6, [r7, # 8]
 	movs r6, # 0x07
@@ -308,54 +346,23 @@ tim1chushiha:
 	str r1, [r0]
 	str r6, [r7]	@systick 开
 	
-_lcdchushihua:
-	movs r0, # 0x33
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-
-	movs r0, # 0x32
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-	movs r0, # 0x28
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-	movs r0, # 0x0c
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-	movs r0, # 0x01
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-
-        movs r0, # 0x80
-        ldr r1, = yjmwxwx
-	movs r2, # 16
-        bl _lcdxianshi
-
-	ldr r0, = 0xffffff
-yjmwxwx_yanshi:
-	subs r0, r0, # 1
-	bne yjmwxwx_yanshi
-
-	movs r0, # 0x01
-	movs r1, # 0
-	bl _xielcd
-	bl _lcdyanshi
-
 	
 ting:
-	ldr r0, = cos
-	ldr r1, = sin
+	b ting
+	ldr r0, = cos1
+	ldr r1, = sin1
 	ldr r0, [r0]
 	ldr r1, [r1]
 	mov r7, r0
 	mov r6, r1
-	ldr r0, = jiaodu
-	ldr r0, [r0]
+	
+	bl __atan2_ji_suan
+        bpl __xianshi
+	ldr r1, = 36000
+	mvns r0, r0
+	adds r0, r0, # 1
+	subs r0, r1, r0
+__xianshi:	
 	bl __xian_shi_jiao_du
 	
 	movs r4, r7
@@ -507,8 +514,8 @@ __xuan_zhuan_xiang_wei:
 	asrs r6, r6, # 15
 	asrs r7, r7, # 15
 
-	adds r4, r4, r7         @x
-	subs r6, r6, r5         @y
+	subs r4, r4, r7         @x
+	adds r6, r6, r5         @y
 	mov r1, r6		@i
 	mov r0, r4		@r
 	pop {r2-r7,pc}
@@ -682,35 +689,49 @@ __guo_ling_jian_ce:
 	ldr r2, [r2]
 	subs r1, r1, r3
 	bmi __zheng_90
-	beq __lv_bo
+	beq __xiangwei
 __fu_90:
+	b __xiangwei
+	movs r2, r2
+	bpl __xiangwei
 	ldr r1, = -9000
 	subs r1, r1, r2
 	b __baocun_jiaozheng
 __zheng_90:
+	movs r6, r6
+	bmi __xiangwei
+	movs r4, r4
+	bpl __xiangwei
+	ldr r7, = guoling_jishu
+	str r2, [r7]
 	ldr r1, = 9000
-	subs r1, r1, r2
+	subs r1, r2, r1
 __baocun_jiaozheng:
 	str r1, [r0]
 	bl __xiangwei_jiaozheng
-	mov r0, r4
-	mov r1, r6
-	bl __xiang_wei_xuan_zhuan
-	mov r6, r1
-	mov r4, r0
+__xiangwei:
+	
 __lv_bo:
 	mov r3, r6
 	ldr r2, = lvboqizhizhen
 	ldr r0, =lvboqihuanchong
-	ldr r1, = 16
+	ldr r1, = 128
 	bl _lvboqi
 	mov r3, r4
 	mov r6, r0
 	ldr r2, = lvboqizhizhen1
 	ldr r0, = lvboqihuanchong1
-	ldr r1, = 16
+	ldr r1, = 128
 	bl _lvboqi
 	mov r1, r6
+	mov r4, r0
+	bl __xiang_wei_xuan_zhuan
+	ldr r7, = cos1
+	ldr r5, = sin1
+	str r0, [r7]
+	str r1, [r5]
+	mov r1, r6
+	mov r0, r4
 	pop {r2-r7,pc}
 
 
@@ -739,7 +760,7 @@ _lvbozonghe:
 	adds r7, r7, r4
 	subs r1, r1, # 1
 	bne _lvboqixunhuan
-	asrs r0, r7, # 4	@修改
+	asrs r0, r7, # 7	@修改
 	pop {r1-r7,pc}
 
 _lvboqi1:
@@ -1061,6 +1082,18 @@ _systickzhongduan:
 	str r1, [r3]		@i
 	bl __atan2_ji_suan
 	ldr r4, = jiaodu
+	str r0, [r4]
+
+	ldr r0, = cos1
+	ldr r1, = sin1
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __atan2_ji_suan
+	
+@	b __systick_fanhui
+	b __led_jiance1
+
+	
 	movs r0, r0
 	bpl __jiaodu_bushi_fu
 	ldr r1, = 36000
@@ -1069,11 +1102,32 @@ _systickzhongduan:
 	subs r0, r1, r0
 __jiaodu_bushi_fu:
 	str r0, [r4]
+
+
+__led_jiance1:
+	ldr r3, = 100
+	ldr r2, = 0x48000000
+	movs r1, # 1
+	cmp r0, # 10
+	bls __led_guan1
+	cmp r0, r3
+	bhi __led_guan1
+	str r1, [r2, # 0x18]
+	b __ji_shu
+__led_guan1:
+	str r1, [r2, # 0x28]
+	
+
+__ji_shu:
+	b __systick_fanhui
+	
+	
+	
 	ldr r3, = jishu
 	ldr r2, [r3]
 	adds r2, r2, # 1
 	str r2, [r3]
-	cmp r2, # 11
+	cmp r2, # 101
 	bne __budao_jiaodu
 	movs r2, # 0
 	str r2, [r3]
