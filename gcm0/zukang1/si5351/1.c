@@ -7,7 +7,7 @@ void main() {
   int a, b, c, msnx_p1, msnx_p2, msnx_p3, b_chu_c_cheng_128;
   int msx_p1, msx_p2, msx_p3;
   char r_fenpin, chu_4;
-  fvco = 900000000;
+  fvco = 888000000;
   fxtal = 25000000;
   a_jia_b_chu_c = fvco / fxtal;
   a = a_jia_b_chu_c;
@@ -19,7 +19,7 @@ void main() {
   msnx_p2 = 128 * b - c * b_chu_c_cheng_128;
   msnx_p3 = c;
   
-  fout = 439667;
+  fout = 112500000;
   a_jia_b_chu_c = fvco / fout;
   a = a_jia_b_chu_c;
   b_chu_c = a_jia_b_chu_c - a;
@@ -32,7 +32,7 @@ void main() {
   r_fenpin = 0x70;
   chu_4 = 0x00;
   
-  xianshi (17, 128);
+  xianshi (16, 128);
   xianshi (26, (msnx_p3 & 65280) >> 8);
   xianshi (27, msnx_p3 & 255);
   xianshi (28, (msnx_p1 & 196608) >> 16);
@@ -42,15 +42,15 @@ void main() {
   xianshi (32, (msnx_p2 & 0xff00) >> 8);
   xianshi (33, msnx_p2 & 0xff);
   
-  xianshi (50, (msx_p3 & 0xff00) >> 8);
-  xianshi (51, msx_p3 & 0xff);
-  xianshi (52, (msx_p1 & 0x30000) >> 16 | r_fenpin | chu_4);
-  xianshi (53, (msx_p1 & 0xff00) >> 8);
-  xianshi (54, msx_p1 & 0xff);
-  xianshi (55, ((msx_p3 & 0xf0000) >> 12) | ((msx_p2 & 0xf0000) >> 16));
-  xianshi (56, (msx_p2 & 0xff00) >> 8);
-  xianshi (57, msx_p2 & 0xff);
+  xianshi (42, (msx_p3 & 0xff00) >> 8);
+  xianshi (43, msx_p3 & 0xff);
+  xianshi (44, (msx_p1 & 0x30000) >> 16 | r_fenpin | chu_4);
+  xianshi (45, (msx_p1 & 0xff00) >> 8);
+  xianshi (46, msx_p1 & 0xff);
+  xianshi (47, ((msx_p3 & 0xf0000) >> 12) | ((msx_p2 & 0xf0000) >> 16));
+  xianshi (48, (msx_p2 & 0xff00) >> 8);
+  xianshi (49, msx_p2 & 0xff);
   xianshi (177, 32);
-  xianshi (17, 0x4c);
+  xianshi (16, 0x0f);
 }
 	
