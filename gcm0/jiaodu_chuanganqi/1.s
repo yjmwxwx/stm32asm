@@ -20,28 +20,24 @@ cordic_yong_atan_biao:
 	.int 0x00006487,0x00003B58,0x00001F5B,0x00000FEA,0x000007FD,0x000003FF,0x000001FF,0x000000FF,0x0000007F,0x0000003F,0x0000001F,0x0000000F,0x00000007,0x00000003,0x00000001,0x00000000
 	.align 4
 	.equ STACKINIT,        	        0x20001000
+	.equ shangci_buchang,		0x20000080
+	.equ shang_ci_i,		0x20000084
+	.equ zhengfan_zhuan,		0x20000088
+	.equ jiaodu_cha, 		0x2000008c
+	.equ shangci_jiaodu,		0x20000090
+	.equ shangci_jiaodu_cha,	0x20000094
 	.equ cos_cha,			0x20000098
 	.equ sin_cha,			0x2000009c
 	.equ jiaodu_a,			0x200000a0
 	.equ jiaodu_b,			0x200000a4
-	.equ guoling_jishu,		0x200000a8
-	.equ jiaodu2,			0x200000ac
 	.equ zhuansu,			0x200000b0
 	.equ jishu,			0x200000b4
 	.equ cos,			0x200000b8
 	.equ sin,			0x200000bc
-	.equ cos1,			0x200000c0
-	.equ sin1,			0x200000c4
-	.equ jiaodu_cha,		0x200000c8
-	.equ jiaodu_1,			0x200000cc
 	.equ cos_jiaozheng,		0x200000e0
 	.equ sin_jiaozheng,		0x200000e4
 	.equ jiaodu_jiaozheng,		0x200000e8
-	.equ guoling,			0x200000ec
 	.equ jiaodu,			0x200000f0
-	.equ sin_zheng,			0x200000f4
-	.equ sin_fu,			0x200000f8
-	.equ liangcheng,		0x200000fc
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x20000300
 	.equ lvboqihuanchong,		0x20000304
@@ -1293,8 +1289,12 @@ _pendsv_handler:
 	bx lr
 _systickzhongduan:
 	push {r4-r7,lr}
-	mov r4, r8
-	push {r4}
+	mov r3, r8
+	mov r4, r9
+	mov r5, r10
+	mov r6, r11
+	mov r7, r12
+	push {r3-r7}
 	ldr r0, = 0xe0000d04
 	ldr r1, = 0x02000000
 	str r1, [r0]                 @ 清除SYSTICK中断
@@ -1303,7 +1303,7 @@ _systickzhongduan:
 	ldr r3, = sin
 	str r0, [r2]		@r
 	str r1, [r3]		@i
-
+__zhuan_360du:	
 	ldr r3, = 0x20000018
 	str r0, [r3]
 	str r1, [r3, # 0x04]
@@ -1338,6 +1338,8 @@ __jiaodu_bushi_fu1:
 	mov r7, r0
 	mov r0, r8
 	mov r8, r7
+	
+	
 __led_jiance1:
 	ldr r3, = 100
 	ldr r2, = 0x48000000
@@ -1347,95 +1349,97 @@ __led_jiance1:
 	cmp r0, r3
 	bhi __led_guan1
 	str r1, [r2, # 0x18]
-	b __ji_shu
+	b __jiaodu_buchang_jisuan
 __led_guan1:
 	str r1, [r2, # 0x28]
 
 
-__ji_shu:
-	ldr r3, = 0x20000904
-	ldr r1, = 0x20000900
-	ldr r2, [r1]
-	ldr r7, = 9000
+__jiaodu_buchang_jisuan:
+	ldr r7, = 18000
 	mov r5, r8
 	mov r6, r0
 	subs r6, r6, r5
 	movs r5, r6
-	bpl __bbbfu
+	bpl __jiaodu_yanchi_bushifu
 	mvns r5, r5
-	adds r5, r5
+	adds r5, r5, # 1
 	b __bao_cun_jiaodu_cha
-__bbbfu:
+__jiaodu_yanchi_bushifu:
 	mvns r6, r6
 	adds r6, r6, # 1
 __bao_cun_jiaodu_cha:
 	cmp r5, r7
 	bhi __systick_fanhui
-	str r6, [r3, r2]
+__pid:
+	ldr r4, = zhengfan_zhuan
+	ldr r4, [r4]
+	cmp r4, # 0xc3
+	beq __pid_bi_li
+	cmp r4, # 0
+	beq __systick_fanhui
+	mvns r6, r6
+	adds r6, r6, # 1
 __pid_bi_li:
 	mov r7, r6
 	mov r4, r6
 	ldr r3, = 32768         @ KP
 	muls r7, r7, r3
 	asrs r7, r7, # 15
+__zhengzhuan_buchang:
 	ldr r5, = jiaodu_jiaozheng
 	str r7, [r5]
-		
-       adds r2, r2, # 4
-       str r2, [r1]
-       ldr r5, = 0x400
-       cmp r2, r5
-       bne __systick_fanhui
-       movs r2, # 0
-       str r2, [r1]
-       b __systick_fanhui
-	
-	
-__ji_shu1:
-	ldr r3, = 0x20000000
-	ldr r5, [r3]
-	ldr r3, = 0x20000904
-	ldr r1, = 0x20000900
-	ldr r2, [r1]
-	ldr r7, = 9000
-	mov r6, r0
-	subs r6, r6, r5
-	mov r5, r6
-	movs r5, r5
-	bpl __baocun_jiaodu_cha
-	mvns r5, r5
-	adds r5, r5, # 1
-__baocun_jiaodu_cha:
-	cmp r5, r7
-	bhi __systick_fanhui
-__bi_li:
-	mov r7, r6
-	mov r4, r6
-	ldr r2, = 2000000         @ KP
-	muls r7, r7, r2
-	asrs r7, r7, # 15
-	
-	ldr r5, = jiaodu_jiaozheng
-	str r7, [r5]
-@	str r6, [r3, r2]
-@	adds r2, r2, # 4
-@	str r2, [r1]
-@	ldr r5, = 0x400
-@	cmp r2, r5
-@	bne __systick_fanhui
-@	bkpt # 11
-@	movs r2, # 0
-@	str r2, [r1]
-@	b __systick_fanhui
 
 __systick_fanhui:
-	ldr r3, = 0x20000000
+
+__jiaodu_cha_jisuan:
+	ldr r3, = shangci_jiaodu
+	ldr r7, = 18000
+	ldr r4, [r3]
+	mov r9, r0
+	mov r6, r0
+	subs r6, r6, r4
+	movs r2, r6
+	bpl __baocun_jiaodu_cha
+	mvns r2, r2
+	adds r2, r2, # 1
+__baocun_jiaodu_cha:
+	cmp r2, r7
+	bhi __tick_fanhui
+	ldr r0, = lvboqihuanchong3
+	ldr r2, = lvboqizhizhen3
+	mov r1, r6
+	bl __lv_bo_qi
+	ldr r3, = jiaodu_cha
 	str r0, [r3]
-
-
+	movs r0, r0
+	bpl __jiance_zhuangtai
+	movs r4, # 1
+__jiance_zhuangtai:
+	cmp r0, # 0
+	bne __zai_zhuan
+	movs r1, # 0
+	b __baocun_zhengfan_zhuan
+__zai_zhuan:
+	cmp r4, # 1
+	bne __fan_zhuan
+	movs r1, # 0xc3
+	b __baocun_zhengfan_zhuan
+__fan_zhuan:
+	movs r1, # 0x3c
+__baocun_zhengfan_zhuan:	
+	ldr r3, = zhengfan_zhuan
+	str r1, [r3]
+__tick_fanhui:
+        ldr r3, = shangci_jiaodu
+	mov r0, r9
+	str r0, [r3]
 	
-	pop {r4}
-	mov r8, r4
+	pop {r3-r7}
+	mov r8, r3
+	mov r9, r4
+	mov r10, r5
+	mov r11, r6
+	mov r12, r7
 	pop {r4-r7,pc}
 aaa:
 	bx lr
