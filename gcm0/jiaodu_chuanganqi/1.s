@@ -1303,20 +1303,17 @@ _systickzhongduan:
 	ldr r3, = sin
 	str r0, [r2]		@r
 	str r1, [r3]		@i
-__zhuan_360du:	
-	ldr r3, = 0x20000018
-	str r0, [r3]
-	str r1, [r3, # 0x04]
+	
 	bl __atan2_ji_suan
 	ldr r4, = jiaodu
 	ldr r5, = jiaodu_a
-        movs r0, r0
-	bpl __jiaodu_bushi_fu
-	ldr r1, = 36000
-	mvns r0, r0
-	adds r0, r0, # 1
-	subs r0, r1, r0
-__jiaodu_bushi_fu:
+@        movs r0, r0
+@	bpl __jiaodu_bushi_fu
+@	ldr r1, = 36000
+@	mvns r0, r0
+@	adds r0, r0, # 1
+@	subs r0, r1, r0
+@__jiaodu_bushi_fu:
 	str r0, [r4]
 	str r0, [r5]
 	mov r8, r0
@@ -1326,19 +1323,21 @@ __jiaodu_bushi_fu:
 	ldr r0, [r0]
 	ldr r1, [r1]
 	bl __atan2_ji_suan
-        movs r0, r0
-	bpl __jiaodu_bushi_fu1
-	ldr r1, = 36000
-	mvns r0, r0
-	adds r0, r0, # 1
-	subs r0, r1, r0
-__jiaodu_bushi_fu1:
+@        movs r0, r0
+@	bpl __jiaodu_bushi_fu1
+@	ldr r1, = 36000
+@	mvns r0, r0
+@	adds r0, r0, # 1
+@	subs r0, r1, r0
+@__jiaodu_bushi_fu1:
 	ldr r1, = jiaodu_b
 	str r0, [r1]
+
+
+	
 	mov r7, r0
 	mov r0, r8
 	mov r8, r7
-	
 	
 __led_jiance1:
 	ldr r3, = 100
@@ -1349,42 +1348,54 @@ __led_jiance1:
 	cmp r0, r3
 	bhi __led_guan1
 	str r1, [r2, # 0x18]
+	ldr r2, = 0x200000c0
+	ldr r3, = 0x200000c4
+	str r0, [r2]
+	mov r1, r8
+	str r1, [r3]
 	b __jiaodu_buchang_jisuan
 __led_guan1:
 	str r1, [r2, # 0x28]
-
+	
 
 __jiaodu_buchang_jisuan:
+	
 	ldr r7, = 18000
 	mov r5, r8
 	mov r6, r0
 	subs r6, r6, r5
+	mvns r6, r6
+	adds r6, r6, # 1
+	ldr r3, = 0x200000d0
+	ldr r4, = 0x200000d4
 	movs r5, r6
-	bpl __jiaodu_yanchi_bushifu
+	bpl __bao_cun_jiaodu_cha
 	mvns r5, r5
 	adds r5, r5, # 1
 	b __bao_cun_jiaodu_cha
-__jiaodu_yanchi_bushifu:
-	mvns r6, r6
-	adds r6, r6, # 1
 __bao_cun_jiaodu_cha:
 	cmp r5, r7
 	bhi __systick_fanhui
+	str r0, [r3]
+	str r5, [r4]
+	ldr r3, = 0x200000c8
+	str r6, [r3]
 __pid:
-	ldr r4, = zhengfan_zhuan
-	ldr r4, [r4]
-	cmp r4, # 0xc3
-	beq __pid_bi_li
-	cmp r4, # 0
-	beq __systick_fanhui
-	mvns r6, r6
-	adds r6, r6, # 1
-__pid_bi_li:
 	mov r7, r6
 	mov r4, r6
+__pid_bi_li:
 	ldr r3, = 32768         @ KP
 	muls r7, r7, r3
 	asrs r7, r7, # 15
+__pid_ji_fen:
+	ldr r6, = shang_ci_i
+	ldr r2, = 20		@ KI
+	ldr r3, [r6]
+	muls r4, r4, r2
+	asrs r4, r4, # 15
+	adds r4, r4, r3
+	str r4, [r6]
+@	adds r7, r7, r4
 __zhengzhuan_buchang:
 	ldr r5, = jiaodu_jiaozheng
 	str r7, [r5]
