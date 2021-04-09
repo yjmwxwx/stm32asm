@@ -1,0 +1,56 @@
+w = -pi:pi/128:pi
+bb = 0.0605+0.121*cos(w)+0.0605*cos(w*2)-i*(0.121*sin(w)+0.0605*sin(w*2)) 
+aa = 1-1.194*cos(w)+0.436*cos(w*2)-i*(1.194*sin(w)-0.436*sin(w*2))
+hw = bb./aa
+plot(w,hw)
+
+
+
+b = [0.0605 0.121 0.0605]
+a = [1.194 0.0436]
+w = -pi:pi/256:pi
+h = freqz(b,a,w)
+plot (w, h)
+
+
+
+
+https://sharetechnote.com/html/Octave_Matlab_SignalProcessing.html#SignalProcessing_freqz
+https://sharetechnote.com/html/Octave_Matlab.html
+https://sharetechnote.com/html/
+
+
+
+%Start from nothing!
+clear;
+
+% Set the sampling frequency used by our digital filtering system:
+fs=8000;
+
+% Start designing a butterworth filter, passband. (In Hz)
+pass_lo = 300;
+pass_hi = 600;
+
+% The order of the filter
+order = 4;
+
+% Determine the low and high frequencies of the passband as fractions of the
+% sampling rate:
+flo = pass_lo/fs*2;
+fhi = pass_hi/fs*2;
+
+% Use the butterworth filter design function to get the coefficients for a
+% bandpass filter with the settings above:
+[b,a] = butter(order, [flo fhi]);
+
+% Determine the frequency response of the filter design above. Get the output
+% in frequency rather than rad/s. Use 512 plot points.
+[H,f] = freqz(b, a, 512, fs);
+
+% Plot the result so that we can see if it is correct:
+figure(1);
+plot(f, 20*log10(abs(H)));
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+
+
