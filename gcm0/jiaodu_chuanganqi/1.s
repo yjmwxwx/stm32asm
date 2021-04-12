@@ -196,7 +196,7 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820004f 
+	ldr r1, = 0x2820aa4f 
 	str r1, [r0]
 	ldr r1, = 0x0c30ff00
 	str r1, [r0, # 0x08]
@@ -211,9 +211,9 @@ io_she_zhi:
 
 spi_chushihua:
 	ldr r0, = 0x40013000
-	ldr  r1, = 0x1708
+	ldr  r1, = 0xf08
 	str r1, [r0, # 0x04]
-	ldr r1, = 0xc07c
+	ldr r1, = 0x4c
 	str r1, [r0]
 	
 	
@@ -918,16 +918,19 @@ _systickzhongduan:
 	bl __atan2_ji_suan
 	ldr r4, = jiaodu
 	ldr r5, = jiaodu_a
-@        movs r0, r0
-@	bpl __jiaodu_bushi_fu
-@	ldr r1, = 36000
-@	mvns r0, r0
-@	adds r0, r0, # 1
-@	subs r0, r1, r0
-@__jiaodu_bushi_fu:
+        movs r2, r0
+	bpl __jiaodu_bushi_fu
+	ldr r1, = 36000
+	mvns r2, r2
+	adds r2, r2, # 1
+	subs r2, r1, r2
+__jiaodu_bushi_fu:
 	str r0, [r4]
 	str r0, [r5]
 	mov r8, r0
+
+	ldr r1, = 0x4001300c
+	strh r2, [r1]
 	
 	ldr r0, = cos_cha
 	ldr r1, = sin_cha
