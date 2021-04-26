@@ -201,12 +201,13 @@ io_she_zhi:
 	@ AF5 = 0X0101, AF6 = 0X0111, AF7 = 0X1000
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-
 	ldr r0, = 0x48000000
-	ldr r1, = 0x282003D5 
+	ldr r1, = 0x2820a3D5 
 	str r1, [r0]
 	movs r1, # 0x07
 	str r1, [r0, # 0x04]
+	ldr r1, = 0x11000000
+	str r1, [r0, # 0x20]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 
@@ -333,11 +334,18 @@ _systick:		@ systick定时器初始化
 
 tim3chushihua:
 	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, = 0
+	ldr r1, = 55999
 	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 27
+	ldr r1, = 1000
 	str r1, [r0, # 0x2c] @ ARR
-	
+	ldr r1, = 0x7878
+	str r1, [r0, # 0x18]
+	ldr r1, = 500
+	str r1, [r0, # 0x34]
+	str r1, [r0, # 0x38]
+	movs r1, # 0x11
+	str r1, [r0, # 0x20]
+	ldr r1, = 0x21
 	str r1, [r0]
 	
 tim1chushiha:
