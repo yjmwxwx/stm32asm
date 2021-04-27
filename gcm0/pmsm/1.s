@@ -16,6 +16,7 @@ jiaodu1:
 	.int 0x3df2
 jiaodufuhao:
 	.int 0xdf
+	
 	.align 4
 zheng_xian_biao:
 	.short 28,29,31,33,34,36,38,39,41,42,44,45,46,48,49,50,51,52,52,53,54,54,55,55,55,55,55,55,55,54,54,53,52,52,51,50,49,48,46,45,44,42,41,39,38,36,34,33,31,29,28,26,24,22,21,19,17,16,14,13,11,10,9,7,6,5,4,3,3,2,1,1,0,0,0,0,0,0,0,1,1,2,3,3,4,5,6,7,9,10,11,13,14,16,17,19,21,22,24,26,28	
@@ -28,6 +29,7 @@ cordic_yong_atan_biao:
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
 	.equ liangcheng,		0x20000020
+	.equ dianji_huanxiang,		0x200000c4
 	.equ zhengfan_zhuan,		0x200000c8
 	.equ jiaodu_cha,		0x200000cc
 	.equ shangci_jiaodu,		0x200000d0
@@ -51,6 +53,9 @@ cordic_yong_atan_biao:
 	.equ lvboqihuanchong2,		0x20000908
 	.equ lvboqizhizhen3,		0x20000b10
 	.equ lvboqihuanchong3,		0x20000b18
+	.equ tim3_ch1,			0x40000434
+	.equ tim3_ch2,			0x40000438
+	.equ tim14_ch1,			0x40002034
 	.section .text
 
 vectors:
@@ -202,11 +207,11 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820a3D5 
+	ldr r1, = 0x2820aed5 
 	str r1, [r0]
 	movs r1, # 0x07
 	str r1, [r0, # 0x04]
-	ldr r1, = 0x11000000
+	ldr r1, = 0x11040000
 	str r1, [r0, # 0x20]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
@@ -242,7 +247,7 @@ _deng_adc_wen_ding:
 _tongdaoxuanze:
 	ldr r1, = 0x40000000
 	str r1, [r0, # 0x10]
-	movs r1, # 0x18
+	movs r1, # 0x28
 	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
 	ldr r1, = 0x803
 	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
@@ -332,11 +337,24 @@ _systick:		@ systick定时器初始化
 	str r6, [r7, # 8]
 	movs r6, # 0x07
 
+tim14chushihua:
+	ldr r3, = 0x40002000 @ tim14_cr1
+	movs r1, # 0
+	str r1, [r3, # 0x28] @ psc
+	ldr r1, = 2799
+	str r1, [r3, # 0x2c] @ ARR
+	movs r1, # 0x78
+	str r1, [r3, # 0x18]
+	ldr r1, = 500
+	str r1, [r3, # 0x34]
+	movs r1, # 0x01
+	str r1, [r3, # 0x20]
+	
 tim3chushihua:
 	ldr r0, = 0x40000400 @ tim3_cr1
-	ldr r1, = 55999
+	movs r1, # 0
 	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 1000
+	ldr r1, = 2799
 	str r1, [r0, # 0x2c] @ ARR
 	ldr r1, = 0x7878
 	str r1, [r0, # 0x18]
@@ -345,7 +363,8 @@ tim3chushihua:
 	str r1, [r0, # 0x38]
 	movs r1, # 0x11
 	str r1, [r0, # 0x20]
-	ldr r1, = 0x21
+	ldr r1, = 0x81
+	str r1, [r3]
 	str r1, [r0]
 	
 tim1chushiha:
@@ -377,23 +396,96 @@ ting:
 	ldr r0, = jiaodu
 	ldr r0, [r0]
 	bl __xian_shi_jiao_du
+
 	b ting
-
-
-
-
 	
-	movs r1, # 6
-	ldr r2, = asciimabiao
-	movs r3, # 0xff
-	bl _zhuanascii
-	movs r0, # 0xc9
-	ldr r1, = asciimabiao
-	movs r2, # 6
-	bl _lcdxianshi
+	ldr r0, = 0x20000024
+	ldr r0, [r0]
+	bl __svpwm
 	b ting
 
 
+
+__svpwm:
+	@R0=角度（36000）
+	push {r1-r7,lr}
+	mov r3, r0
+	ldr r1, = 6000
+	bl _chufa
+	cmp r0, r3
+	bne __bushi_0_60
+	movs r0, # 0
+__bushi_0_60:	
+	lsls r0, r0, # 2
+	ldr r1, = __dianji_xiangwei
+	ldr r1, [r1, r0]
+	mov pc, r1
+	.align 4
+__dianji_xiangwei:
+	.word __xiangwei_0_60 +1, __xiangwei_60_120 +1, __xiangwei_120_180 +1, __xiangwei_120_240 +1, __xiangwei_240_300 +1, __xiangwei_300_360 +1
+__xiangwei_0_60:
+	ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r2, [r7]
+	str r2, [r6]
+	str r4, [r5]
+	b __svpwm_fanhui
+__xiangwei_60_120:
+        ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r2, [r7]
+	str r4, [r6]
+	str r4, [r5]
+	b __svpwm_fanhui
+__xiangwei_120_180:
+        ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r2, [r7]
+	str r4, [r6]
+	str r2, [r5]
+	b __svpwm_fanhui
+__xiangwei_120_240:
+        ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r4, [r7]
+	str r4, [r6]
+	str r2, [r5]
+	b __svpwm_fanhui
+__xiangwei_240_300:
+        ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r4, [r7]
+	str r0, [r6]
+	str r0, [r5]
+	b __svpwm_fanhui
+__xiangwei_300_360:
+        ldr r5, = tim3_ch1
+	ldr r6, = tim3_ch2
+	ldr r7, = tim14_ch1
+	ldr r4, = 1000
+	movs r2, # 0
+	str r4, [r7]
+	str r2, [r6]
+	str r4, [r5]
+
+__svpwm_fanhui:	
+	pop {r1-r7,pc}
+	
 
 
 __xian_shi_jiao_du:
@@ -1106,6 +1198,34 @@ __tick_fanhui:
 	ldr r3, = shangci_jiaodu
 	mov r0, r9
 	str r0, [r3]
+
+
+	ldr r3, = 500
+	
+	ldr r0, = 0x20000024
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, r3
+	bne zz
+	movs r1, # 0
+	str r1, [r0]
+	ldr r5, = 6000
+	ldr r6, = 36000
+	ldr r1, = 0x20000028
+	ldr r0, [r1]
+	mov r2, r0
+	cmp r0, r6
+	bne __ss
+	movs r0, # 0
+	mov r2, r0
+	str r2, [r1]
+__ss:	
+	bl __svpwm
+	adds r2, r2, r5
+	str r2, [r1]
+	
+zz:	
 
 	pop {r3-r7}
 	mov r8, r3
