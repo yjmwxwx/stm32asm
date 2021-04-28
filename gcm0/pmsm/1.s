@@ -393,10 +393,21 @@ tim1chushiha:
 
 ting:
 
-	ldr r0, = jiaodu
+	ldr r0, = 0x20000030
 	ldr r0, [r0]
 	bl __xian_shi_jiao_du
 
+	ldr r0, = 0x2000002c
+	ldr r0, [r0]
+	movs r1, # 6
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x80
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
+	
 	b ting
 	
 	ldr r0, = 0x20000024
@@ -405,24 +416,34 @@ ting:
 	b ting
 
 
-
+	.ltorg
 __svpwm:
-	@R0=角度（36000）
+	@入口R0=实部，R1=虚部
 	push {r1-r7,lr}
-	mov r3, r0
+	mov r4, r0
+	ldr r6, = 18000
+	cmp r0, r6
+	bls asd
+	subs r0, r0, r6
+	subs r0, r0, r6
+asd:	
+	bl __jisuan_cos_sin
+	mov r6, r0	@r
+	mov r7, r1	@i
+	mov r0, r4
 	ldr r1, = 6000
 	bl _chufa
-	cmp r0, r3
+	cmp r0, r4
 	bne __bushi_0_60
 	movs r0, # 0
-__bushi_0_60:	
+__bushi_0_60:
 	lsls r0, r0, # 2
 	ldr r1, = __dianji_xiangwei
 	ldr r1, [r1, r0]
 	mov pc, r1
 	.align 4
 __dianji_xiangwei:
-	.word __xiangwei_0_60 +1, __xiangwei_60_120 +1, __xiangwei_120_180 +1, __xiangwei_120_240 +1, __xiangwei_240_300 +1, __xiangwei_300_360 +1
+	.word __xiangwei_0_60 +1, __xiangwei_60_120 +1, __xiangwei_120_180 +1, __xiangwei_180_240 +1, __xiangwei_240_300 +1, __xiangwei_300_360 +1
 __xiangwei_0_60:
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
@@ -434,6 +455,21 @@ __xiangwei_0_60:
 	str r4, [r5]
 	b __svpwm_fanhui
 __xiangwei_60_120:
+	ldr r0, = 16384	@r
+	ldr r1, = 28377	@i
+	mov r4, r6	@r
+	mov r5, r7	@i
+	muls r4, r4, r0	
+	muls r5, r5, r0
+	muls r7, r7, r1
+	muls r6, r6, r1
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	asrs r7, r7, # 15
+	asrs r6, r6, # 15
+	subs r6, r5, r6
+	adds r7, r4, r7
+
         ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
@@ -442,8 +478,23 @@ __xiangwei_60_120:
 	str r2, [r7]
 	str r4, [r6]
 	str r4, [r5]
-	b __svpwm_fanhui
+       	b __svpwm_fanhui
 __xiangwei_120_180:
+        ldr r0, = -16384 @r
+	ldr r1, = 28377 @i
+	mov r4, r6      @r
+	mov r5, r7      @i
+	muls r4, r4, r0
+	muls r5, r5, r0
+	muls r7, r7, r1
+	muls r6, r6, r1
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	asrs r7, r7, # 15
+	asrs r6, r6, # 15
+	subs r7, r5, r6		@i
+	adds r6, r4, r7         @r
+
         ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
@@ -453,7 +504,12 @@ __xiangwei_120_180:
 	str r4, [r6]
 	str r2, [r5]
 	b __svpwm_fanhui
-__xiangwei_120_240:
+__xiangwei_180_240:
+	mvns r6, r6
+	mvns r7, r7
+	adds r6, r6, # 1
+	adds r7, r7, # 1
+
         ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
@@ -464,16 +520,46 @@ __xiangwei_120_240:
 	str r2, [r5]
 	b __svpwm_fanhui
 __xiangwei_240_300:
+        ldr r0, = -16384 @r
+	ldr r1, = 28377 @i
+	mov r4, r6      @r
+	mov r5, r7      @i
+	muls r4, r4, r0
+	muls r5, r5, r0
+	muls r7, r7, r1
+	muls r6, r6, r1
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	asrs r7, r7, # 15
+	asrs r6, r6, # 15
+	adds r7, r5, r6         @i
+	subs r6, r4, r7         @r
+
         ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
 	movs r2, # 0
 	str r4, [r7]
-	str r0, [r6]
-	str r0, [r5]
+	str r2, [r6]
+	str r2, [r5]
 	b __svpwm_fanhui
 __xiangwei_300_360:
+        ldr r0, = 16384 @r
+	ldr r1, = 28377 @i
+	mov r4, r6      @r
+	mov r5, r7      @i
+	muls r4, r4, r0
+	muls r5, r5, r0
+	muls r7, r7, r1
+	muls r6, r6, r1
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	asrs r7, r7, # 15
+	asrs r6, r6, # 15
+	subs r6, r5, r6
+	adds r7, r4, r7
+
         ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
@@ -482,12 +568,55 @@ __xiangwei_300_360:
 	str r4, [r7]
 	str r2, [r6]
 	str r4, [r5]
-
 __svpwm_fanhui:	
 	pop {r1-r7,pc}
 	
-
-
+__jisuan_cos_sin:
+	@入口R0=角度 （-18000到+18000）
+	@出口R0=COS，R1=SIN
+	push {r2-r6,lr}
+	ldr r1, = 9000
+	ldr r2, = 51471
+	movs r0, r0
+	bpl __jisuan_jiaodu_bushi0
+	mvns r0, r0
+	adds r0, r0, # 1
+	movs r4, # 1
+	b __jiance_dayu_90
+__jisuan_jiaodu_bushi0:
+	movs r4, # 0
+__jiance_dayu_90:
+	cmp r0, r1
+	bls __xiaoyu_90
+	ldr r6, = 18000
+	subs r0, r6, r0
+	movs r6, # 1
+	b __suan_cossin
+__xiaoyu_90:
+	movs r6, # 0
+__suan_cossin:
+	ldr r5, = 10000
+	muls r0, r0, r5
+	bl _chufa
+	muls r0, r0, r2
+	mov r1, r5
+	bl _chufa
+	cmp r4, # 1
+	bne __suan_cos_sin1
+	mvns r0, r0
+	adds r0, r0, # 1
+__suan_cos_sin1:
+	bl __cordic_cos_sin
+	cmp r4, # 0
+	beq __cos_sin_fanhui
+	cmp r6, # 1
+	bne __cos_sin_fanhui
+	mvns r0, r0
+	adds r0, r0, # 1
+__cos_sin_fanhui:
+	pop {r2-r6,pc}
+	.ltorg
+	
 __xian_shi_jiao_du:
 	@入口R0=角度
 	push {r0-r4,lr}
@@ -1201,7 +1330,7 @@ __tick_fanhui:
 
 
 	ldr r3, = 500
-	
+
 	ldr r0, = 0x20000024
 	ldr r1, [r0]
 	adds r1, r1, # 1
@@ -1220,12 +1349,12 @@ __tick_fanhui:
 	movs r0, # 0
 	mov r2, r0
 	str r2, [r1]
-__ss:	
+__ss:
 	bl __svpwm
 	adds r2, r2, r5
 	str r2, [r1]
-	
-zz:	
+
+zz:
 
 	pop {r3-r7}
 	mov r8, r3
@@ -1234,7 +1363,7 @@ zz:
 	mov r11, r6
 	mov r12, r7
 	pop {r4-r7,pc}
-	
+
 
 aaa:
 	bx lr
