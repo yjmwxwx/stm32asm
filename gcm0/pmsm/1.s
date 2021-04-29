@@ -105,6 +105,7 @@ vectors:
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
 _start:
+	
 shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
@@ -393,9 +394,10 @@ tim1chushiha:
 
 ting:
 
-	ldr r0, = 0x20000030
+	ldr r0, = 0x20000028
 	ldr r0, [r0]
 	bl __xian_shi_jiao_du
+
 
 	ldr r0, = 0x2000002c
 	ldr r0, [r0]
@@ -418,25 +420,18 @@ ting:
 
 	.ltorg
 __svpwm:
-	@入口R0=实部，R1=虚部
-	push {r1-r7,lr}
-	mov r4, r0
-	ldr r6, = 18000
-	cmp r0, r6
-	bls asd
-	subs r0, r0, r6
-	subs r0, r0, r6
-asd:	
-	bl __jisuan_cos_sin
-	mov r6, r0	@r
-	mov r7, r1	@i
-	mov r0, r4
+	@入口R0=角度R2=实部，R1=虚部
+	push {r3-r7,lr}
+	mov r3, r2	@r
+	mov r2, r1
 	ldr r1, = 6000
 	bl _chufa
 	cmp r0, r4
 	bne __bushi_0_60
 	movs r0, # 0
 __bushi_0_60:
+	ldr r1, = 0x2000002c
+	str r0, [r1]
 	lsls r0, r0, # 2
 	ldr r1, = __dianji_xiangwei
 	ldr r1, [r1, r0]
@@ -445,136 +440,323 @@ __bushi_0_60:
 __dianji_xiangwei:
 	.word __xiangwei_0_60 +1, __xiangwei_60_120 +1, __xiangwei_120_180 +1, __xiangwei_180_240 +1, __xiangwei_240_300 +1, __xiangwei_300_360 +1
 __xiangwei_0_60:
+	ldr r4, = 32768
+@	movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0	@r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa	@r0=y
+	
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
-	str r2, [r7]
-	str r2, [r6]
-	str r4, [r5]
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15	@x
+	asrs r0, r0, # 15	@y
+	movs r4, # 0
+	str r0, [r7]	@3
+	str r4, [r6]	@2
+	str r2, [r5]	@1
 	b __svpwm_fanhui
 __xiangwei_60_120:
 	ldr r0, = 16384	@r
 	ldr r1, = 28377	@i
-	mov r4, r6	@r
-	mov r5, r7	@i
-	muls r4, r4, r0	
-	muls r5, r5, r0
-	muls r7, r7, r1
-	muls r6, r6, r1
+	mov r4, r3	@r
+	mov r5, r2	@i
+	muls r4, r4, r0	@x*r	
+	muls r5, r5, r1	@y*i
+	muls r2, r2, r0	@y*r
+	muls r3, r3, r1	@x*i
 	asrs r4, r4, # 15
 	asrs r5, r5, # 15
-	asrs r7, r7, # 15
-	asrs r6, r6, # 15
-	subs r6, r5, r6
-	adds r7, r4, r7
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
+	adds r4, r4, r5	@x
+	subs r2, r2, r3	@y
 
-        ldr r5, = tim3_ch1
+
+	mov r3, r4
+        ldr r4, = 32768
+	@       movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0      @r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa       @r0=y
+	
+
+	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
-	str r2, [r7]
-	str r4, [r6]
-	str r4, [r5]
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15       @x
+	asrs r0, r0, # 15       @y
+	movs r4, # 0
+	str r4, [r7]
+	str r2, [r6]
+	str r0, [r5]
+	
+	
        	b __svpwm_fanhui
 __xiangwei_120_180:
         ldr r0, = -16384 @r
 	ldr r1, = 28377 @i
-	mov r4, r6      @r
-	mov r5, r7      @i
-	muls r4, r4, r0
-	muls r5, r5, r0
-	muls r7, r7, r1
-	muls r6, r6, r1
+	mov r4, r3      @r
+	mov r5, r2      @i
+	muls r4, r4, r0 @x*r
+	muls r5, r5, r1 @y*i
+	muls r2, r2, r0 @y*r
+	muls r3, r3, r1 @x*i
 	asrs r4, r4, # 15
 	asrs r5, r5, # 15
-	asrs r7, r7, # 15
-	asrs r6, r6, # 15
-	subs r7, r5, r6		@i
-	adds r6, r4, r7         @r
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
+	adds r4, r4, r5 @x
+	subs r2, r2, r3 @y
 
-        ldr r5, = tim3_ch1
+        mov r3, r4
+	ldr r4, = 32768
+	@       movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0      @r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa       @r0=y
+
+
+	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15       @x
+	asrs r0, r0, # 15       @y
+	movs r4, # 0
 	str r2, [r7]
-	str r4, [r6]
-	str r2, [r5]
+	str r0, [r6]
+	str r4, [r5]
+	
 	b __svpwm_fanhui
 __xiangwei_180_240:
-	mvns r6, r6
-	mvns r7, r7
-	adds r6, r6, # 1
-	adds r7, r7, # 1
+	mvns r3, r3	@r
+	mvns r2, r2	@i
+	adds r3, r3, # 1
+	adds r2, r2, # 1
 
-        ldr r5, = tim3_ch1
+        ldr r4, = 32768
+	@       movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0      @r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa       @r0=y
+
+	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
-	str r4, [r7]
-	str r4, [r6]
-	str r2, [r5]
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15       @x
+	asrs r0, r0, # 15       @y
+	movs r4, # 0
+	
+	str r0, [r7]    @2
+	str r4, [r6]    @3
+	str r2, [r5]    @1
+	
+	
 	b __svpwm_fanhui
 __xiangwei_240_300:
         ldr r0, = -16384 @r
 	ldr r1, = 28377 @i
-	mov r4, r6      @r
-	mov r5, r7      @i
-	muls r4, r4, r0
-	muls r5, r5, r0
-	muls r7, r7, r1
-	muls r6, r6, r1
+	mov r4, r3      @r
+	mov r5, r2      @i
+	muls r4, r4, r0 @x*r
+	muls r5, r5, r1 @y*i
+	muls r2, r2, r0 @y*r
+	muls r3, r3, r1 @x*i
 	asrs r4, r4, # 15
 	asrs r5, r5, # 15
-	asrs r7, r7, # 15
-	asrs r6, r6, # 15
-	adds r7, r5, r6         @i
-	subs r6, r4, r7         @r
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
+	subs r4, r4, r5 @x	@逆时针
+	adds r2, r2, r3 @y
 
-        ldr r5, = tim3_ch1
+        mov r3, r4
+	ldr r4, = 32768
+	@       movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0      @r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa       @r0=y
+
+
+	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15       @x
+	asrs r0, r0, # 15       @y
+	movs r4, # 0
+
 	str r4, [r7]
 	str r2, [r6]
-	str r2, [r5]
+	str r0, [r5]
+	
+	
+ @       str r0, [r7]
+@	str r4, [r6]
+@	str r2, [r5]
+	
 	b __svpwm_fanhui
 __xiangwei_300_360:
         ldr r0, = 16384 @r
 	ldr r1, = 28377 @i
-	mov r4, r6      @r
-	mov r5, r7      @i
-	muls r4, r4, r0
-	muls r5, r5, r0
-	muls r7, r7, r1
-	muls r6, r6, r1
+	mov r4, r3      @r
+	mov r5, r2      @i
+	muls r4, r4, r0 @x*r
+	muls r5, r5, r1 @y*i
+	muls r2, r2, r0 @y*r
+	muls r3, r3, r1 @x*i
 	asrs r4, r4, # 15
 	asrs r5, r5, # 15
-	asrs r7, r7, # 15
-	asrs r6, r6, # 15
-	subs r6, r5, r6
-	adds r7, r4, r7
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
+	subs r4, r4, r5 @x	@逆时针
+	adds r2, r2, r3 @y
 
-        ldr r5, = tim3_ch1
+	mov r3, r4
+	ldr r4, = 32768
+	@       movs r5, # 0
+	ldr r6, = 16384
+	ldr r7, = 28377
+	muls r2, r2, r4
+	muls r7, r7, r4
+	asrs r2, r2, # 15
+	asrs r7, r7, # 15
+	ldr r5, = 32768
+	mov r0, r2
+	muls r0, r0, r5
+	mov r1, r7
+	bl _chufa
+	mov r1, r6
+	mov r2, r0      @r2=x
+	muls r0, r0, r1
+	muls r3, r3, r5
+	subs r0, r3, r0
+	mov r1, r4
+	bl _chufa       @r0=y
+
+
+	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
 	ldr r4, = 1000
-	movs r2, # 0
-	str r4, [r7]
-	str r2, [r6]
+	muls r2, r2, r4
+	muls r0, r0, r4
+	asrs r2, r2, # 15       @x
+	asrs r0, r0, # 15       @y
+	movs r4, # 0
+
+        str r2, [r7]
+	str r0, [r6]
 	str r4, [r5]
+	
+       @ str r4, [r7]
+@	str r2, [r6]
+@	str r0, [r5]
+	
 __svpwm_fanhui:	
-	pop {r1-r7,pc}
+	pop {r3-r7,pc}
 	
 __jisuan_cos_sin:
 	@入口R0=角度 （-18000到+18000）
 	@出口R0=COS，R1=SIN
-	push {r2-r6,lr}
+	push {r2-r7,lr}
+	ldr r1, = 18000
+	cmp r0, r1
+	bls __xiaoyu_180
+	subs r0, r0, r1
+	movs r7, # 1
+	b __js_cos_sin
+__xiaoyu_180:
+	movs r7, # 0
+__js_cos_sin:	
 	ldr r1, = 9000
 	ldr r2, = 51471
 	movs r0, r0
@@ -582,10 +764,10 @@ __jisuan_cos_sin:
 	mvns r0, r0
 	adds r0, r0, # 1
 	movs r4, # 1
-	b __jiance_dayu_90
+	b __jiance_chao90
 __jisuan_jiaodu_bushi0:
 	movs r4, # 0
-__jiance_dayu_90:
+__jiance_chao90:
 	cmp r0, r1
 	bls __xiaoyu_90
 	ldr r6, = 18000
@@ -607,14 +789,19 @@ __suan_cossin:
 	adds r0, r0, # 1
 __suan_cos_sin1:
 	bl __cordic_cos_sin
-	cmp r4, # 0
-	beq __cos_sin_fanhui
 	cmp r6, # 1
 	bne __cos_sin_fanhui
 	mvns r0, r0
 	adds r0, r0, # 1
 __cos_sin_fanhui:
-	pop {r2-r6,pc}
+	cmp r7, # 1
+	bne __cossin_fh
+	mvns r0, r0
+	mvns r1, r1
+	adds r0, r0, # 1
+	adds r1, r1, # 1
+__cossin_fh:	
+	pop {r2-r7,pc}
 	.ltorg
 	
 __xian_shi_jiao_du:
@@ -1204,6 +1391,9 @@ _systickzhongduan:
 	ldr r0, = 0xe0000d04
 	ldr r1, = 0x02000000
 	str r1, [r0]                 @ 清除SYSTICK中断
+
+	b ddz
+	
 	bl __chuan_gan_qi_lvbo
 	ldr r2, = cos
 	ldr r3, = sin
@@ -1329,7 +1519,9 @@ __tick_fanhui:
 	str r0, [r3]
 
 
-	ldr r3, = 500
+
+ddz:
+	ldr r3, = 10
 
 	ldr r0, = 0x20000024
 	ldr r1, [r0]
@@ -1339,21 +1531,20 @@ __tick_fanhui:
 	bne zz
 	movs r1, # 0
 	str r1, [r0]
-	ldr r5, = 6000
-	ldr r6, = 36000
-	ldr r1, = 0x20000028
-	ldr r0, [r1]
+	ldr r5, = 0x20000028
+	ldr r7, = 36000
+	ldr r4, [r5]
+	mov r0, r4
+	bl __jisuan_cos_sin
 	mov r2, r0
-	cmp r0, r6
-	bne __ss
-	movs r0, # 0
-	mov r2, r0
-	str r2, [r1]
-__ss:
+	mov r0, r4
 	bl __svpwm
-	adds r2, r2, r5
-	str r2, [r1]
-
+	adds r4, r4, # 60
+	str r4, [r5]
+	cmp r4, r7
+	bne zz
+	movs r4, # 0
+	str r4, [r5]
 zz:
 
 	pop {r3-r7}
