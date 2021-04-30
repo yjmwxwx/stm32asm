@@ -29,6 +29,8 @@ cordic_yong_atan_biao:
 	.equ STACKINIT,        	        0x20001000
 	.equ asciimabiao,		0x20000000
 	.equ liangcheng,		0x20000020
+	.equ x,				0x200000bc
+	.equ y,				0x200000c0
 	.equ dianji_huanxiang,		0x200000c4
 	.equ zhengfan_zhuan,		0x200000c8
 	.equ jiaodu_cha,		0x200000cc
@@ -406,7 +408,7 @@ ting:
 	bl __xian_shi_jiao_du
 
 
-	ldr r0, = 0x2000002c
+	ldr r0, = x
 	ldr r0, [r0]
 	movs r1, # 6
 	ldr r2, = asciimabiao
@@ -416,6 +418,18 @@ ting:
 	ldr r1, = asciimabiao
 	movs r2, # 6
 	bl _lcdxianshi
+
+	ldr r0, = y
+	ldr r0, [r0]
+	movs r1, # 6
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc0
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
+	
 	
 	b ting
 	
@@ -453,12 +467,21 @@ __xiangwei_0_60:
 	bmi fh1
 	movs r2, r2
 	bmi fh1
-	
+
+	ldr r4, = 26009 @√29=12.7V
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r3, r3, r5
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
 	
 	ldr r4, = 32768
 @	movs r5, # 0
 	ldr r6, = 16384
 	ldr r7, = 28377
+
+	
 	muls r2, r2, r4
 	muls r7, r7, r4
 	asrs r2, r2, # 15
@@ -475,11 +498,17 @@ __xiangwei_0_60:
 	subs r0, r3, r0
 	mov r1, r4
 	bl _chufa	@r0=y
+
+	ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+
 	
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15	@x
@@ -512,8 +541,16 @@ __xiangwei_60_120:
 	movs r2, r2
 	bmi fh
 	
+        ldr r4, = 26009 @√29=12.7Vi
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r4, r4, r5
+	asrs r2, r2, # 15
+	asrs r4, r4, # 15
 	
 
+	
 	mov r3, r4
         ldr r4, = 32768
 	@       movs r5, # 0
@@ -535,12 +572,18 @@ __xiangwei_60_120:
 	subs r0, r3, r0
 	mov r1, r4
 	bl _chufa       @r0=y
+
+        ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+	
 	
 
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15       @x
@@ -549,7 +592,6 @@ __xiangwei_60_120:
 	str r4, [r7]
 	str r2, [r6]
 	str r0, [r5]
-	
 	
        	b __svpwm_fanhui
 __xiangwei_120_180:
@@ -572,6 +614,15 @@ __xiangwei_120_180:
 	bmi fh
 	movs r2, r2
 	bmi fh
+	
+
+	ldr r4, = 26009 @√29=12.7Vi
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r4, r4, r5
+	asrs r2, r2, # 15
+	asrs r4, r4, # 15
 	
 	
         mov r3, r4
@@ -596,11 +647,16 @@ __xiangwei_120_180:
 	mov r1, r4
 	bl _chufa       @r0=y
 
-
+        ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+	
+	
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15       @x
@@ -624,6 +680,14 @@ __xiangwei_180_240:
 	bmi fh
 	movs r2, r2
 	bmi fh
+
+	ldr r4, = 26009 @√29=12.7Vi
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r3, r3, r5
+	asrs r2, r2, # 15
+	asrs r3, r3, # 15
 	
 	
         ldr r4, = 32768
@@ -647,10 +711,16 @@ __xiangwei_180_240:
 	mov r1, r4
 	bl _chufa       @r0=y
 
+        ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+	
+	
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15       @x
@@ -684,6 +754,14 @@ __xiangwei_240_300:
 	movs r2, r2
 	bmi fh
 	
+
+	ldr r4, = 26009 @√29=12.7Vi
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r4, r4, r5
+	asrs r2, r2, # 15
+	asrs r4, r4, # 15
 	
         mov r3, r4
 	ldr r4, = 32768
@@ -707,11 +785,16 @@ __xiangwei_240_300:
 	mov r1, r4
 	bl _chufa       @r0=y
 
-
+        ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+	
+	
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15       @x
@@ -721,12 +804,7 @@ __xiangwei_240_300:
 	str r4, [r7]
 	str r2, [r6]
 	str r0, [r5]
-	
-	
- @       str r0, [r7]
-@	str r4, [r6]
-@	str r2, [r5]
-	
+		
 	b __svpwm_fanhui
 __xiangwei_300_360:
         ldr r0, = 16384 @r
@@ -750,6 +828,13 @@ __xiangwei_300_360:
 	bmi __svpwm_fanhui
 	
 	
+	ldr r4, = 26009 @√29=12.7Vi
+	ldr r5, = 23221 @9v
+
+	muls r2, r2, r5
+	muls r4, r4, r5
+	asrs r2, r2, # 15
+	asrs r4, r4, # 15
 	
 
 	
@@ -775,11 +860,17 @@ __xiangwei_300_360:
 	mov r1, r4
 	bl _chufa       @r0=y
 
+        ldr r5, = x
+	ldr r6, = y
+	str r2, [r5]
+	str r0, [r6]
+	
+	
 
 	ldr r5, = tim3_ch1
 	ldr r6, = tim3_ch2
 	ldr r7, = tim14_ch1
-	ldr r4, = 1000
+	ldr r4, = 2000
 	muls r2, r2, r4
 	muls r0, r0, r4
 	asrs r2, r2, # 15       @x
@@ -1575,7 +1666,7 @@ __tick_fanhui:
 
 
 ddz:
-	ldr r3, = 10
+	ldr r3, = 1
 
 	ldr r0, = 0x20000024
 	ldr r1, [r0]
@@ -1588,7 +1679,7 @@ ddz:
 
 @ddz:	
 	ldr r5, = 0x20000028
-	ldr r7, = 36000
+	ldr r7, = 36000		@jd
 	ldr r4, [r5]
 	mov r0, r4
 	bl __jisuan_cos_sin
@@ -1597,7 +1688,7 @@ ddz:
 	bl __svpwm
 	ldr r6, = 0x20000034
 	ldr r6, [r6]
-	adds r4, r4, #1
+	adds r4, r4, # 20
 	str r4, [r5]
 	cmp r4, r7
 	bls zz
