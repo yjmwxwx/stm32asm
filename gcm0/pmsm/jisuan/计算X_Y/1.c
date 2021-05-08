@@ -6,7 +6,7 @@ void main() {
 
   int jiaodu,rr,ii,n;
    n = 60;
-for(i=0;i<n;i=i+0.03)
+for(i=0;i<n;i=i+0.04)
     {
         p = i*3.1415926536897932384626/180;
         x = (sin(p)* cos(0))/ (sin(1.0471975) * cos(0));  
