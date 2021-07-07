@@ -6,12 +6,24 @@
 	.thumb
 	.syntax unified
 	.section .data
+cos_sin_biao:
+	.int 0x00008000,0x00000000,0x00007F11,0xFFFFF093,0x00007C47,0xFFFFE15F,0x000077AE,0xFFFFD29D,0x00007156,0xFFFFC484,0x00006957,0xFFFFB74A,0x00005FCF,0xFFFFAB1F,0x000054E1,0xFFFFA031,0x000048B6,0xFFFF96A9,0x00003B7C,0xFFFF8EAA,0x00002D63,0xFFFF8852,0x00001EA1,0xFFFF83B9,0x00000F6D,0xFFFF80EF,0x00000000,0xFFFF8000,0xFFFFF093,0xFFFF80EF,0xFFFFE15F,0xFFFF83B9,0xFFFFD29D,0xFFFF8852,0xFFFFC484,0xFFFF8EAA,0xFFFFB74A,0xFFFF96A9,0xFFFFAB1F,0xFFFFA031,0xFFFFA031,0xFFFFAB1F,0xFFFF96A9,0xFFFFB74A,0xFFFF8EAA,0xFFFFC484,0xFFFF8852,0xFFFFD29D,0xFFFF83B9,0xFFFFE15F,0xFFFF80EF,0xFFFFF093,0xFFFF8000,0x00000000,0xFFFF80EF,0x00000F6D,0xFFFF83B9,0x00001EA1,0xFFFF8852,0x00002D63,0xFFFF8EAA,0x00003B7C,0xFFFF96A9,0x000048B6,0xFFFFA031,0x000054E1,0xFFFFAB1F,0x00005FCF,0xFFFFB74A,0x00006957,0xFFFFC484,0x00007156,0xFFFFD29D,0x000077AE,0xFFFFE15F,0x00007C47,0xFFFFF093,0x00007F11,0x00000000,0x00008000,0x00000F6D,0x00007F11,0x00001EA1,0x00007C47,0x00002D63,0x000077AE,0x00003B7C,0x00007156,0x000048B6,0x00006957,0x000054E1,0x00005FCF,0x00005FCF,0x000054E1,0x00006957,0x000048B6,0x00007156,0x00003B7C,0x000077AE,0x00002D63,0x00007C47,0x00001EA1,0x00007F11,0x00000F6D,0x00008000,0x00000000,0x00007F11,0xFFFFF093,0x00007C47,0xFFFFE15F,0x000077AE,0xFFFFD29D,0x00007156,0xFFFFC484,0x00006957,0xFFFFB74A,0x00005FCF,0xFFFFAB1F,0x000054E1,0xFFFFA031,0x000048B6,0xFFFF96A9,0x00003B7C,0xFFFF8EAA,0x00002D63,0xFFFF8852,0x00001EA1,0xFFFF83B9,0x00000F6D,0xFFFF80EF,0x00000000,0xFFFF8000,0xFFFFF093,0xFFFF80EF,0xFFFFE15F,0xFFFF83B9,0xFFFFD29D,0xFFFF8852,0xFFFFC484,0xFFFF8EAA,0xFFFFB74A,0xFFFF96A9,0xFFFFAB1F,0xFFFFA031,0xFFFFA031,0xFFFFAB1F,0xFFFF96A9,0xFFFFB74A,0xFFFF8EAA,0xFFFFC484,0xFFFF8852,0xFFFFD29D,0xFFFF83B9,0xFFFFE15F,0xFFFF80EF,0xFFFFF093,0xFFFF8000,0x00000000,0xFFFF80EF,0x00000F6D,0xFFFF83B9,0x00001EA1,0xFFFF8852,0x00002D63,0xFFFF8EAA,0x00003B7B,0xFFFF96A9,0x000048B6,0xFFFFA031,0x000054E1,0xFFFFAB1F,0x00005FCF,0xFFFFB74A,0x00006957,0xFFFFC484,0x00007156,0xFFFFD29D,0x000077AE,0xFFFFE15F,0x00007C47,0xFFFFF093,0x00007F11,0x00000000,0x00008000,0x00000F6D,0x00007F11,0x00001EA1,0x00007C47,0x00002D63,0x000077AE,0x00003B7B,0x00007156,0x000048B6,0x00006957,0x000054E1,0x00005FCF,0x00005FCF,0x000054E1,0x00006957,0x000048B6,0x00007156,0x00003B7C,0x000077AE,0x00002D63,0x00007C47,0x00001EA1,0x00007F11,0x00000F6D
+
+kong:
+	.int 0x20202020
+_fu:
+	.ascii "-"
 yjmwxwx:
 	.ascii "yjmwxwx-20210528"
 	.align 4
 	.equ STACKINIT,        	        0x20001000
-	.equ ascii,			0x20000000
+	.equ asciimabiao,		0x20000000
 	.equ lcd_beiguang,		0x20000020
+	.equ r, 			0x20000024
+	.equ i,				0x20000028
+	.equ dianyabiao,		0x20000100
+	.equ lvboqizhizhen,		0x200009b0
+	.equ lvboqihuanchong,		0x200009b8
 	.section .text
 
 vectors:
@@ -164,7 +176,7 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x2820aed5 
+	ldr r1, = 0x2800a0d5
 	str r1, [r0]
 	ldr r1, = 0x11040000
 	str r1, [r0, # 0x20]
@@ -178,24 +190,6 @@ io_she_zhi:
 	str r1, [r0]
 	movs r1, # 0x20
 	str r1, [r0, # 0x20]
-		
-
-tim3chushihua:
-	ldr r0, = 0x40000400 @ tim3_cr1
-	movs r1, # 0
-	str r1, [r0, # 0x28] @ psc
-	ldr r1, = 2799 @2799
-	str r1, [r0, # 0x2c] @ ARR
-	ldr r1, = 0x7868
-	str r1, [r0, # 0x18]
-	ldr r1, = 200
-	str r1, [r0, # 0x34]
-	ldr r1, = 2599
-	str r1, [r0, # 0x38]
-	movs r1, # 0x33
-	str r1, [r0, # 0x20]
-	ldr r1, = 0xe1	@ 0x81
-	str r1, [r0]
 
 
 __kai_lcd_bei_guang:
@@ -240,10 +234,254 @@ yjmwxwx_yanshi:
 	bl _xielcd
 	bl _lcdyanshi
 
+	
+dmachushihua:
+	@+0=LSR,+4=IFCR,
+	@+8=CCR1,+c=CNDTR1,+10=CPAR1+14=CMAR1,
+	@+1c=CCR2,+20=CNDTR2,+24=CPAR2,+28=CMAR2
+	@+30=CCR3,+34=CNDTR3,+38=CPAR2,+3c=CMAR3
+	@+44=CCR4,+48=CNDTR4,+4c=CPAR4,+50=CMAR4
+	@+58=CCR5,+5c=CNDTR5,+60=CPAR5,+64=CMAR5
+	@+6C=CCR6,+70=CNDTR6,+74=CPAR6,+78=CMAR6
+	@+80=CCR7,+84=CNDTR7,+88=CPAR7,+8c=CMAR7
+
+	@ adc dma
+	ldr r0, = 0x40020000
+	ldr r1, = 0x40012440
+	str r1, [r0, # 0x10]
+	ldr r1, = dianyabiao
+	str r1, [r0, # 0x14]
+	ldr r1, =  1100
+	str r1, [r0, # 0x0c]
+	ldr r1, = 0x5a1 @0x581 @0x5a1 @0xaa1  
+	str r1, [r0, # 0x08]
+	
+_adcchushihua:
+	ldr r0, = 0x40012400  @ adc基地址
+	ldr r1, = 0x80000000
+	str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
+_dengadcjiaozhun:
+	ldr r1, [r0, # 0x08]
+	movs r1, r1
+	bmi _dengadcjiaozhun   @ 等ADC校准
+	movs r1, # 1
+	str r1, [r0]
+_kaiadc:
+	ldr r1, [r0, # 0x08]
+	movs r2, # 0x01
+	orrs r1, r1, r2
+	str r1, [r0, # 0x08]
+_deng_adc_wen_ding:
+	ldr r1, [r0]
+	lsls r1, r1, # 31
+	bpl _deng_adc_wen_ding @ 等ADC稳定
+_tongdaoxuanze:
+	ldr r1, = 0x40000000
+	str r1, [r0, # 0x10]
+	movs r1, # 0x08
+	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
+	ldr r1, = 0xc03 @连续0x2003  @TIM30x803
+	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
+	movs r1, # 0
+	str r1, [r0, # 0x14]    @ ADC 采样时间寄存器 (ADC_SMPR)
+	ldr r1, [r0, # 0x08]
+	ldr r2, = 0x04         @ 开始转换
+	orrs r1, r1, r2
+	str r1, [r0, # 0x08]    @ 控制寄存器 (ADC_CR)
+
+_systick:	@ systick定时器初始化
+
+	ldr r7, = 0xe000e010
+	ldr r6, = 55999
+	str r6, [r7, # 4]
+	str r6, [r7, # 8]
+	movs r6, # 0x07
+	
+tim3chushihua:
+	ldr r0, = 0x40000400 @ tim3_cr1
+	movs r1, # 0
+	str r1, [r0, # 0x28] @ psc
+	ldr r1, = 100 @2799 @2799
+	str r1, [r0, # 0x2c] @ ARR
+	ldr r1, = 0x7868
+	str r1, [r0, # 0x18]
+	ldr r1, = 8  @200
+	str r1, [r0, # 0x34]
+	ldr r1, = 92  @2599
+	str r1, [r0, # 0x38]
+	movs r1, # 0x33
+	str r1, [r0, # 0x20]
+	movs r1, # 0x07
+	str r1, [r0, # 0x08]
+	ldr r1, = 0xe1
+	str r1, [r0]
+tim1chushiha:
+	ldr r0, = 0x40012c00 @ tim1_cr1
+	movs r1, # 0
+	str r1, [r0, # 0x28] @ psc
+	ldr r1, = 27
+	str r1, [r0, # 0x2c] @ ARR
+	movs r1, # 0x20
+	str r1, [r0, # 0x04] @ TRGO
+	ldr r1, = 0x81
+	str r1, [r0]
+	str r6, [r7]    @systick 开
+	
+	
 ting:
-	bkpt # 1
+	
+	ldr r0, = r
+	ldr r1, = i
+	ldr r6, [r0]
+	ldr r7, [r1]
+	movs r4, r6
+	bpl a1
+	movs r0, # 0x80
+	ldr r1, = _fu
+	movs r2, # 1
+	bl _lcdxianshi
+	mvns r4, r4
+	adds r4, r4, # 1
+	b a2
+a1:
+	movs r0, # 0x80
+	ldr r1, = kong
+	movs r2, # 1
+	bl _lcdxianshi
+a2:
+	mov r0, r4
+	movs r1, # 8
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x81
+	ldr r1, = asciimabiao
+	movs r2, # 8
+	bl _lcdxianshi
+
+
+	movs r4, r7
+	bpl b1
+	movs r0, # 0xc0
+	ldr r1, = _fu
+	movs r2, # 1
+	bl _lcdxianshi
+	mvns r4, r4
+	adds r4, r4, # 1
+	b b2
+b1:
+	movs r0, # 0xc0
+	ldr r1, = kong
+	movs r2, # 1
+	bl _lcdxianshi
+b2:
+	mov r0, r4
+	movs r1, # 8
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc1
+	ldr r1, = asciimabiao
+	movs r2, # 8
+	bl _lcdxianshi
 	b ting
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+dada:	
+        ldr r0, = 0x20000100
+	ldrh r0, [r0]
+@	mov r1, r0
+@	ldr r2, = lvboqizhizhen
+@	ldr r0, =lvboqihuanchong
+@	bl __lv_bo_qi
+	movs r1, # 6
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x80
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
+	b ting
+
+
+__dft:
+	push {r0-r7,lr}
+	mov r2, r8
+	push {r2}
+	ldr r0, = dianyabiao
+	ldr r1, = cos_sin_biao
+	ldr r3, = 0x900
+	ldr r4, = 208 @2048
+	adds r3, r3, r0
+	ldr r3, = 0x200001c0
+	mov r8, r3
+	movs r2, # 0
+	mov r7, r2
+__dft_xunhuan:	
+	ldrh r3, [r0]
+	ldr r5, [r1]
+	ldr r6, [r1, # 0x04]
+	subs r3, r3, r4
+	muls r5, r5, r3
+	asrs r5, r5, # 15
+	muls r6, r6, r3
+	asrs r6, r6, # 15
+	adds r2, r2, r5
+	adds r7, r7, r6
+	adds r0, r0, # 0x02
+	adds r1, r1, # 0x08
+	cmp r0, r8
+	bne __dft_xunhuan
+	ldr r0, = r
+	ldr r1, = i
+	str r2, [r0]
+	str r7, [r1]
+	pop {r2}
+	mov r8, r2
+	pop {r0-r7,pc}
+	
+__lv_bo_qi:
+	@地址顺序：指针，累加值，缓冲区
+	@入口R0=缓冲区，R1=数据, r2,=指针
+	@出口R0
+	push {r3-r6,lr}
+	movs r4, # 128
+	ldr r5, [r2]
+	mov r3, r5
+	lsls r3, r5, # 2
+	ldr r6, [r0, r3]
+	str r1, [r0, r3]
+	adds r5, r5, # 1
+	str r5, [r2]
+	cmp r5, r4
+	bne __huanchong_leijia
+	movs r5, # 0
+	str r5, [r2]
+__huanchong_leijia:
+	subs r0, r0, # 4
+	ldr r5, [r0]
+	adds r1, r1, r5
+	subs r1, r1, r6
+	str r1, [r0]
+	asrs r0, r1, # 7	@128
+	pop {r3-r6,pc}
+	.ltorg
+
+	
 _lcdxianshi:		  		@r0=LCD位置，r1=数据地址，r2=长度
 	push {r0-r4,lr}
 	mov r4, r1
@@ -410,7 +648,13 @@ _svc_handler:
 	bx lr
 _pendsv_handler:
 	bx lr
-_systickzhongduan:	
+_systickzhongduan:
+	push {lr}
+	ldr r0, = 0xe0000d04
+	ldr r1, = 0x02000000
+	str r1, [r0]                 @ 清除SYSTICK中断
+	bl __dft
+	pop {pc}
 aaa:
 	bx lr
 	.ltorg
