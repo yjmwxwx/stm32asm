@@ -1854,13 +1854,6 @@ PA6_PWM
 Text Label 1450 4050 0    50   ~ 0
 PA7_PWM1
 Wire Wire Line
-	9150 2750 9300 2750
-Wire Wire Line
-	9150 2000 9150 2750
-Connection ~ 9150 2750
-Wire Wire Line
-	9150 2750 9150 3650
-Wire Wire Line
 	1450 2000 1450 3650
 Wire Wire Line
 	1450 3650 1450 4050
@@ -2379,13 +2372,9 @@ F 3 "http://www.ti.com/lit/ds/symlink/ne5532.pdf" H 5100 -3650 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Notes Line
-	500  8000 11750 8000
-Wire Notes Line
 	11750 8000 11750 11150
 Wire Notes Line
 	11750 11150 500  11150
-Wire Notes Line
-	500  11150 500  8000
 Wire Notes Line
 	8050 8000 8050 11150
 $Comp
@@ -2469,9 +2458,9 @@ Wire Wire Line
 	15300 5000 15300 4950
 Connection ~ 15150 5000
 Wire Wire Line
-	4700 3000 5250 3000
+	4700 3000 5100 3000
 Wire Wire Line
-	5350 3000 5900 3000
+	5350 3000 5600 3000
 $Comp
 L Device:C C?
 U 1 1 615BDB76
@@ -2491,4 +2480,78 @@ Wire Wire Line
 	11200 5500 11200 6050
 Wire Wire Line
 	11200 6050 11650 6050
+Wire Notes Line
+	9800 3850 16000 3850
+Wire Notes Line
+	500  8000 16000 8000
+Wire Notes Line
+	9800 550  9800 8000
+Wire Notes Line
+	16000 550  16000 8000
+Wire Wire Line
+	9150 2000 9150 3650
+Wire Notes Line
+	500  550  500  11150
+Wire Notes Line
+	500  550  16000 550 
+Wire Notes Line
+	500  4700 9800 4700
+Wire Wire Line
+	5100 3000 5100 2900
+Connection ~ 5100 3000
+Wire Wire Line
+	5100 3000 5250 3000
+Wire Wire Line
+	5600 3000 5600 2900
+Connection ~ 5600 3000
+Wire Wire Line
+	5600 3000 5900 3000
+Text Label 5100 2900 0    50   ~ 0
+ji_li_0
+Text Label 5600 2900 0    50   ~ 0
+ji_li_1
+$Comp
+L Transistor_BJT:S8050 Q?
+U 1 1 616E3B02
+P 3250 5500
+F 0 "Q?" H 3440 5546 50  0000 L CNN
+F 1 "S8050" H 3440 5455 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 3450 5425 50  0001 L CIN
+F 3 "http://www.unisonic.com.tw/datasheet/S8050.pdf" H 3250 5500 50  0001 L CNN
+	1    3250 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_BJT:S8050 Q?
+U 1 1 616E5340
+P 4900 5500
+F 0 "Q?" H 5090 5546 50  0000 L CNN
+F 1 "S8050" H 5090 5455 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 5100 5425 50  0001 L CIN
+F 3 "http://www.unisonic.com.tw/datasheet/S8050.pdf" H 4900 5500 50  0001 L CNN
+	1    4900 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_BJT:S8550 Q?
+U 1 1 616E6B8D
+P 3900 6200
+F 0 "Q?" H 4090 6246 50  0000 L CNN
+F 1 "S8550" H 4090 6155 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 4100 6125 50  0001 L CIN
+F 3 "http://www.unisonic.com.tw/datasheet/S8550.pdf" H 3900 6200 50  0001 L CNN
+	1    3900 6200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Transistor_BJT:S8550 Q?
+U 1 1 616E8316
+P 5150 6350
+F 0 "Q?" H 5340 6396 50  0000 L CNN
+F 1 "S8550" H 5340 6305 50  0000 L CNN
+F 2 "Package_TO_SOT_THT:TO-92_Inline" H 5350 6275 50  0001 L CIN
+F 3 "http://www.unisonic.com.tw/datasheet/S8550.pdf" H 5150 6350 50  0001 L CNN
+	1    5150 6350
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
