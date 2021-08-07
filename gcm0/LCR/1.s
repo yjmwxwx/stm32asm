@@ -29,6 +29,14 @@ yjmwxwx:
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x200008d0
 	.equ lvboqihuanchong,		0x200008d8
+	.equ lvboqizhizhen1,            0x200009e0
+	.equ lvboqihuanchong1,          0x200009e8
+        .equ lvboqizhizhen2,            0x20000af0
+	.equ lvboqihuanchong2,           0x20000af8
+	.equ lvboqizhizhen3,            0x20000c00
+	.equ lvboqihuanchong3,          0x20000c08
+	
+	
 	.section .text
 
 vectors:
@@ -370,6 +378,14 @@ tim1chushiha:
 	
 	
 ting:
+	bl __xianshi_shangxia_bi
+	b ting
+
+
+
+	
+__xianshi_shangxia_bi:
+	push {r0-r7,lr}
 	ldr r0, = shangbi_r
 	ldr r2, = shangbi_i
 	ldr r1, [r0]
@@ -390,19 +406,19 @@ a1:
 	bl _lcdxianshi
 a2:
 	mov r0, r4
-	movs r1, # 8
+	movs r1, # 5
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
 	bl _zhuanascii
 	movs r0, # 0x81
 	ldr r1, = asciimabiao
-	movs r2, # 8
+	movs r2, # 5
 	bl _lcdxianshi
 
 
 	movs r4, r7
 	bpl b1
-	movs r0, # 0xc0
+	movs r0, # 0x8a
 	ldr r1, = _fu
 	movs r2, # 1
 	bl _lcdxianshi
@@ -410,22 +426,76 @@ a2:
 	adds r4, r4, # 1
 	b b2
 b1:
-	movs r0, # 0xc0
+	movs r0, # 0x8a
 	ldr r1, = kong
 	movs r2, # 1
 	bl _lcdxianshi
 b2:
 	mov r0, r4
-	movs r1, # 8
+	movs r1, # 5
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x8b
+	ldr r1, = asciimabiao
+	movs r2, # 5
+	bl _lcdxianshi
+
+        ldr r0, = xiabi_r
+	ldr r2, = xiabi_i
+	ldr r1, [r0]
+	ldr r7, [r2]
+	movs r4, r1
+	bpl c1
+	movs r0, # 0xc0
+	ldr r1, = _fu
+	movs r2, # 1
+	bl _lcdxianshi
+	mvns r4, r4
+	adds r4, r4, # 1
+	b c2
+c1:
+	movs r0, # 0xc0
+	ldr r1, = kong
+	movs r2, # 1
+	bl _lcdxianshi
+c2:
+	mov r0, r4
+	movs r1, # 5
 	ldr r2, = asciimabiao
 	movs r3, # 0xff
 	bl _zhuanascii
 	movs r0, # 0xc1
 	ldr r1, = asciimabiao
-	movs r2, # 8
+	movs r2, # 5
 	bl _lcdxianshi
-	b ting
 
+
+	movs r4, r7
+	bpl d1
+	movs r0, # 0xca
+	ldr r1, = _fu
+	movs r2, # 1
+	bl _lcdxianshi
+	mvns r4, r4
+	adds r4, r4, # 1
+	b d2
+d1:
+	movs r0, # 0xca
+	ldr r1, = kong
+	movs r2, # 1
+	bl _lcdxianshi
+d2:
+	mov r0, r4
+	movs r1, # 5
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xcb
+	ldr r1, = asciimabiao
+	movs r2, # 5
+	bl _lcdxianshi
+	pop {r0-r7,pc}
 
 __dft:
 	push {r2-r7,lr}
@@ -661,7 +731,7 @@ _svc_handler:
 _pendsv_handler:
 	bx lr
 _systickzhongduan:
-	push {lr}
+	push {r4,lr}
 	ldr r0, = 0xe0000d04
 	ldr r1, = 0x02000000
 	str r1, [r0]                 @ 清除SYSTICK中断
@@ -679,10 +749,19 @@ _systickzhongduan:
 	ldr r0, [r0, # 0x0c]
 	str r0, [r2]
 	bl __dft
-	ldr r2, = xiabi_r
-	ldr r3, = xiabi_i
-	str r0, [r2]
-	str r1, [r3]	
+        mov r4, r0
+	ldr r2, = lvboqizhizhen3
+	ldr r0, =lvboqihuanchong3
+	bl __lv_bo_qi
+	ldr r1, = xiabi_i
+	str r0, [r1]
+	mov r1, r4
+	ldr r2, = lvboqizhizhen2
+	ldr r0, = lvboqihuanchong2
+	bl __lv_bo_qi
+	ldr r1, = xiabi_r
+	str r0, [r1]
+	
 	b __systick_fanhui
 	
 __shangbi_dft:
@@ -696,19 +775,21 @@ __shangbi_dft:
 	ldr r0, [r0, # 0x0c]
 	str r0, [r2]
 	bl __dft
-	ldr r3, = shangbi_i
-	str r1, [r3]
-	mov r1, r0
-	ldr r2, = lvboqizhizhen
+	mov r4, r0
+	ldr r2, = lvboqizhizhen1
+	ldr r0, =lvboqihuanchong1
+	bl __lv_bo_qi
+	ldr r1, = shangbi_i
+	str r0, [r1]
+	mov r1, r4
+        ldr r2, = lvboqizhizhen
 	ldr r0, =lvboqihuanchong
 	bl __lv_bo_qi
-	ldr r2, = shangbi_r
-@	ldr r3, = shangbi_i
-	str r0, [r2]
- @	str r1, [r3]
+	ldr r1, = shangbi_r
+	str r0, [r1]
 	
 __systick_fanhui:	
-	pop {pc}
+	pop {r4,pc}
 aaa:
 	bx lr
 	.ltorg
