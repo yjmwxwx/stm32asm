@@ -189,35 +189,22 @@ io_she_zhi:
 	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 	ldr r0, = 0x48000000
-	ldr r1, = 0x28245755
+	ldr r1, = 0x28249a57
 	str r1, [r0]
-	movs r1, # 0x07
+	movs r1, 0xb0
 	str r1, [r0, # 0x04]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
-
+	
         ldr r0, = 0x48000400
 	movs r1, # 0x04
 	str r1, [r0]
-
-	movs r1, # 0x02
-	str r1, [r0, # 0x28]
-
-	ldr r0, = 0x48000000
-	ldr r1, = 0x200
-	str r1, [r0, # 0x28]
-
-	movs r1, #  0x40
-	str r1, [r0, # 0x28] 	@cd4053_9_10
-
-	movs r1, # 0x20
-	str r1, [r0, # 0x28]	@cd4053_11
-
-	movs r1, # 0x08
-	str r1, [r0, # 0x28]	@cd4052_B
-
-	movs r1, # 80
-	str r1, [r0, # 0x28]  	@cd4052_A
+spi_chushihua:
+	ldr r0, = 0x40013000
+	ldr  r1, = 0x708
+	str r1, [r0, # 0x04]
+	ldr r1, = 0x5c
+	str r1, [r0]
 	
 __kai_lcd_bei_guang:
         ldr r0, = lcd_beiguang
@@ -317,7 +304,7 @@ _deng_adc_wen_ding:
 _tongdaoxuanze:
 	ldr r1, = 0x40000000
 	str r1, [r0, # 0x10]
-	ldr r1, = 0x10
+	ldr r1, = 0x01
 	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
 	ldr r1, = 0x8c3 @ 0xc43		@TIM3 0x8c3 @0x2003 @0x8c3
 	str r1, [r0, # 0x0c]    @ 配置寄存器 1 (ADC_CFGR1)
@@ -588,8 +575,7 @@ _lcdyanshixunhuan:
 	subs r5, r5, # 1
 	bne _lcdyanshixunhuan
 	pop {r5,pc}
-
-_xielcd:				@入R0=8位,r1=0命令,r1=1数据
+_xielcd:					@入R0=8位,r1=0命令,r1=1数据
 	push {r0-r5,lr}
 	ldr r4, = lcd_beiguang  @ 量程开关 (第6位和第7位)
 	mov r2, r0
@@ -609,58 +595,36 @@ __xie_lcd_shu_ju:
 	adds r3, r3, r5
 	mov r1, r0
 	adds r2, r2, r3
+	ldr r5, = 0x4001300c
 	movs r0, r2
-	bl __74hc595
+	strb r0, [r5]
+	bl __spi_mang
+	bl __yanshi_595
 	subs r0, r0, # 0x02
-	bl __74hc595
+	strb r0, [r5]
+	bl __spi_mang
+	bl __yanshi_595
 	mov r0, r1
 	adds r0, r0, r3
-	bl __74hc595
+	strb r0, [r5]
+	bl __spi_mang
+	bl __yanshi_595
 	subs r0, r0, # 0x02
-	bl __74hc595
+	strb r0, [r5]
+	bl __spi_mang
+	bl __yanshi_595
 	pop {r0-r5,pc}
-
-__74hc595:				@ 入R0=8位
-	push {r0-r7,lr}
-	ldr r6, = 0x48000000
-	movs r5, # 0x01		@ SRCLK
-	movs r2, # 0x02		@ RCLK
-	movs r3, # 0x04		@ SER
-	movs r4, # 24
-__595_yiweixunhuan:
-	str r2, [r6, # 0x28]	@ rclk=0
-	str r5, [r6, # 0x28]	@ srclk=0
-	@movs r7, # 0xff
-	ldr r7, = 0x1ff
-__595_yanshi:
-	subs r7, r7, # 1
-	bne __595_yanshi
-	mov r1, r0
-	lsls r1, r1, r4
-	bpl __ser_0
-__ser_1:
-	str r3, [r6, # 0x18]	@ ser=1
-	b __595_yiwei
-__ser_0:
-	str r3, [r6, # 0x28]	@ ser=0
-__595_yiwei:
-	str r5, [r6, # 0x18]
-	@movs r7, # 0xff
-	ldr r7, = 0x1ff
-__595_yanshi1:
-	subs r7, r7, # 1
-	bne __595_yanshi1
-	adds r4, r4, # 1
-	cmp r4, # 32
-	bne __595_yiweixunhuan
-	str r2, [r6, # 0x18]	@ rclk=1
-	@movs r7, # 0xff
-	ldr r7, = 0x1ff
-__595_yanshi2:
-	subs r7, r7, # 1
-	bne __595_yanshi2
-	str r2, [r6, # 0x28]	@ rclk = 0
-	pop {r0-r7,pc}
+__spi_mang:
+	ldr r2, [r5, # 0x08]
+	lsls r2, r2, # 24
+	bmi __spi_mang
+	mov pc, lr
+__yanshi_595:
+	ldr r2, = 0x2000
+__yanshi__595:
+	subs r2, r2, # 1
+	bne __yanshi__595
+	mov pc, lr
 	
 
 _zhuanascii:						@ 16进制转ASCII
@@ -741,8 +705,8 @@ _systickzhongduan:
 	bne __shangbi_dft
         movs r3, # 0
 	str r3, [r2]
-	ldr r2, = 0x48000000
-	movs r3, #  0x40
+	ldr r2, = 0x48000400
+	movs r3, #  0x02
 	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
 	ldr r2, = 0x20000040
 	ldr r0, = 0x40020000
@@ -761,14 +725,13 @@ _systickzhongduan:
 	bl __lv_bo_qi
 	ldr r1, = xiabi_r
 	str r0, [r1]
-	
 	b __systick_fanhui
 	
 __shangbi_dft:
 	movs r3, # 1
 	str r3, [r2]
-	ldr r2, = 0x48000000
-        movs r3, #  0x40
+	ldr r2, = 0x48000400
+        movs r3, #  0x02
 	str r3, [r2, # 0x18]    @cd4053_9_10 下臂开
 	ldr r2, = 0x20000044
 	ldr r0, = 0x40020000
