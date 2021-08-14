@@ -22,22 +22,24 @@ xiabi_liangcheng:
 	.short 0x246,0x24a,0x24e
 	.align 4
 zukang_xiaoshu_dian:
-	.byte 0xff,0xff,0xff,0xff
-	.byte 0x03,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0x02,0x02
+	.byte 0x03,0xff,0xff,0x01
+	.byte 0x02,0x02,0x03,0xff
 	.byte 0xff,0xff,0xff
 	.align 4
-zidong_liangcheng_biao:
-	.byte 11,5,2,1,1,1,1,1
+zukang_huansuan_biao:
+	.int 39321,121241,36044,109226
+	.int 32768,98304,32768,98384
+	.int 32768,98384,32768,98384
+	.int 32768,32768,32768
+zukang_danwei:
+	@毫欧=0XF46D，欧=0XF420, 千欧=0XF44B，兆欧=0XF44D
+	.int 0xf420,0xf420,0xf420,0xf420
+	.int 0xf420,0xf420,0xf420,0xf44b
+	.int 0xf44b,0xf44b,0xf44b,0xf420
+	.int 0xf420,0xf420,0xf420
 	.align 4
-hao_ou:
-	.int 0xf46d
-ou:
-	.int 0xf420
-qian_ou:
-	.int 0xf44b
-zhao_ou:
-	.int 0xf44d
+
 kong:
 	.int 0x20202020
 _fu:
@@ -59,6 +61,13 @@ yjmwxwx:
 	.equ dma_r,			0x20000044
 	.equ dma_i,			0x20000048
 	.equ huandangyanshi,		0x2000004c
+	.equ shangbi_rr,		0x20000050
+	.equ shangbi_ii,		0x20000054
+	.equ xiabi_rr,			0x20000058
+	.equ xiabi_ii,			0x2000005c
+	.equ jishu,			0x20000060
+	.equ xianshi_biaozhi,		0x20000064
+	.equ z_fudu,			0x20000068
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x200008d0
 	.equ lvboqihuanchong,		0x200008d8
@@ -119,7 +128,6 @@ vectors:
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
 _start:
-	
 shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
@@ -400,49 +408,56 @@ tim1chushiha:
         str r4, [r3]
 	
 	ldr r0, = liangcheng
-	movs r1, # 4
+	movs r1, # 14
 	str r1, [r0]
 ting:
-	bl __xianshi_shangxia_bi
-	b ting
+	bl __jisuan_zukang
 	movs r0, # 0x8e
-	ldr r1, = ou
+	ldr r2, = liangcheng
+	ldr r1, = zukang_danwei
+	ldr r2, [r2]
+	lsls r2, r2, # 2
+	adds r1, r1, r2
 	movs r2, # 2
 	bl _lcdxianshi
-	bl __zidong_dangwei
 	bl __xianshi_zukang
 	bl __xianshi_liangcheng
 	b ting
 	.ltorg
 
+__jisuan_z_fudu:
+	push {r0-r2,lr}
+	ldr r0, = xiabi_r
+	ldr r1, = xiabi_i
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __ji_suan_fu_du
+	mov r2, r0
+	ldr r0, = shangbi_r
+	ldr r1, = shangbi_i
+	ldr r0, [r0]
+	ldr r1, [r1]
+	bl __ji_suan_fu_du
+	mov r1, r2
+	ldr r2, = 1000
+	muls r0, r0, r2
+	bl _chufa
+	ldr r1, = z_fudu
+	str r0, [r1]
+	pop {r0-r2,pc}
 
 
+	
 __zidong_dangwei:
 	push {r0-r3,lr}
 __huan_dang:
-	ldr r0, = z_r
-	ldr r1, = z_i
-	ldr r2, [r0]
-	ldr r3, [r1]
-	movs r2, r2
-	bpl __jian_ce_xu_bu_shi_bu_shi_fu_shu
-	mvns r2, r2
-	adds r2, r2, # 1
-__jian_ce_xu_bu_shi_bu_shi_fu_shu:
-	movs r3, r3
-	bpl __bi_jiao_shi_xu_da_xiao
-	mvns r3, r3
-	adds r3, r3, # 1
-__bi_jiao_shi_xu_da_xiao:
-	cmp r2, r3
-	bcs __dang_wei_pan_duan
-	mov r2, r3
-__dang_wei_pan_duan:
+	ldr r0, = z_fudu
+	ldr r0, [r0]
 	ldr r3, = 900
-	cmp r2, r3
+	cmp r0, r3
 	bcc __dang_wei_jian
 	ldr r3, = 3000
-	cmp r2, r3
+	cmp r0, r3
 	bcc __zi_dong_dang_wei_fan_hui
 	ldr r0, = liangcheng
 	ldr r1, [r0]
@@ -465,9 +480,25 @@ __dang_wei_jian:
 __zi_dong_dang_wei_fan_hui:
 	pop {r0-r3,pc}
 
-
-
-
+__jisuan_zukang:
+	push {r0-r4,lr}
+	ldr r0, = shangbi_r
+	ldr r1, = shangbi_i
+	ldr r2, = xiabi_r
+	ldr r3, = xiabi_i
+	ldr r4, = 1000
+	ldr r0, [r0]
+	ldr r1, [r1]
+	ldr r2, [r2]
+	ldr r3, [r3]
+	muls r0, r0, r4
+	muls r1, r1, r4
+	bl __fu_shu_chu_fa
+	ldr r0, = z_r
+	ldr r3, = z_i
+	str r1, [r3]
+	str r2, [r0]
+	pop {r0-r4,pc}
 	
 __ji_suan_fu_du:	    @ 计算幅度
 	@ 入r0= 实部，r1= 虚部
@@ -517,24 +548,20 @@ _alpha_min_beta_max:
 	.ltorg
 __xianshi_zukang:
 	push {r0-r5,lr}
-	ldr r0, = shangbi_r
-	ldr r1, = shangbi_i
-	ldr r2, = xiabi_r
-	ldr r3, = xiabi_i
-	ldr r4, = 1000
-	ldr r0, [r0]
-	ldr r1, [r1]
-	ldr r2, [r2]
-	ldr r3, [r3]
-	muls r0, r0, r4
-	muls r1, r1, r4
-	bl __fu_shu_chu_fa
 	ldr r4, = z_r
 	ldr r5, = z_i
-	str r2, [r4]
-	str r1, [r5]
-	mov r5, r1
-	movs r4, r2
+	ldr r4, [r4]
+	ldr r5, [r5]
+	ldr r1, = liangcheng
+	ldr r0, = zukang_huansuan_biao
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	ldr r0, [r0, r1]
+	muls r4, r4, r0
+	muls r5, r5, r0
+	asrs r4, r4, # 15
+	asrs r5, r5, # 15
+	movs r4, r4
 	bpl aaa1
 	movs r0, # 0x82
 	ldr r1, = _fu
@@ -1227,6 +1254,10 @@ _systickzhongduan:
 	mvns r1, r1
 	adds r0, r0, # 1
 	adds r1, r1, # 1
+	ldr r2, = xiabi_rr
+	ldr r3, = xiabi_ii
+	str r0, [r2]
+	str r1, [r3]
         mov r4, r0
 	ldr r2, = lvboqizhizhen3
 	ldr r0, =lvboqihuanchong3
@@ -1259,6 +1290,10 @@ __shangbi_dft:
 	ldr r0, [r0, # 0x0c]
 	str r0, [r2]
 	bl __dft
+	ldr r2, = shangbi_rr
+	ldr r3, = shangbi_ii
+	str r0, [r2]
+	str r1, [r3]
 	mov r4, r0
 	ldr r2, = lvboqizhizhen1
 	ldr r0, =lvboqihuanchong1
@@ -1271,7 +1306,19 @@ __shangbi_dft:
 	bl __lv_bo_qi
 	ldr r1, = shangbi_r
 	str r0, [r1]
-	
+	ldr r0, = jishu
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 50
+	bne __systick_fanhui
+	movs r1, # 0
+	str r1, [r0]
+	ldr r0, = xianshi_biaozhi
+	movs r1, # 1
+	str r1, [r0]
+	bl __jisuan_z_fudu
+	bl __zidong_dangwei
 __systick_fanhui:	
 	pop {r4,pc}
 aaa:
