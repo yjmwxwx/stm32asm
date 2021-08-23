@@ -1774,13 +1774,6 @@ Connection ~ 1800 5950
 Wire Wire Line
 	1800 5950 2000 5950
 Wire Wire Line
-	4250 5950 4250 5500
-Wire Wire Line
-	4250 5500 1800 5500
-Connection ~ 1800 5500
-Wire Wire Line
-	1800 5500 1800 5950
-Wire Wire Line
 	3450 7050 5700 7050
 Wire Wire Line
 	5700 7050 5700 5150
@@ -1793,8 +1786,6 @@ Wire Wire Line
 Wire Wire Line
 	3200 4550 1800 4550
 Connection ~ 1800 4550
-Wire Wire Line
-	1800 4550 1800 5500
 Wire Wire Line
 	14250 5850 14550 5850
 Wire Wire Line
@@ -2455,4 +2446,26 @@ F 3 "" H 4800 1600 50  0001 C CNN
 	1    4800 1600
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	1800 4550 1800 5600
+$Comp
+L Device:R R44
+U 1 1 61282B84
+P 3000 5600
+F 0 "R44" V 2793 5600 50  0000 C CNN
+F 1 "100" V 2884 5600 50  0000 C CNN
+F 2 "" V 2930 5600 50  0001 C CNN
+F 3 "~" H 3000 5600 50  0001 C CNN
+	1    3000 5600
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3150 5600 4250 5600
+Wire Wire Line
+	4250 5600 4250 5950
+Wire Wire Line
+	2850 5600 1800 5600
+Connection ~ 1800 5600
+Wire Wire Line
+	1800 5600 1800 5950
 $EndSCHEMATC
