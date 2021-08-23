@@ -32,13 +32,18 @@ xiabi_liangcheng:
 	.short 0x00,0x00,0x200,0x40,0x240,0x248
 	.align 4
 zukang_xiaoshu_dian:			@jdjd
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0x02,0x03,0xff,0x02,0x03,0x01
 	.align 4
 zukang_huansuan_biao:
 	.int 32768,32768,32768,32768,32768,32768
 zukang_danwei:
 	@毫欧=0XF46D，欧=0XF420, 千欧=0XF44B，兆欧=0XF44D
-	.int 0xf420,0xf420,0xf420,0xf420,0xf420,0xf420
+	.int 0xf420,0xf420,0xf420,0xf44b,0xf44b,0xf44d
+an_jian_biao:
+	.word __an_jian0         	   	   +1
+	.word __dang_wei_jia     	   	   +1
+	.word __pin_lv_jia      	   	   +1
+	.word __an_jian3         	           +1
 	.align 4
 
 kong:
@@ -74,6 +79,7 @@ yjmwxwx:
 	.equ anjian,			0x20000074
 	.equ shezhi_pinlv,		0x20000078
 	.equ zhenfu,			0x2000007c
+	.equ pinlvjiayanshi,		0x20000080
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x200008d0
 	.equ lvboqihuanchong,		0x200008d8
@@ -238,18 +244,19 @@ io_she_zhi:
 	ldr r0, = 0x48000000
 	ldr r1, = 0x28249a43
 	str r1, [r0]
-	movs r1, # 0xb0
+	movs r1, # 0xb6
 	str r1, [r0, # 0x04]
 	ldr r1, = 0x30cf00
 	str r1, [r0, # 0x08]
 	movs r1, # 0x14
+	str r1, [r0, # 0x0c]
 	ldr r1, = 0x200
 	str r1, [r0, # 0x24]
 	
         ldr r0, = 0x48000400
 	movs r1, # 0x04
 	str r1, [r0]
-
+	
 spi_chushihua:
 	ldr r0, = 0x40013000
 	ldr  r1, = 0x708
@@ -337,15 +344,51 @@ _tongdaoxuanze:
 	ldr r0, = liangcheng
 	movs r1, # 1
 	str r1, [r0]
-
-
-	
-ting:
 	ldr r0, = shezhi_pinlv
+	movs r1, # 1
+	str r1, [r0]
+	b ting
+
+__dang_wei_jia:
+	b ting
+__pin_lv_jia:
+	ldr r3, = shezhi_pinlv
+	ldr r2, [r3]
+	cmp r2, # 3
+	bcc __pinlv_1_2
+	movs r2, # 10
+	b __pinlv_jia_yanshi
+__pinlv_1_2:
+	movs r2, # 50
+__pinlv_jia_yanshi:	
+	ldr r0, = pinlvjiayanshi
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, r2
+	bne __pin_lv_fan_hui
+	movs r1, # 0
+	str r1, [r0]
+	ldr r1, [r3]
+	adds r1, r1, # 1
+	str r1, [r3]
+	cmp r1, # 5
+	bne __pin_lv_fan_hui
+	movs r1, # 1
+	str r1, [r3]
+__pin_lv_fan_hui:
+        ldr r0, = shezhi_pinlv
 	ldr r0, [r0]
 	bl __pinlv_shezhi
 	bl __pin_lv_xian_shi
-__tiaoguo_pinlv_shezhi:	
+	bl __an_jian
+	b __cai_dan_diao_du
+__an_jian3:
+__an_jian0:		
+ting:
+	ldr r0, = pinlvjiayanshi
+	movs r1, # 0
+	str r1, [r0]
 	bl __jisuan_zukang
 	movs r0, # 0x8e
 	ldr r2, = liangcheng
@@ -356,10 +399,24 @@ __tiaoguo_pinlv_shezhi:
 	movs r2, # 2
 	bl _lcdxianshi
 	bl __xianshi_zukang
-	bl __xianshi_liangcheng	
+	bl __xianshi_liangcheng
+        bl __an_jian
+__cai_dan_diao_du:
+	lsls r0, r0, # 2
+	ldr r1, = an_jian_biao
+	ldr r2, [r1, r0]
+	mov pc, r2
 	b ting
 	.ltorg
 
+__an_jian:
+	push {r1,lr}
+	ldr r1, = 0x48000010
+	ldr r0, [r1]	@pa4
+	mvns r0, r0
+	lsls r0, r0, # 29
+	lsrs r0, r0, # 30
+	pop {r1,pc}
 __pinlv_shezhi:
 	@入口R0
 	@1=100, 2=1KHZ, 3=10KHZ, 4=100KHZ
@@ -763,7 +820,7 @@ __jisuan_z_fudu:
 	muls r0, r0, r2
 	bl _chufa
 	ldr r1, = z_fudu
-@	lsrs r0, r0, # 5
+@	lsrs r0, r0, # 4
 	str r0, [r1]
 	pop {r0-r2,pc}
 	
@@ -772,10 +829,10 @@ __zidong_dangwei:
 __huan_dang:
 	ldr r0, = z_fudu
 	ldr r0, [r0]
-	ldr r3, =  900
+	ldr r3, =  500
 	cmp r0, r3
 	bcc __dang_wei_jian
-	ldr r3, = 3000
+	ldr r3, =  5000
 	cmp r0, r3
 	bcc __zi_dong_dang_wei_fan_hui
 	ldr r0, = liangcheng
