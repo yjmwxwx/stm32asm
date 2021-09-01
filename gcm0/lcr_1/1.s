@@ -7,7 +7,7 @@
 	.syntax unified
 	.section .data
 zheng_xian_100khz:
-	.byte 0x7,0x9,0xb,0xd,0xe,0xe,0xe,0xd,0xb,0x9,0x7,0x5,0x3,0x1,0x0,0x0,0x0,0x1,0x3,0x5
+	.byte 14,18,21,24,26,27,26,24,21,18,14,9,6,3,1,0,1,3,6,9
 	.align 4
 zheng_xian_10khz:
 	.byte 14,14,14,15,15,16,16,16,17,17,18,18,18,19,19,20,20,20,21,21,21,22,22,22,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,26,26,26,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,26,26,26,26,26,26,26,25,25,25,25,24,24,24,24,23,23,23,22,22,22,21,21,21,20,20,20,19,19,18,18,18,17,17,16,16,16,15,15,14,14,14,13,13,12,12,11,11,11,10,10,9,9,9,8,8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,3,2,2,2,2,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,9,9,9,10,10,11,11,11,12,12,13,13
@@ -80,6 +80,7 @@ yjmwxwx:
 	.equ shezhi_pinlv,		0x20000078
 	.equ zhenfu,			0x2000007c
 	.equ pinlvjiayanshi,		0x20000080
+	.equ dmacuowu,			0x20000084
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x200008d0
 	.equ lvboqihuanchong,		0x200008d8
@@ -342,7 +343,7 @@ _tongdaoxuanze:
 	bl __pinlv_shezhi
 	bl __pin_lv_xian_shi
 	ldr r0, = liangcheng
-	movs r1, # 1
+	movs r1, # 3
 	str r1, [r0]
 	ldr r0, = shezhi_pinlv
 	movs r1, # 1
@@ -384,7 +385,8 @@ __pin_lv_fan_hui:
 	bl __an_jian
 	b __cai_dan_diao_du
 __an_jian3:
-__an_jian0:		
+__an_jian0:
+	bl __dma_cuowu
 ting:
 	ldr r0, = pinlvjiayanshi
 	movs r1, # 0
@@ -531,6 +533,31 @@ __deng_adc_ting:
 	str r1, [r0]
 	pop {r0-r3,pc}
 	.ltorg
+
+__dma_cuowu: 			@pl_dd
+	push {r0,r1,lr}
+	ldr r0, = dianyabiao
+	ldr r1, = dmacuowu
+	ldr r0, [r0]
+	ldr r2, [r1]
+	cmp r0, r2
+	str r0, [r1]
+	bne __dma_cuowu_fanhui
+        ldr r0, = 0x40021000
+	ldr r1, = 0x60000
+	str r1, [r0, # 0x14]
+	adds r1, r1, # 1
+	str r1, [r0, # 0x14]
+	ldr r0, = pinlv
+	ldr r0, [r0]
+	bl __pinlv_shezhi
+__dma_cuowu_fanhui:
+	pop {r0,r1,pc}
+	
+	
+
+
+
 	
 __pinlv_1K:
 	push {r0-r3,lr}
@@ -778,7 +805,7 @@ __deng_adc_ting3:
 	str r1, [r0]
 	pop {r0-r3,pc}
 __pinlv_yanshi:
-	ldr r0, = 0xffff
+	ldr r0, = 0x1ffff
 __pinlv_yanshi_xunhuan:
 	subs r0, r0, # 1
 	bne __pinlv_yanshi_xunhuan
@@ -820,7 +847,7 @@ __jisuan_z_fudu:
 	muls r0, r0, r2
 	bl _chufa
 	ldr r1, = z_fudu
-@	lsrs r0, r0, # 4
+	lsrs r0, r0, # 5
 	str r0, [r1]
 	pop {r0-r2,pc}
 	
@@ -829,10 +856,12 @@ __zidong_dangwei:
 __huan_dang:
 	ldr r0, = z_fudu
 	ldr r0, [r0]
-	ldr r3, =  500
+	ldr r3, =  900
+	lsrs r3, r3, # 5
 	cmp r0, r3
 	bcc __dang_wei_jian
 	ldr r3, =  5000
+	lsrs r3, r3, # 5
 	cmp r0, r3
 	bcc __zi_dong_dang_wei_fan_hui
 	ldr r0, = liangcheng
@@ -1618,7 +1647,7 @@ _systickzhongduan:
 	str r3, [r2]
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
-	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
+	str r3, [r2, # 0x28]    @cd4053_9_10  0X28上臂开
 	ldr r0, = liangcheng
 	ldr r1, = shangbi_liangcheng
 	ldr r0, [r0]
