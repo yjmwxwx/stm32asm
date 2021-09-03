@@ -297,6 +297,7 @@ yjmwxwx_yanshi:
 	subs r0, r0, # 1
 	bne yjmwxwx_yanshi
 
+	
 	movs r0, # 0x01
 	movs r1, # 0
 	bl _xielcd
@@ -860,7 +861,7 @@ __huan_dang:
 	lsrs r3, r3, # 5
 	cmp r0, r3
 	bcc __dang_wei_jian
-	ldr r3, =  5000
+	ldr r3, =  3000
 	lsrs r3, r3, # 5
 	cmp r0, r3
 	bcc __zi_dong_dang_wei_fan_hui
