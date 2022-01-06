@@ -34,8 +34,9 @@ pinlv_100khz:
 	.ascii "  pin lv 100KHZ "
 	
 	.align 4
-jiaodu_jiaozhun_yong_cordic:
-	.int -32768,0,0,32768,23170,23170,30274,12540,32138,6393,32610,3212,32729,1608,32758,804,32766,402,32767,201,32768,101,32768,50,32768,25,32768,13,32768,6,32758,3,32768,2,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1,32768,1
+cordic_atan_biao:	@角度
+	.int 0x00168000,0x000D4853,0x000704A3,0x00039000,0x0001C9C5,0x0000E51B,0x00007295,0x0000394B,0x00001CA5,0x00000E52,0x00000729,0x00000394,0x000001CA,0x000000E5,0x00000072,0x00000039
+	
 jiaozhun_yong_cordic:
 	.int 32768,16384,8192,4096,2048,1024,512,256,128,64,32,16,8,4,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 cordic_yong_cos_sin:
@@ -202,6 +203,16 @@ vectors:
 	.word aaa +1         @_usart1 +1     @ 27
 	.align 2
 _start:
+daz:	
+	movs r0, # 1
+	lsls r0, r0, # 15
+	bl __ji_suan_cos_sin
+	bkpt # 55
+	b daz
+
+
+
+	
 shizhong:
 	ldr r2, = 0x40022000   @FLASH访问控制
 	movs r1, # 0x32
@@ -497,21 +508,11 @@ dzd:
 	bl __xianshi_zukang
 	subs r7, r7, # 1
 	bne dzd
-	movs r0, # 0
-	bl __jiaozhun_jiaodu
-	bl __xiangwei_xuanzhuan
-	ldr r0, = 10000
-	bl __jiaozhun_fudu
-	ldr r1, = z_r
-	ldr r2, = z_i
-	ldr r3, [r1]
-	ldr r4, [r2]
-	muls r3, r3, r0
-	muls r4, r4, r0
-	asrs r3, r3, # 15
-	asrs r4, r4, # 15
-	str r3, [r1]
-	str r4, [r2]
+	bkpt # 2
+	cpsid i
+	ldr r0, = 32768
+	bl __ji_suan_cos_sin
+	
 	bl __xianshi_zukang
 	bkpt # 4
         movs r0, # 0x01
@@ -544,170 +545,6 @@ __cai_dan_diao_du:
 	b ting
 	.ltorg
 
-__jiaozhun_fudu:
-	cpsie i
-	@入口 R0=期望幅度
-	@出口R0= 幅度校准值
-	push {r1-r6,lr}
-	mov r2, r0
-	ldr r0, = z_r
-	ldr r1, = z_i
-	ldr r0, [r0]
-	ldr r1, [r1]
-	bl __ji_suan_fu_du
-	movs r1, # 0
-	ldr r3, = jiaozhun_yong_cordic
-	ldr r5, = 32768
-	mov r6, r0
-__fudu_jiaozhun_xunhuan:
-	ldr r4, [r3, r1]
-	cmp r2, r0
-	bcc __fudu_jian
-__fudu_jia:
-	adds r5, r5, r4
-	b __jiaozhun_xuanzhuan
-__fudu_jian:
-	subs r5, r5, r4
-__jiaozhun_xuanzhuan:
-	mov r0, r6
-	muls r0, r0, r5
-	lsrs r0, r0, # 15
-	adds r1, r1, # 4
-	cmp r1, # 120
-	bne __fudu_jiaozhun_xunhuan
-__baocun_fudu_jiaozhun:
-	movs r0, r5
-	bpl __jiaozhun_fudu_fanhui
-	ldr r0, = 32768
-__jiaozhun_fudu_fanhui:
-	cpsid i
-	pop {r1-r6,pc}
-	
-	
-__xiangwei_xuanzhuan:
-	push {r2-r7,lr}
-	ldr r2, = z_r
-	ldr r3, = z_i
-	ldr r4, [r2]
-	ldr r5, [r3]
-	mov r6, r0
-	mov r7, r1
-        muls r0, r0, r4 @X*COS
-	muls r7, r7, r5 @Y*SIN
-	muls r1, r1, r4 @X*SIN
-	muls r6, r6, r5 @Y*COS
-	subs r0, r0, r7
-	adds r1, r6, r1
-	asrs r0, r0, # 15
-	asrs r1, r1, # 15
-	str r0, [r2]
-	str r1, [r3]
-	pop {r2-r7,pc}
-
-__jiaozhun_jiaodu:
-	@入口r0=期望角度
-	@出口R0=COS，R1=SIN
-	cpsid i
-	push {r2-r7,lr}
-	mov r3, r8
-	mov r4, r9
-	mov r5, r10
-	mov r6, r11
-	mov r7, r12
-	push {r3-r7}
-	mov r12, r0
-	ldr r0, = 32768	@180度
-	movs r1, # 0
-	mov r8, r0
-	mov r9, r1
-	ldr r0, = z_r
-	ldr r1, = z_i
-	ldr r6, [r0]
-	ldr r7, [r1]
-	ldr r3, = jiaodu_jiaozhun_yong_cordic
-	movs r2, # 0
-__jiaodu_jiaozhun_xunhuan:
-	ldr r4, [r3, r2]
-	adds r2, r2, # 4
-	ldr r5, [r3, r2]
-	mov r0, r6
-	mov r1, r7
-	bl __atan2_ji_suan
-	mov r1, r12
-	subs r0, r0, r1
-	bmi __jiaodu_fanzhuan
-	mov r10, r6
-	mov r11, r7
-	mov r6, r8
-	mov r7, r9
-	mov r0, r6
-	mov r1, r7
-	muls r6, r6, r4 @X*COS
-	muls r1, r1, r5 @Y*SIN
-	muls r0, r0, r5 @X*SIN
-	muls r7, r7, r4 @Y*COS
-	adds r6, r6, r1
-	subs r7, r7, r0
-	asrs r6, r6, # 15
-	asrs r7, r7, # 15
-	mov r8, r6
-	mov r9, r7
-	mov r6, r10
-	mov r7, r11
-	mov r0, r6
-	mov r1, r7
-	muls r6, r6, r4	@X*COS
-	muls r1, r1, r5	@Y*SIN
-	muls r0, r0, r5	@X*SIN
-	muls r7, r7, r4	@Y*COS
-	adds r6, r6, r1
-	subs r7, r7, r0
-	asrs r6, r6, # 15
-	asrs r7, r7, # 15
-	b __jiaodu_xuanzhuan
-__jiaodu_fanzhuan:
-	mov r10, r6
-	mov r11, r7
-	mov r6, r8
-	mov r7, r9
-	mov r0, r6
-	mov r1, r7
-	muls r6, r6, r4 @X*COS
-	muls r1, r1, r5 @Y*SIN
-	muls r0, r0, r5 @X*SIN
-	muls r7, r7, r4 @Y*COS
-	subs r6, r6, r1
-	adds r7, r7, r0
-	asrs r6, r6, # 15
-	asrs r7, r7, # 15
-	mov r8, r6
-	mov r9, r7
-	mov r6, r10
-	mov r7, r11
-	mov r0, r6
-	mov r1, r7
-	muls r6, r6, r4 @X*COS
-	muls r1, r1, r5 @Y*SIN
-	muls r0, r0, r5 @X*SIN
-	muls r7, r7, r4 @Y*COS
-	subs r6, r6, r1
-	adds r7, r7, r0
-	asrs r6, r6, # 15
-	asrs r7, r7, # 15
-__jiaodu_xuanzhuan:
-	adds r2, r2, # 4
-	cmp r2, # 240
-	bne __jiaodu_jiaozhun_xunhuan
-	mov r0, r8
-	mov r1, r9
-	pop {r3-r7}
-	mov r8, r3
-	mov r9, r4
-	mov r10, r5
-	mov r11, r6
-	mov r12, r7
-	cpsie i
-	pop {r2-r7,pc}
 		
 __xianshi_shangxiabi_jiaodu:
 	push {r0-r3,lr}
@@ -1197,6 +1034,55 @@ __jisuan_zukang:
 	str r2, [r0]
 	pop {r0-r5,pc}
 
+__ji_suan_cos_sin:
+	@入口R0=期望角度(角度*32768)
+	@出口R0=COS，R1=SIN
+	@cordic增益= 0.6072529350088812561694*32768
+        @入口R0
+	@出口R0=COS，R1=SIN
+	@ x= 0x4dba
+	@ r1=x,r2=y,r0=z,r4=d,r5=k,r6=cordic_mabiao
+
+	push {r2-r7,lr}
+	mov r2, r8
+	mov r3, r9
+	push {r2-r3}
+	movs r5, # 0
+	mov r2, r5
+	mov r4, r5
+	ldr r1, = 0x4dba
+cordicxunhuan1:	                           @ 循环
+	asrs r4, r0, # 15
+	@ x
+	mov r7, r2
+	asrs r2, r2, r5
+	eors r2, r2, r4
+	subs r2, r2, r4
+	subs r3, r1, r2
+	@ y
+	mov r6, r1
+	asrs r1, r1, r5
+	eors r1, r1, r4
+	subs r1, r1, r4
+	adds r7, r7, r1
+	@ z
+	ldr r6, = cordic_atan_biao
+	lsls r2, r5, # 2
+	ldr r1, [r6, r2]
+	eors r1, r1, r4
+	subs r1, r1, r4
+	subs r0, r0, r1
+	mov r1, r3
+	mov r2, r7
+	adds r5, # 1
+	cmp r5, # 16
+	bne cordicxunhuan1
+	mov r0, r3
+	mov r1, r7
+	pop {r2-r3}
+	mov r8, r2
+	mov r9, r3
+	pop {r2-r7,pc}
 	
 	
 __jisuan_cos_sin:				@jd
@@ -1388,10 +1274,8 @@ _panduanxubushibushi0:
 	bne _jisuanfudu1
 	pop {r1-r3,pc}
 _jisuanfudu1:
-	ldr r2, = 32765		@ Alpha q15 0.948059448969 @
-				@ 感觉这个小了，要乘1.0547
-	ldr r3, = 13572		@ Beta q15 0.392699081699
-				@感觉这个小了要乘1.0547
+	ldr r2, = 31066		@ Alpha q15 0.948059448969
+	ldr r3, = 12867		@ Beta q15 0.392699081699
 	cmp r1, r0
 	bhi _alpha_min_beta_max
 _alpha_max_beta_min:
@@ -1410,9 +1294,6 @@ _alpha_min_beta_max:
 	adds r0, r0, r1
 	movs r1, # 0
 	pop {r1-r3,pc}
-
-
-	
 	.ltorg
 __xianshi_zukang:
 	push {r0-r5,lr}

@@ -785,7 +785,7 @@ Wire Wire Line
 Wire Wire Line
 	3500 2750 4450 2750
 Connection ~ 4450 2750
-Text Label 5600 1550 0    50   ~ 0
+Text Label 6200 1100 0    50   ~ 0
 SPWM
 $Comp
 L Device:Crystal Y1
@@ -930,19 +930,17 @@ Wire Wire Line
 $Comp
 L Device:R R22
 U 1 1 625D8345
-P 5300 1550
-F 0 "R22" V 5093 1550 50  0000 C CNN
-F 1 "1K" V 5184 1550 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" V 5230 1550 50  0001 C CNN
-F 3 "~" H 5300 1550 50  0001 C CNN
-	1    5300 1550
+P 5900 1100
+F 0 "R22" V 5693 1100 50  0000 C CNN
+F 1 "1K" V 5784 1100 50  0000 C CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" V 5830 1100 50  0001 C CNN
+F 3 "~" H 5900 1100 50  0001 C CNN
+	1    5900 1100
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	5150 1550 5000 1550
 Connection ~ 5000 1550
 Wire Wire Line
-	5450 1550 5600 1550
+	6050 1100 6200 1100
 Wire Wire Line
 	3700 1550 4100 1550
 $Comp
@@ -3504,5 +3502,34 @@ F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" H 5988 5250 50  
 F 3 "~" H 5950 5400 50  0001 C CNN
 	1    5950 5400
 	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5750 1100 5350 1100
+Wire Wire Line
+	5000 1100 5000 1550
+$Comp
+L Device:R R21
+U 1 1 61E47858
+P 5350 1250
+F 0 "R21" H 5420 1296 50  0000 L CNN
+F 1 "100" H 5420 1205 50  0000 L CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" V 5280 1250 50  0001 C CNN
+F 3 "~" H 5350 1250 50  0001 C CNN
+	1    5350 1250
+	1    0    0    -1  
+$EndComp
+Connection ~ 5350 1100
+Wire Wire Line
+	5350 1100 5000 1100
+$Comp
+L power:GND #PWR09
+U 1 1 61F0040F
+P 5350 1400
+F 0 "#PWR09" H 5350 1150 50  0001 C CNN
+F 1 "GND" H 5355 1227 50  0000 C CNN
+F 2 "" H 5350 1400 50  0001 C CNN
+F 3 "" H 5350 1400 50  0001 C CNN
+	1    5350 1400
+	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
