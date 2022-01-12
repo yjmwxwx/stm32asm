@@ -73,9 +73,9 @@ xiabi_liangcheng:
 	.short 0x240,0x242,0x244,0x248,0x246,0x24a,0x24c,0x24e
 	.align 4
 zukang_xiaoshu_dian:			@jdjd
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 3,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,2,2,3
+	.byte 3,0xff,0xff,0xff,0xff,0xff,0xff,0xff
 	.align 4
 zukang_dianzu_biao:
 	.int 55555,16666,33333,55555,10000,16666,33333,10000
@@ -83,7 +83,9 @@ zukang_dianzu_biao:
 	.int 10000,30000,6000,10000,18000,3000,6000,1800
 zukang_danwei:
 	@毫欧=0XF46D，欧=0XF420, 千欧=0XF44B，兆欧=0XF44D
-	.int 0xf420,0xf420,0xf420,0xf420,0xf44b,0xf44b,0xf44b,0xf44b,0xf44b
+	.int 0xf46d,0xf46d,0xf420,0xf420,0xf420,0xf420,0xf430,0xf420
+	.int 0xf420,0xf420,0xf420,0xf420,0xf420,0xf44b,0xf44b,0xf44b
+	.int 0xf44b,0xf44b,0xf44b,0xf44d,0xf44d,0xf44d,0xf44d,0xf44d
 an_jian_biao:
 	.word __an_jian0         	   	   +1
 	.word __dang_wei_jia     	   	   +1
@@ -398,7 +400,7 @@ yjmwxwx_yanshi:
 	@	bl __pin_lv_xian_shi
 	
 	ldr r0, = liangcheng
-	movs r1, # 7
+	movs r1, # 0x0e
 	str r1, [r0]
 	ldr r0, = shezhi_pinlv
 	movs r1, # 1
@@ -524,6 +526,15 @@ ting:
 	ldr r1, = asciimabiao
 	movs r2, # 2
 	bl _lcdxianshi
+	movs r0, # 0x8e
+	ldr r2, = liangcheng
+	ldr r1, = zukang_danwei
+	ldr r2, [r2]
+	lsls r2, r2, # 2
+	adds r1, r1, r2
+	movs r2, # 2
+	bl _lcdxianshi
+	
 	
 	
 	b ting
@@ -2192,10 +2203,10 @@ __xiabi_dft:
 	ldr r2, = 0x48000000
 	ldrh  r3, [r1, r0]
 	str r3, [r2, # 0x14]
-	ldr r2, = dma_r
-	ldr r0, = 0x40020000
-	ldr r0, [r0, # 0x0c]
-	str r0, [r2]
+@	ldr r2, = dma_r
+@	ldr r0, = 0x40020000
+@	ldr r0, [r0, # 0x0c]
+@	str r0, [r2]
 	bl __dft
 	mvns r0, r0
 	mvns r1, r1
@@ -2232,10 +2243,10 @@ __shangbi_dft:
 	ldr r2, = 0x48000000
 	ldrh r3, [r1, r0]
 	str r3, [r2, # 0x14]
-	ldr r2, = dma_i
-	ldr r0, = 0x40020000
-	ldr r0, [r0, # 0x0c]
-	str r0, [r2]
+@	ldr r2, = dma_i
+@	ldr r0, = 0x40020000
+@	ldr r0, [r0, # 0x0c]
+@	str r0, [r2]
 	bl __dft
 	ldr r2, = shangbi_rr
 	ldr r3, = shangbi_ii
@@ -2269,7 +2280,7 @@ __shangbi_dft:
 	ldr r0, [r0]
 	cmp r0, # 1
 	beq __systick_fanhui
-	bl __zidong_dangwei
+@	bl __zidong_dangwei
 __systick_fanhui:	
 	pop {r4,pc}
 aaa:
