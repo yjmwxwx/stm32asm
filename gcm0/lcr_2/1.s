@@ -269,20 +269,20 @@ _waisheshizhong:	                         @ 外设时钟
 	ldr r2, = 0x902
 	str r2, [r0, # 0x1c]
 
-	ldr r0, = shezhi_pinlv
-	ldr r0, [r0]
-	cmp r0, # 1
-	bne _neicunqingling
-_neicunqingling1:
-	ldr r0, = 0x20001000
-	ldr r2, = 0x20000100
-	movs r1, # 0
-_neicunqinglingxunhuan1:
-	subs r0, r0, # 4
-	str r1, [r0]
-	cmp r0, r2
-	bne _neicunqinglingxunhuan1
-	b _waishezhongduan
+@	ldr r0, = shezhi_pinlv
+@	ldr r0, [r0]
+@	cmp r0, # 1
+@	bne _neicunqingling
+@_neicunqingling1:
+@	ldr r0, = 0x20001000
+@	ldr r2, = 0x20000100
+@	movs r1, # 0
+@_neicunqinglingxunhuan1:
+@	subs r0, r0, # 4
+@	str r1, [r0]
+@	cmp r0, r2
+@	bne _neicunqinglingxunhuan1
+@	b _waishezhongduan
 _neicunqingling:
 	ldr r0, = 0x20001000
 	ldr r2, = 0x20000000
@@ -2245,6 +2245,7 @@ __xiabi_dft:
 
 __shangbi_dft:
 	ldr r1, = 1000
+	cmp r3, r1
 	beq __xiabi_dft1
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
