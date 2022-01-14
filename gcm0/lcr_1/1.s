@@ -1323,7 +1323,7 @@ __dft:
 	ldr r0, = dianyabiao
 	ldr r1, = cossin
 	ldr r1, [r1]
-	ldr r3, = 1984	@ 点数*2-16
+	ldr r3, = 0x7d0	@1000点
 	ldr r4, = 2048
 	adds r3, r3, r0
 	mov r8, r3
