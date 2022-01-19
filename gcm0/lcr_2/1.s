@@ -56,6 +56,10 @@ jiaozhun_18M:
 	.ascii "  18 "
 jiaozhun:	
 	.ascii "jiaozhun"
+jiaozhun_wancheng:
+	.ascii "jiao zhun wan le"
+guan_ji:
+	.ascii " qing guan ji   "
 pinlv_100hz:
 	.ascii "  pin lv 100HZ  "
 pinlv_1khz:
@@ -113,6 +117,31 @@ zukang_xiaoshu_dian:			@jdjd
 	.byte 3,4,4,4,4,2,2,3
 	.byte 3,3,4,1,1,2,2,3
 	.align 4
+qiwang_fudu:	@期望幅度
+	.int 50000,10000,10000,10000,10000,10000,33333,10000
+	.int 10000,5000,10000,10000,5000,10000,10000,5000
+	.int 10000,10000,5000,10000,10000,1000,1000,1000
+qiwang_jiaodu_100hz:
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+qiwang_jiaodu_1khz:
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+qiwang_jiaodu_10khz:
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+qiwang_jiaodu_100khz:
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+	.int 0,0,0,0,0,0,0,0
+qiwang_jiaodu_biao:
+	.word qiwang_jiaodu_100hz
+	.word qiwang_jiaodu_1khz
+	.word qiwang_jiaodu_10khz
+	.word qiwang_jiaodu_100khz
 zukang_dianzu_biao:
 	.int 55555,16666,33333,55555,10000,16666,33333,10000
 	.int 30000,6000,10000,30000,6000,10000,30000,6000
@@ -484,10 +513,8 @@ __pinlv_dangwei_chushihua:
 @	movs r1, # 0
 @	str r1, [r0]
 		
-	b ting
+	b __an_jian3
 
-__an_jian3:
-	b ting
 __pin_lv_jia:
 	cpsid i
 	ldr r0, = pinlv
@@ -517,7 +544,8 @@ __pinlv_xianshi_yanshi:
 	bne __pinlv_xianshi_yanshi
 	ldr r0, = 0xe000ed0c
 	ldr r1, = 0x05fa0004
-	str r1, [r0]          		@复位
+	str r1, [r0]			@复位
+	bkpt # 1
 __dang_wei_jia:
 	ldr r0, = liangcheng
 	ldr r1, [r0]
@@ -528,11 +556,17 @@ __dang_wei_jia:
 	movs r1, # 0
 	str r1, [r0]
 __dang_wei_fan_hui:
-	movs r1, # 0
-	str r1, [r0]
+	bkpt # 4
+	
+
+
+
 
 	
-	mov r3, r1
+__an_jian3:
+__jiaozhun_chengxu:
+	ldr r3, = liangcheng
+	ldr r3, [r3]
 	lsls r3, r3, # 2
 	movs r0, # 0x01
 	movs r1, # 0
@@ -555,12 +589,17 @@ __dang_wei_fan_hui:
 	ldr r1, = jiaozhun
 	movs r2, # 8
 	bl _lcdxianshi
+	
 __dangwei_qiehuan_xunhuan:
-	ldr r0, = 0x20000090
+	ldr r0, = 0x20000090			@0等待用户确认
+						@1进入校准
+						@其他跳过校准
 	ldr r0, [r0]
-	cmp r0, # 1
+	cmp r0, # 1	
 	beq __jinru_jiaozhun
-	b __dangwei_qiehuan_xunhuan
+	cmp r0, # 0
+	beq __dangwei_qiehuan_xunhuan
+	b __bu_jiaozhun			
 __jinru_jiaozhun:
 	ldr r0, = flash_cachu_biaozhi
 	ldr r0, [r0]
@@ -630,14 +669,24 @@ dzd1:
 
 	subs r7, r7, # 1
 	bne dzd1
-	movs r0, # 0
+	ldr r0, = qiwang_jiaodu_biao
+	ldr r1, = pinlv
+	ldr r2, = liangcheng
+	ldr r1, [r1]
+	ldr r2, [r2]
+	lsls r1, r1, # 2
+	ldr r1, [r0, r1]
+	lsls r2, r2, # 2
+	mov r6, r2
+	ldr r0, [r1, r2] 	@读出期望角度
 	bl __jiaozhun_jiaodu
 	ldr r2, = z_r_jiaozhun
 	ldr r3, = z_i_jiaozhun
 	str r0, [r2]
 	str r1, [r3]
 	bl __xiangwei_xuanzhuan
-	ldr r0, = 50000
+	ldr r0, = qiwang_fudu
+	ldr r0, [r0, r6]	@读出期望幅度
 	bl __jiaozhun_fudu
 	ldr r1, = z_jiaozhun
 	str r0, [r1]
@@ -692,20 +741,105 @@ dzd1:
 	add r5,  r5, pc
 	mov lr, r5
 	mov pc, r4
+	b __jiaozhun_chengxu_fanhui
 
+        ldr r4, = fjiesuo
+	movs r5, # 3
+	add r5, r5, pc
+	mov lr, r5
+	mov pc, r4
+	ldr r4, = ojiesuo
+	movs r5, # 3
+	add r5, r5, pc
+	mov lr, r5
+	mov pc, r4
+
+
+__bu_jiaozhun:	
+	ldr r3, = jiaozhun_biao_zhizhen
+	ldr r0, [r3]
+	ldr r4, = 0x8003800
+	adds r0, r0, r4                 @写地址
+	ldr r4, = xieflash
+	ldr r1, = 0x8000
+	movs r5, # 3
+	add r5,  r5, pc
+	mov lr, r5
+	mov pc, r4
+
+	ldr r3, = jiaozhun_biao_zhizhen
+	ldr r0, [r3]
+	ldr r4, = 0x8003800
+	adds r0, r0, r4
+	adds r0, r0, # 4
+	ldr r4, = xieflash
+	movs r1, # 0
+	movs r5, # 3
+	add r5,  r5, pc
+	mov lr, r5
+	mov pc, r4
+
+	ldr r3, = jiaozhun_biao_zhizhen
+	ldr r0, [r3]
+	ldr r4, = 0x8003800
+	adds r0, r0, r4
+	adds r0, r0, # 8
+	ldr r4, = xieflash
+	ldr r1, = 0x8000
+	movs r5, # 3
+	add r5,  r5, pc
+	mov lr, r5
+	mov pc, r4
+	
+__jiaozhun_chengxu_fanhui:	
 	ldr r3, = jiaozhun_biao_zhizhen
 	ldr r0, [r3]
 	adds r0, r0, # 0x0c
 	str r0, [r3]
-	
 	ldr r0, = pinlv
 	ldr r0, [r0]
 	cmp r0, # 3
 	bne __jiaozhun_qiehuan_pinlv
-	bkpt # 1
+	ldr r0, = 0x20000090
+	movs r1, # 0
+	str r1, [r0]
+	ldr r0, = liangcheng
+	ldr r1, [r0]
+	adds r1, r1, # 1
+	str r1, [r0]
+	cmp r1, # 24
+	bne __jiaozhun_qiehuan_pinlv
+	cpsid i
+_neicun_xie0:
+	ldr r0, = 0x20001000
+	ldr r2, = 0x20000000
+	movs r1, # 0
+_neicun_xie0_xunhuan:
+	subs r0, r0, # 4
+	str r1, [r0]
+	cmp r0, r2
+	bne _neicun_xie0_xunhuan
+	
+        movs r0, # 0x01
+	movs r1, # 0
+	bl _xielcd
+	bl _lcdyanshi
+
+	movs r0, # 0x80
+	ldr r1, = jiaozhun_wancheng
+	movs r2, # 16
+	bl _lcdxianshi
+	bl _lcdyanshi
+
+	movs r0, # 0xc0
+	ldr r1, = guan_ji
+	movs r2, # 16
+	bl _lcdxianshi
+	
+	bkpt # 200
 __jiaozhun_qiehuan_pinlv:	
 	b __pin_lv_jia
-	
+	.ltorg
 
 
 
@@ -718,20 +852,6 @@ __jiaozhun_qiehuan_pinlv:
 
 
 
-
-
-
-
-
-
-
-
-
-__dangwei_xianshi_yanshi:	
-	ldr r0, = 0xffff
-__dangwei_xianshi_yanshi_xunhuan:
-	subs r0, r0, # 1
-	bne __dangwei_xianshi_yanshi_xunhuan
 __an_jian0:
 ting:
 	b __dang_wei_jia
