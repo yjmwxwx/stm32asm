@@ -6,6 +6,78 @@
 	.thumb
 	.syntax unified
 	.section .data
+MF:
+	.ascii "MF"
+UF:
+	.ascii "UF"
+NF:
+	.ascii "NF"
+PF:
+	.ascii "PF"
+dianrong_danwei:
+	.word dianrong_danwei100hz
+	.word dianrong_danwei1khz
+	.word dianrong_danwei10khz
+	.word dianrong_danwei100khz
+dianrong_danwei100hz:
+	.word MF,UF,UF,UF,UF,UF,UF,UF
+	.word UF,UF,UF,UF,NF,UF,UF,UF
+	.word NF,NF,NF,NF,NF,NF,NF,UF
+dianrong_danwei1khz:
+	.word MF,MF,MF,MF,MF,MF,MF,UF
+	.word UF,UF,UF,UF,UF,UF,UF,UF
+	.word NF,NF,NF,NF,NF,NF,NF,UF
+dianrong_danwei10khz:
+	.word MF,MF,MF,MF,MF,MF,MF,UF
+	.word UF,UF,UF,UF,UF,UF,UF,UF
+	.word NF,NF,NF,NF,NF,NF,NF,UF
+dianrong_danwei100khz:
+	.word MF,MF,MF,MF,UF,UF,UF,UF
+	.word UF,UF,UF,UF,UF,UF,UF,UF
+	.word NF,NF,NF,NF,NF,NF,NF,UF
+dianrong_xiaoshudian:
+	.word dianrong_xiaoshudian100hz
+	.word dianrong_xiaoshudian1khz
+	.word dianrong_xiaoshudian10khz
+	.word dianrong_xiaoshudian100khz
+dianrong_xiaoshudian100hz:
+	.byte 0xff,4,4,4,4,4,3,2
+	.byte 2,2,3,3,3,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+dianrong_xiaoshudian1khz:
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+dianrong_xiaoshudian10khz:
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+dianrong_xiaoshudian100khz:
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+dianrong_weishu:
+	.word dianrong_weishu100hz
+	.word dianrong_weishu1khz
+	.word dianrong_weishu10khz
+	.word dianrong_weishu100khz
+dianrong_weishu100hz:	
+	.short 1000,10,10,10,100,100,10,10
+	.short 10,100,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+dianrong_weishu1khz:
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+dianrong_weishu10khz:
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+dianrong_weishu100khz:
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	
 jiaozhun_0.5555:
 	.ascii " 555 "
 jiaozhun_1.666:
@@ -238,6 +310,11 @@ yjmwxwx:
 	.equ z_jiaozhun, 		0x2000008c
 	.equ flash_cachu_biaozhi,	0x20000094
 	.equ jiaozhun_biao_zhizhen,	0x20000098
+	.equ cs,			0x2000009c
+
+
+
+	
 	.equ dianyabiao,		0x20000100
 	.equ lvboqizhizhen,		0x200008d0
 	.equ lvboqihuanchong,		0x200008d8
@@ -505,14 +582,15 @@ yjmwxwx_yanshi:
 	bl _xielcd
 	bl _lcdyanshi
 	
-
+	
 __pinlv_dangwei_chushihua:
 
 	bl __pinlv_shezhi
 @	ldr r0, = liangcheng
 @	movs r1, # 0
 @	str r1, [r0]
-		
+	b ting
+	
 	b __an_jian3
 
 __pin_lv_jia:
@@ -854,12 +932,14 @@ __jiaozhun_qiehuan_pinlv:
 
 __an_jian0:
 ting:
-	b __dang_wei_jia
 	bl __jisuan_zukang
-	bl __xianshi_shangxia_bi
-	b ting
+@	bl __xianshi_shangxia_bi
+@	b ting
 	
 	bl __xianshi_zukang
+	ldr r0, = z_i
+	ldr r0, [r0]
+	bl __jisuan_dianrong
         ldr r0, = liangcheng
 	ldr r0, [r0]
 	movs r1, # 2
@@ -878,6 +958,41 @@ ting:
 	adds r1, r1, r2
 	movs r2, # 2
 	bl _lcdxianshi
+
+	ldr r0, = cs
+	ldr r0, [r0]
+	ldr r2, = pinlv
+	ldr r1, = dianrong_xiaoshudian
+	ldr r2, [r2]
+	lsls r2, r2, # 2
+	ldr r2, [r1, r2]
+	ldr r1, = liangcheng
+	ldr r1, [r1]
+	ldrb r3, [r2, r1]	@读出小数点位置
+	movs r1, # 6
+	ldr r2, = asciimabiao
+	bl _zhuanascii
+	movs r0, # 0xc8
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
+	
+        movs r0, # 0xce
+	ldr r2, = pinlv
+	ldr r2, [r2]
+	ldr r1, = dianrong_danwei
+	lsls r2, r2, # 2
+	ldr r2, [r1, r2]
+	ldr r1, = liangcheng
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	ldr r1, [r2, r1]
+	movs r2, # 2
+	bl _lcdxianshi
+	
+
+
+	
 	b ting
 
 	
@@ -890,53 +1005,27 @@ ting:
 	
 	b ting
 	
-	bl __xianshi_zukang
-	ldr r0, = z_r
-	ldr r1, = z_i
-	ldr r0, [r0]
-	ldr r1, [r1]
-	bl __atan2_ji_suan
-	movs r1, # 0xc9
-	bl __xian_shi_jiao_du
-	b ting
-
-	
-@	bl __xianshi_shangxia_bi
-	@	b ting
-	movs r0, # 0xc7
-	ldr r1, = jiaodu1
-	movs r2, # 2
-	bl _lcdxianshi
-        movs r0, # 0x8e
-	ldr r2, = liangcheng
-	ldr r1, = zukang_danwei
+__jisuan_dianrong:
+	push {r1-r2,lr}
+	@入口r0= z_i
+	mov r1, r0
+	mvns  r1, r1
+	adds r1, r1, # 1
+	ldr r2, = pinlv
 	ldr r2, [r2]
+	ldr r0, = dianrong_weishu
 	lsls r2, r2, # 2
-	adds r1, r1, r2
-	movs r2, # 2
-	bl _lcdxianshi
-
-	
-
-	ldr r7, = 50
-dzd:
-	bl __jisuan_zukang
-	bl __xianshi_zukang
-	
-	subs r7, r7, # 1
-	bne dzd
-	movs r0, # 0
-	bl __jiaozhun_jiaodu
-	ldr r2, = z_r_jiaozhun
-	ldr r3, = z_i_jiaozhun
-	str r0, [r2]
-	str r1, [r3]
-	bl __xiangwei_xuanzhuan
-	ldr r0, = 10000
-	bl __jiaozhun_fudu
-	ldr r1, = z_jiaozhun
+	ldr r2, [r0, r2]
+	ldr r0, = liangcheng
+	ldr r0, [r0]
+	lsls r0, r0, # 1
+	ldrh r2, [r2, r0]
+	ldr r0, = 1591549431
+	muls r1, r1, r2
+	bl _chufa
+	ldr r1, = cs
 	str r0, [r1]
-
+	pop {r1-r2,pc}
 dddd:
 	bl __jisuan_zukang
         ldr r2, = z_r_jiaozhun
