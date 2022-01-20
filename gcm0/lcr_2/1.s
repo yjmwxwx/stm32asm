@@ -21,41 +21,41 @@ dianrong_danwei:
 	.word dianrong_danwei100khz
 dianrong_danwei100hz:
 	.word MF,UF,UF,UF,UF,UF,UF,UF
-	.word UF,UF,UF,UF,NF,UF,UF,UF
-	.word NF,NF,NF,NF,NF,NF,NF,UF
+	.word UF,UF,UF,UF,NF,NF,NF,NF
+	.word NF,NF,NF,PF,PF,PF,PF,PF
 dianrong_danwei1khz:
-	.word MF,MF,MF,MF,MF,MF,MF,UF
-	.word UF,UF,UF,UF,UF,UF,UF,UF
-	.word NF,NF,NF,NF,NF,NF,NF,UF
+	.word MF,UF,UF,UF,UF,UF,UF,NF
+	.word NF,NF,NF,NF,NF,NF,NF,NF
+	.word NF,NF,PF,PF,PF,PF,PF,PF
 dianrong_danwei10khz:
-	.word MF,MF,MF,MF,MF,MF,MF,UF
-	.word UF,UF,UF,UF,UF,UF,UF,UF
-	.word NF,NF,NF,NF,NF,NF,NF,UF
+	.word UF,UF,UF,UF,UF,UF,UF,NF
+	.word NF,NF,NF,NF,NF,NF,NF,NF
+	.word PF,PF,PF,PF,PF,PF,PF,PF
 dianrong_danwei100khz:
-	.word MF,MF,MF,MF,UF,UF,UF,UF
-	.word UF,UF,UF,UF,UF,UF,UF,UF
-	.word NF,NF,NF,NF,NF,NF,NF,UF
+	.word UF,UF,UF,UF,NF,NF,NF,NF
+	.word NF,NF,NF,NF,NF,PF,PF,PF
+	.word PF,PF,PF,PF,PF,PF,PF,PF
 dianrong_xiaoshudian:
 	.word dianrong_xiaoshudian100hz
 	.word dianrong_xiaoshudian1khz
 	.word dianrong_xiaoshudian10khz
 	.word dianrong_xiaoshudian100khz
 dianrong_xiaoshudian100hz:
-	.byte 0xff,4,4,4,4,4,3,2
-	.byte 2,2,3,3,3,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 4,4,4,4,4,4,3,2
+	.byte 2,2,3,3,3,3,3,3
+	.byte 3,3,3,4,4,4,4,3
 dianrong_xiaoshudian1khz:
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 3,4,3,2,2,2,2,4
+	.byte 3,2,2,2,2,2,2,1
+	.byte 1,1,4,3,3,3,3,3
 dianrong_xiaoshudian10khz:
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 0xff,3,3,3,2,2,1,3
+	.byte 3,3,2,2,2,1,1,1
+	.byte 3,3,3,3,2,2,2,2
 dianrong_xiaoshudian100khz:
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
-	.byte 0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
+	.byte 4,1,1,1,3,3,3,2
+	.byte 2,2,1,1,1,3,3,3
+	.byte 2,2,2,2,2,1,1,1
 dianrong_weishu:
 	.word dianrong_weishu100hz
 	.word dianrong_weishu1khz
@@ -63,20 +63,20 @@ dianrong_weishu:
 	.word dianrong_weishu100khz
 dianrong_weishu100hz:	
 	.short 1000,10,10,10,100,100,10,10
-	.short 10,100,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 10,100,1000,1000,1000,10,10,100
+	.short 10,10,100,10,10,100,100,100
 dianrong_weishu1khz:
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,100,10,1,1,1,1,10
+	.short 1,1,1,1,10,10,10,10
+	.short 10,10,100,10,10,100,100,1000
 dianrong_weishu10khz:
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,100,100,100,100,100,10,10
+	.short 10,100,10,10,100,10,10,100
+	.short 10,10,100,100,10,100,100,1000
 dianrong_weishu100khz:
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
-	.short 1000,1000,1000,1000,1000,1000,1000,1000
+	.short 1000,10,10,10,10,10,10,10
+	.short 10,100,10,10,100,10,10,100
+	.short 10,10,100,100,100,100,100,1000
 	
 jiaozhun_0.5555:
 	.ascii " 555 "
@@ -585,6 +585,9 @@ yjmwxwx_yanshi:
 	
 __pinlv_dangwei_chushihua:
 
+	ldr r0, = pinlv
+	movs r1, # 3
+	str r1, [r0]
 	bl __pinlv_shezhi
 @	ldr r0, = liangcheng
 @	movs r1, # 0
