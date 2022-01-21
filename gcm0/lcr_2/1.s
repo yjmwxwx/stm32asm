@@ -6,14 +6,68 @@
 	.thumb
 	.syntax unified
 	.section .data
+H:
+	.ascii " H"
+mH:
+	.ascii "mH"
+uH:
+	.ascii "uH"
+nH:
+	.ascii "nH"
+	.align 4
+diangan_danwei:
+	.word diangan_danwei100hz
+	.word diangan_danwei1khz
+	.word diangan_danwei10khz
+	.word diangan_danwei100khz
+diangan_danwei100hz:
+	.word uH,uH,uH,uH,uH,uH,uH,mH
+	.word mH,mH,mH,mH,mH,mH,mH,H
+	.word H,H,H,H,H,H,H,H
+diangan_danwei1khz:
+	.word nH,uH,uH,uH,uH,uH,uH,uH
+	.word uH,mH,mH,mH,mH,mH,mH,mH
+	.word mH,mH,H,H,H,H,H,H
+diangan_danwei10khz:
+	.word nH,uH,uH,uH,uH,uH,uH,uH
+	.word uH,uH,uH,uH,mH,mH,mH,mH
+	.word mH,mH,mH,mH,mH,H,H,H
+diangan_danwei100khz:
+	.word nH,nH,nH,uH,uH,uH,uH,uH
+	.word uH,uH,uH,uH,uH,uH,uH,mH
+	.word mH,mH,mH,mH,mH,mH,mH,mH
+diangan_xiaoshudian:
+	.word diangan_100hz
+	.word diangan_1khz
+	.word diangan_10khz
+	.word diangan_100khz
+diangan_100hz:
+	.byte 3,4,4,4,0xff,0xff,0xff,3
+	.byte 3,3,4,4,4,0xff,0xff,2
+	.byte 3,3,3,4,4,4,0xff,0xff
+diangan_1khz:
+	.byte 0xff,3,3,3,4,4,4,0xff
+	.byte 0xff,2,3,3,3,4,4,0xff
+	.byte 0xff,0xff,2,3,3,3,4,0xff
+diangan_10khz:
+	.byte 4,2,2,2,3,3,3,4
+	.byte 4,0xff,0xff,0xff,2,3,3,4
+	.byte 4,4,0xff,0xff,0xff,2,3,4
+diangan_100khz:
+	.byte 3,4,4,1,2,2,2,3
+	.byte 3,4,4,4,0xff,0xff,0xff,3
+	.byte 3,3,4,4,4,0xff,0xff,0xff
+	
+	
 MF:
-	.ascii "MF"
+	.ascii "mF"
 UF:
-	.ascii "UF"
+	.ascii "uF"
 NF:
-	.ascii "NF"
+	.ascii "nF"
 PF:
-	.ascii "PF"
+	.ascii "pF"
+	.align 4
 dianrong_danwei:
 	.word dianrong_danwei100hz
 	.word dianrong_danwei1khz
@@ -311,7 +365,7 @@ yjmwxwx:
 	.equ flash_cachu_biaozhi,	0x20000094
 	.equ jiaozhun_biao_zhizhen,	0x20000098
 	.equ cs,			0x2000009c
-
+	.equ ls,			0x200000a0
 
 
 	
@@ -940,9 +994,6 @@ ting:
 @	b ting
 	
 	bl __xianshi_zukang
-	ldr r0, = z_i
-	ldr r0, [r0]
-	bl __jisuan_dianrong
         ldr r0, = liangcheng
 	ldr r0, [r0]
 	movs r1, # 2
@@ -962,6 +1013,53 @@ ting:
 	movs r2, # 2
 	bl _lcdxianshi
 
+        ldr r0, = z_i
+	ldr r0, [r0]
+	movs r0, r0
+	bmi __dianrong_xianshi
+__diangan_xianshi:
+        ldr r1, = 52151         @0.15915494309189535×3276
+	muls r0, r0, r1
+	lsrs r0, r0, # 15
+	ldr r1, = ls
+	str r0, [r1]
+	ldr r2, = pinlv
+	ldr r1, = diangan_xiaoshudian
+	ldr r2, [r2]
+	lsls r2, r2, # 2
+	ldr r2, [r1, r2]
+	ldr r1, = liangcheng
+	ldr r1, [r1]
+	ldrb r3, [r2, r1]       @读出小数点位置
+        movs r1, # 6
+	ldr r2, = asciimabiao
+	bl _zhuanascii
+	movs r0, # 0xc8
+	ldr r1, = asciimabiao
+	movs r2, # 6
+	bl _lcdxianshi
+
+	movs r0, # 0xce
+	ldr r2, = pinlv
+	ldr r2, [r2]
+	ldr r1, = diangan_danwei
+	lsls r2, r2, # 2
+	ldr r2, [r1, r2]
+	ldr r1, = liangcheng
+	ldr r1, [r1]
+	lsls r1, r1, # 2
+	ldr r1, [r2, r1]
+	movs r2, # 2
+	bl _lcdxianshi
+	
+	
+	b ting
+
+
+
+	
+__dianrong_xianshi:
+	bl __jisuan_dianrong
 	ldr r0, = cs
 	ldr r0, [r0]
 	ldr r2, = pinlv
@@ -992,11 +1090,8 @@ ting:
 	ldr r1, [r2, r1]
 	movs r2, # 2
 	bl _lcdxianshi
-	
-
-
-	
 	b ting
+
 
 	
         bl __an_jian
@@ -1007,6 +1102,7 @@ ting:
 	mov pc, r2
 	
 	b ting
+	
 	
 __jisuan_dianrong:
 	push {r1-r2,lr}
