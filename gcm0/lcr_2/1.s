@@ -194,7 +194,7 @@ pinlv_10khz:
 	.ascii "  pin lv 10KHZ  "
 pinlv_100khz:
 	.ascii "  pin lv 100KHZ "
-jiaozhun_xianshi_biao:
+	.align 4
 
 atan_biao:	@角度
 	.int 0x00168000,0x000D4853,0x000704A3,0x00039000,0x0001C9C5,0x0000E51B,0x00007295,0x0000394B,0x00001CA5,0x00000E52,0x00000729,0x00000394,0x000001CA,0x000000E5,0x00000072,0x00000039
@@ -391,7 +391,6 @@ yjmwxwx:
 	.equ xiebaohu,                  0x1ffff0a6
 	.equ jiancedubaohu,             0x1ffff124
 	.equ flashmang,                 0x1fffef7a
-	
 	
 	.section .text
 
@@ -921,6 +920,7 @@ dzd1:
 	mov pc, r4
 	b __jiaozhun_chengxu_fanhui
 
+__bu_jiaozhun:	
         ldr r4, = fjiesuo
 	movs r5, # 3
 	add r5, r5, pc
@@ -931,9 +931,7 @@ dzd1:
 	add r5, r5, pc
 	mov lr, r5
 	mov pc, r4
-
-
-__bu_jiaozhun:	
+	
 	ldr r3, = jiaozhun_biao_zhizhen
 	ldr r0, [r3]
 	ldr r4, = 0x8003800
@@ -3134,16 +3132,16 @@ __shangbi_dft:
 	bl __lv_bo_qi
 	ldr r1, = shangbi_r
 	str r0, [r1]
-	ldr r0, = jishu
-	ldr r1, [r0]
-	subs r1, r1, # 1
-	str r1, [r0]
-	bne __systick_fanhui
-	movs r1, # 1
-	str r1, [r0]
-	ldr r0, = xianshi_biaozhi
-	movs r1, # 1
-	str r1, [r0]
+@	ldr r0, = jishu
+@	ldr r1, [r0]
+@	subs r1, r1, # 1
+@	str r1, [r0]
+@	bne __systick_fanhui
+@	movs r1, # 1
+@	str r1, [r0]
+@	ldr r0, = xianshi_biaozhi
+@	movs r1, # 1
+@	str r1, [r0]
 	bl __jisuan_z_fudu
 	ldr r0, = zidong_dangwei_kaiguan
 	ldr r0, [r0]
