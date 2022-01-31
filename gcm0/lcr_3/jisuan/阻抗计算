@@ -1,0 +1,112 @@
+shangbi_r = 200
+shangbi_i = -100
+xiabi_r = 20
+xiabi_i= 30
+shangbi_jiaodu = atan2(shangbi_i,shangbi_r)*180/3.1415927
+xiabi_jiaodu = atan2(xiabi_i,xiabi_r)*180/3.1415927
+shangbi_z = sqrt(shangbi_r ^ 2 + shangbi_i ^ 2)
+xiabi_z = sqrt(xiabi_r ^ 2 + xiabi_i ^ 2)
+z = shangbi_z / xiabi_z
+z_jiaodu = shangbi_jiaodu - xiabi_jiaodu
+z_r = z * cosd(z_jiaodu)
+z_i = z * sind(z_jiaodu)
+
+
+
+
+        ldr r0, = 200
+        ldr r1, = -100
+        ldr r2, = 20
+        ldr r3, = 30
+
+__fushu_chufa:
+        @入口R0=Z1_R, R1=Z1_I,R2=Z2_R,R3=Z2_I
+        @出口R0=Z_R,R1=Z_I
+        push {r4-r7,lr}
+        mov r6, r0
+        mov r7, r1
+        lsls r0, r0, # 15
+        lsls r1, r1, # 15
+        bl __suan_atan2
+        mov r5, r0
+        mov r0, r2
+        mov r1, r3
+        lsls r0, r0, # 15
+        lsls r1, r1, # 15
+        bl __suan_atan2
+        mov r1, r5
+        subs r0, r1, r0 @算角度差
+        bpl __suan_shangxiabi_fudu
+        ldr r1, = 11796480      @360*32768
+        adds r0, r0, r1
+__suan_shangxiabi_fudu:
+        mov r5, r0      @保存角度差
+        mov r0, r2
+        mov r1, r3
+        bl __ji_suan_fu_du
+        mov r2, r0
+        mov r0, r6      @上臂R
+        mov r1, r7      @上臂I
+        bl __ji_suan_fu_du
+        mov r1, r0
+        lsrs r0, r0, # 17
+        lsls r1, r1, # 15
+        bl __chufa64
+        mov r3, r1      @Z幅度
+        bkpt # 4
+        mov r0, r5
+        bl __suan_cos_sin
+        mov r4, r1
+        mov r1, r3
+        movs r2, # 0
+        movs r0, r0
+        bpl cl1
+        adds r2, r2, # 1
+        mvns r0, r0
+        adds r0, r0, # 1
+cl1:
+        movs r1, r1
+        bpl cl2
+        adds r2, r2, # 1
+        mvns r1, r1
+        adds r1, r1, # 1
+cl2:
+        bl __chengfa
+        lsls r0, r0, # 17
+        lsrs r1, r1, # 15
+        orrs r1, r1, r0
+        cmp r2, # 1
+        bne __suan_xubu
+        mvns r1, r1
+        adds r1, r1, # 1
+__suan_xubu:
+        mov r0, r4
+        mov r4, r1      @实部
+        mov r1, r3
+        movs r2, # 0
+        movs r0, r0
+        bpl cl3
+        adds r2, r2, # 1
+        mvns r0, r0
+        adds r0, r0, # 1
+cl3:
+        movs r1, r1
+        bpl cl4
+        adds r2, r2, # 1
+        mvns r1, r1
+        adds r1, r1, # 1
+cl4:
+        bl __chengfa
+        lsls r0, r0, # 17
+        lsrs r1, r1, # 15
+        orrs r1, r1, r0
+        cmp r2, # 1
+        bne cl5
+        mvns r1, r1
+        adds r1, r1, # 1
+cl5:
+        mov r0, r4
+        pop {r4-r7,pc}
+
+
+
