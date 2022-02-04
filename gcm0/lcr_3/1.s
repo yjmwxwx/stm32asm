@@ -6,6 +6,10 @@
 	.thumb
 	.syntax unified
 	.section .data
+queren_jiaozhun:
+	.ascii "queren jiaozhun "
+jinru_jiaozhun:
+	.ascii "jin ru jiao zhun"
 kailu:
 	.ascii "kai lu jiao zhun"
 duanlu:
@@ -1008,6 +1012,16 @@ __jinru_jiaozhun_yanshi:
 	subs r0, r0, # 1
 	bne __jinru_jiaozhun_yanshi
 __jiaozhun_chengxu:
+	ldr r0, = flash_cachu_biaozhi
+	ldr r1, [r0]
+	cmp r1, # 1
+	beq __xianshi_jiaozhun_dangwei
+	movs r0, # 0xc0
+	ldr r1, = queren_jiaozhun
+	movs r2, # 16
+	bl _lcdxianshi
+	b __dangwei_qiehuan_xunhuan
+__xianshi_jiaozhun_dangwei:	
 	ldr r3, = liangcheng
 	ldr r3, [r3]
 	lsls r3, r3, # 2
@@ -1094,6 +1108,17 @@ __cachu_flash:
 	ldr r0, = zidong_dangwei_kaiguan
 	movs r1, # 1
 	str r1, [r0]    @自动档位关闭
+	ldr r0, = 0x20000090
+	movs r1, # 0
+	str r1, [r0]
+	movs r0, # 0xc0
+	ldr r1, = jinru_jiaozhun
+	movs r2, # 16
+	bl _lcdxianshi
+	ldr r0, = 0x1ffffff
+__fuwei_yanshi:
+	subs r0, r0, # 1
+	bne __fuwei_yanshi
 	ldr r0, = 0xe000ed0c
 	ldr r1, = 0x05fa0004
 	str r1, [r0]                    @复位
