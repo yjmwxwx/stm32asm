@@ -288,8 +288,8 @@ qiwang_jiaodu_biao:
 	.word qiwang_jiaodu_100khz
 zukang_dianzu_biao1:
 	.int 50000,10000,10000,10000,10000,10000,33333,10000
-	.int 30000,6000,10000,30000,6000,10000,30000,6000
-	.int 10000,30000,6000,10000,18000,3000,6000,1800
+	.int 10000,6000,10000,10000,6000,10000,10000,6000
+	.int 10000,10000,6000,10000,10000,1000,10000,1000
 zukang_dianzu_biao:
 	.int 55555,16666,33333,55555,10000,16666,33333,10000
 	.int 30000,6000,10000,30000,6000,10000,30000,6000
@@ -597,7 +597,7 @@ io_she_zhi:
 @	bkpt # 1
 @	movs r0, # 0
 @	cmp r0, # 0
-@	b __jlink_moshi
+	b __jlink_moshi
 __anjian_moshi:	
 	ldr r0, = 0x48000000
 	ldr r1, = 0x249a57 
@@ -1391,7 +1391,6 @@ __jiaozhun_qiehuan_pinlv:
 
 __an_jian0:
 ting:
-
 	bl __zukang_osm
 	bl __xianshi_zukang
 	ldr r0, = z_jiao_du
@@ -1484,7 +1483,7 @@ __dianrong_xianshi:
 	movs r2, # 2
 	bl _lcdxianshi
 ting_diaodu:
-@	b ting
+	b ting
 	
         bl __an_jian
 	@__cai_dan_diao_du
@@ -1629,9 +1628,11 @@ __du_osm_biao:
 	ldr r2, [r2]
 	ldr r3, [r3]
 	movs r4, # 0x50
+	muls r2, r2, r4
+	movs r4, # 0x14
 	muls r3, r3, r4
-	muls r3, r3, r2
 	adds r3, r3, # 0x0c
+	adds r3, r3, r2
 	ldr r2, = 0x8004800
 	ldr r4, [r2, r3]
 	adds r3, r3, # 4
@@ -2543,7 +2544,7 @@ __jisuan_z_fudu:
 	muls r0, r0, r2
 	bl _chufa
 	ldr r1, = z_fudu
-	lsrs r0, r0, # 5
+	lsrs r0, r0, # 4
 	str r0, [r1]
 	pop {r0-r2,pc}
 	
@@ -2553,11 +2554,11 @@ __huan_dang:
 	ldr r0, = z_fudu
 	ldr r0, [r0]
 	ldr r3, =  900
-	lsrs r3, r3, # 5
+	lsrs r3, r3, # 4
 	cmp r0, r3
 	bcc __dang_wei_jian
-	ldr r3, =  3000
-	lsrs r3, r3, # 5
+	ldr r3, =  4000
+	lsrs r3, r3, # 4
 	cmp r0, r3
 	bcc __zi_dong_dang_wei_fan_hui
 	ldr r0, = liangcheng
@@ -3973,14 +3974,14 @@ __fushu_chengfa:
 	push {r4-r7,lr}
 	mov r6, r0
 	mov r7, r1
-	lsls r0, r0, # 15
-	lsls r1, r1, # 15
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
 	bl __suan_atan2
 	mov r5, r0
 	mov r0, r2
 	mov r1, r3
-	lsls r0, r0, # 15
-	lsls r1, r1, # 15
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
 	bl __suan_atan2
 @	bkpt # 0
 	mov r1, r5

@@ -1,0 +1,589 @@
+atan_biao:	@角度
+	.int 0x00168000,0x000D4853,0x000704A3,0x00039000,0x0001C9C5,0x0000E51B,0x00007295,0x0000394B,0x00001CA5,0x00000E52,0x00000729,0x00000394,0x000001CA,0x000000E5,0x00000072,0x00000039,0x0000001C,0x0000000E,0x00000007,0x00000003,0x00000001
+
+
+__suan_atan2:
+	@入口R0=实部，R1=虚部
+	@出口R0=角度
+	push {r2-r6,lr}
+	ldr r6, = atan_biao
+	movs r2, # 0
+	mov r3, r2
+	movs r0, r0
+	bpl __panduan_xubu
+	ldr r2, = 5898240
+	mvns r0, r0
+	mvns r1, r1
+	adds r0, r0, # 1
+	adds r1, r1, # 1
+__panduan_xubu:
+	movs r1, r1
+	bpl __suan_atan2_xunhuan
+	ldr r2, = 11796480
+__suan_atan2_xunhuan:
+	movs r1, r1
+	bpl __atan2_zhengzhuan
+	mov r4, r0	@x
+	mov r5, r1	@y
+	asrs r5, r5, r3
+	asrs r4, r4, r3
+	subs r0, r0, r5
+	adds r1, r1, r4
+	mov r4, r3
+	lsls r4, r4, # 2
+	ldr r4, [r6, r4]
+	subs r2, r2, r4
+	b __atan2_xuanzhuan
+__atan2_zhengzhuan:
+	mov r4, r0	@x
+	mov r5, r1	@y
+	asrs r5, r5, r3
+	asrs r4, r4, r3
+	adds r0, r0, r5
+	subs r1, r1, r4
+	mov r4, r3
+	lsls r4, r4, # 2
+	ldr r4, [r6, r4]
+	adds r2, r2, r4
+__atan2_xuanzhuan:
+	adds r3, r3, # 1
+	cmp r3, # 21
+	bne __suan_atan2_xunhuan
+	mov r1, r0
+	mov r0,r2
+	pop {r2-r6,pc}
+
+
+
+
+	
+__suan_cos_sin:
+	@入口R0=0*32768到360*32768
+	@出口R0=COS，R1=SIN
+	@增益 32768*0.6072529350088812561694
+	push {r2-r7,lr}
+	ldr r1, = 0x4dba
+	ldr r2, = 2949120	@90
+	ldr r3, = 8847360	@270
+	ldr r7, = atan_biao
+	movs r5, # 0
+	mov r6, r5
+	cmp r0, r2
+	bhi __dayu_90
+	movs r4, # 0
+	b __suan_cos_sin_xunhuan
+__dayu_90:
+	cmp r0, r3
+	bhi __dayu_270
+	ldr r4, = 5898240	@180
+	b __suan_cos_sin_xunhuan
+__dayu_270:
+	ldr r4, = 11796480 	@360
+__suan_cos_sin_xunhuan:
+	mov r3, r4
+	mov r2, r0
+	subs r2, r2, r3
+	bmi __zhengzhuan
+__fanzhuan:	
+	mov r3, r6
+	mov r2, r1
+	asrs r6, r6, r5
+	subs r2, r2, r6	@x
+	asrs r1, r1, r5
+	mov r6, r5
+	lsls r6, r6, # 2
+	ldr r6, [r7, r6]
+	adds r3, r3, r1	@y
+	adds r4, r4, r6	@jiaodu
+	b __cordic_xuanzhuan
+__zhengzhuan:
+	mov r3, r6
+	mov r2, r1
+	asrs r6, r6, r5
+	adds r2, r2, r6	@x
+	asrs r1, r1, r5
+	mov r6, r5
+	lsls r6, r6, # 2
+	ldr r6, [r7, r6]
+	subs r3, r3, r1	@y
+	subs r4, r4, r6	@jiaodu
+__cordic_xuanzhuan:
+	mov r1, r2
+	mov r6, r3
+	adds r5, r5, # 1
+	cmp r5, # 21
+	bne __suan_cos_sin_xunhuan
+	ldr r6, = 2949120	@90
+	ldr r7, = 8847360      @270
+	cmp r0, r6
+	bls __suan_cos_sin_fanhui
+	cmp r0, r7
+	bcs __suan_cos_sin_fanhui
+	mvns r2, r2
+	mvns r3, r3
+	adds r2, r2, # 1
+	adds r3, r3, # 1
+__suan_cos_sin_fanhui:	
+	mov r1, r3
+	mov r0, r2
+	pop {r2-r7,pc}
+
+__ji_suan_fu_du:	    @ 计算幅度
+	@ 入r0= 实部，r1= 虚部
+	@ 出r0 = 幅度
+	@ Mag ~=Alpha * max(|I|, |Q|) + Beta * min(|I|, |Q|)
+	@ Alpha * Max + Beta * Min
+	push {r1-r4,lr}
+	movs r0, r0
+	bpl _shibubushifushu
+	mvns r0, r0                             @ 是负数转成正数
+	adds r0, r0, # 1
+_shibubushifushu:	                               @ 实部不是负数
+	movs r1, r1
+	bpl _xububushifushu
+	mvns r1, r1                             @ 是负数转成正数
+	adds r1, r1, # 1
+_xububushifushu:	                                @ 虚部不是负数
+	cmp r0, # 0
+	bne _panduanxubushibushi0
+	mov r0, r1
+	pop {r1-r4,pc}
+_panduanxubushibushi0:
+	cmp r1, # 0
+	bne _jisuanfudu1
+	pop {r1-r4,pc}
+_jisuanfudu1:
+	ldr r2, = 31066		@ Alpha q15 0.948059448969 @
+	ldr r3, = 12868		@ Beta q15 0.392699081699
+	cmp r1, r0
+	bhi _alpha_min_beta_max
+_alpha_max_beta_min:
+	mov r4, r1
+	mov r1, r2
+	bl __chengfa
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r0, r0, r1
+	mov r2, r0
+
+	mov r0, r3
+	mov r1, r4
+	bl __chengfa
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	mov r0, r2
+	
+@	muls r0, r0, r2
+@	muls r1, r1, r3
+@	asrs r0, r0, # 15
+@	asrs r1, r1, # 15
+	adds r0, r0, r1
+	movs r1, # 1
+	pop {r1-r4,pc}
+_alpha_min_beta_max:
+        mov r4, r1
+	mov r1, r3
+	bl __chengfa
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r0, r0, r1
+	mov r3, r0
+
+	mov r0, r2
+	mov r1, r4
+	bl __chengfa
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	mov r0, r3
+		
+@	muls r0, r0, r3
+@	muls r1, r1, r2
+@	asrs r0, r0, # 15
+@	asrs r1, r1, # 15
+	adds r0, r0, r1
+	movs r1, # 0
+	pop {r1-r4,pc}
+
+__chufa64:
+	@64位除32位
+	@ （R0=高32位R1=低32位）除（R2)= （R0高32）（R1低32）
+	push {r3-r7,lr}
+	cmp r2, # 0
+	beq __chu_fa64_fan_hui0
+	cmp r1, # 0
+	bne __chu_fa64_ji_suan
+	cmp r0, # 0
+	beq __chu_fa64_fan_hui0
+__chu_fa64_ji_suan:
+	movs r4, # 0
+	mov r7, r4
+	mov r3, r4
+	mov r5, r4
+	movs r6, # 1
+	lsls r6, r6, # 31
+__chu_fa64_xun_huan:
+	lsls r1, r1, # 1
+	adcs r0, r0, r0
+	adcs r4, r4, r4
+	cmp r4, r2
+	bcc __chu_fa_yi_wei
+	adds r3, r3, r6
+	adcs r5, r5, r7
+	subs r4, r4, r2
+__chu_fa_yi_wei:
+	movs r6, r6
+	beq __di_yi_wei
+	lsrs r6, r6, # 1        @高32位移位
+	bne __chu_fa64_xun_huan
+	movs r7, # 1
+	lsls r7, r7, # 31
+	b __chu_fa64_xun_huan
+__di_yi_wei:	            @低32位移位
+	lsrs r7, r7, # 1
+	bne __chu_fa64_xun_huan
+	mov r0, r3
+	mov r1, r5
+	pop {r3-r7,pc}
+__chu_fa64_fan_hui0:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r3-r7,pc}
+__chengfa:
+	@入R0 乘以 R1
+	@出 R0高32 ， R1低32
+	@0xffffffff*0xffffffff
+	@4        F F F E 0 0 0 1                       @4
+	@3                F F F E 0 0 0 1               @3
+	@2                F F F E 0 0 0 1               @2
+	@1                        F F F E 0 0 0 1       @1
+	@         F F F F F F F E 0 0 0 0 0 0 0 1
+	push {r2-r7,lr}
+	cmp r0, # 0
+	beq __cheng_fa_fan_hui
+	cmp r1, # 0
+	beq __cheng_fa_fan_hui
+__ji_suan_cheng_fa:
+	mov r2, r0
+	mov r3, r1
+	lsrs r0, r0, # 16       @高16
+	lsls r2, r2, # 16       @ 低16
+	lsrs r2, r2, # 16
+	lsrs r1, r1, # 16       @高16
+	lsls r3, r3, # 16       @低16
+	lsrs r3, r3, # 16
+	mov r4, r2
+	mov r5, r0
+	muls r2, r2, r3         @1
+	muls r0, r0, r3         @2
+	muls r4, r4, r1         @3
+	muls r5, r5, r1         @4
+	mov r6, r0
+	mov r7, r4
+	lsls r0, r0, # 16       @2低32
+	lsls r4, r4, # 16       @3低32
+	lsrs r6, r6, # 16       @2高32
+	lsrs r7, r7, # 16       @3高32
+	movs r1, # 0
+	adds r2, r2, r0         @低32
+	adcs r6, r6, r1         @高32
+	adds r2, r2, r4
+	adcs r6, r6, r7
+	adds r6, r6, r5
+	mov r0, r6
+	mov r1, r2
+	pop {r2-r7,pc}
+__cheng_fa_fan_hui:
+	movs r0, # 0
+	movs r1, # 0
+	pop {r2-r7,pc}
+
+
+__fushu_chufa:
+	@入口R0=Z1_R, R1=Z1_I,R2=Z2_R,R3=Z2_I
+	@出口R0=Z_R,R1=Z_I
+	push {r4-r7,lr}
+	mov r6, r0
+	mov r7, r1
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
+	bl __suan_atan2
+	mov r5, r0
+	mov r0, r2
+	mov r1, r3
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
+	bl __suan_atan2
+@	bkpt # 0
+	mov r1, r5
+	subs r0, r1, r0 @算角度差
+	bpl __suan_shangxiabi_fudu
+	ldr r1, = 11796480      @360*32768
+	adds r0, r0, r1
+__suan_shangxiabi_fudu:
+	mov r5, r0      @保存角度差
+@	bkpt # 1
+	mov r0, r2
+	mov r1, r3
+	bl __ji_suan_fu_du
+@	bkpt # 2
+	mov r2, r0
+	mov r0, r6      @上臂R
+	mov r1, r7      @上臂I
+	bl __ji_suan_fu_du
+@	bkpt # 3
+	mov r1, r0
+	lsrs r0, r0, # 17
+	lsls r1, r1, # 15
+	bl __chufa64
+	mov r3, r1      @Z幅度
+@	bkpt # 4
+	mov r0, r5
+	bl __suan_cos_sin
+@	bkpt # 4
+	mov r4, r1
+	mov r1, r3
+	movs r2, # 0
+	movs r0, r0
+	bpl cl1
+	adds r2, r2, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+cl1:
+	movs r1, r1
+	bpl cl2
+	adds r2, r2, # 1
+	mvns r1, r1
+	adds r1, r1, # 1
+cl2:
+	bl __chengfa
+@	bkpt # 5
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	cmp r2, # 1
+	bne __suan_xubu
+	mvns r1, r1
+	adds r1, r1, # 1
+__suan_xubu:
+	mov r0, r4
+	mov r4, r1      @实部
+	mov r1, r3
+	movs r2, # 0
+	movs r0, r0
+	bpl cl3
+	adds r2, r2, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+cl3:
+	movs r1, r1
+	bpl cl4
+	adds r2, r2, # 1
+	mvns r1, r1
+	adds r1, r1, # 1
+cl4:
+	bl __chengfa
+@	bkpt #6
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	cmp r2, # 1
+	bne cl5
+	mvns r1, r1
+	adds r1, r1, # 1
+cl5:
+	mov r0, r4
+	pop {r4-r7,pc}
+
+__fushu_chengfa:
+	@入口R0=Z1_R, R1=Z1_I,R2=Z2_R,R3=Z2_I
+	@出口R0=Z_R,R1=Z_I
+	push {r4-r7,lr}
+	mov r6, r0
+	mov r7, r1
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
+	bl __suan_atan2
+	mov r5, r0
+	mov r0, r2
+	mov r1, r3
+@	lsls r0, r0, # 15
+@	lsls r1, r1, # 15
+	bl __suan_atan2
+@	bkpt # 0
+	mov r1, r5
+	adds r0, r1, r0 @算角度差
+	ldr r1, = 11796480      @360*32768
+	cmp r0, r1
+	bcc __suan_chengfa_shangxiabi_fudu
+	subs r0, r0, r1
+__suan_chengfa_shangxiabi_fudu:
+	mov r5, r0      @保存角度和
+@      bkpt # 1
+	mov r0, r2
+	mov r1, r3
+	bl __ji_suan_fu_du
+@       bkpt # 2
+	mov r2, r0
+	mov r0, r6      @上臂R
+	mov r1, r7      @上臂I
+	bl __ji_suan_fu_du
+@	bkpt # 3
+	mov r1, r2
+	bl __chengfa
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r0, r0, r1
+	mov r3, r0      @Z幅度
+@	bkpt # 4
+	mov r0, r5
+	bl __suan_cos_sin
+ @      bkpt # 4
+	mov r4, r1
+	mov r1, r3
+	movs r2, # 0
+	movs r0, r0
+	bpl cf1
+	adds r2, r2, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+cf1:
+	movs r1, r1
+	bpl cf2
+	adds r2, r2, # 1
+	mvns r1, r1
+	adds r1, r1, # 1
+cf2:
+	bl __chengfa
+@       bkpt # 5
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	cmp r2, # 1
+	bne __suan_chengfa_xubu
+	mvns r1, r1
+	adds r1, r1, # 1
+__suan_chengfa_xubu:
+	mov r0, r4
+	mov r4, r1      @实部
+	mov r1, r3
+	movs r2, # 0
+	movs r0, r0
+	bpl cf3
+	adds r2, r2, # 1
+	mvns r0, r0
+	adds r0, r0, # 1
+cf3:
+	movs r1, r1
+	bpl cf4
+	adds r2, r2, # 1
+	mvns r1, r1
+	adds r1, r1, # 1
+cf4:
+	bl __chengfa
+@       bkpt #6
+	lsls r0, r0, # 17
+	lsrs r1, r1, # 15
+	orrs r1, r1, r0
+	cmp r2, # 1
+	bne cf5
+	mvns r1, r1
+	adds r1, r1, # 1
+cf5:
+	mov r0, r4
+	pop {r4-r7,pc}
+	.ltorg
+__fu_shu_cheng_fa:
+	push {r4-r7,lr}
+	@r0=a,r1=b,r2=c,r3=d
+	mov r4, r0      @a
+	mov r5, r1      @b
+	mov r6, r2      @c
+	mov r7, r3      @d
+	muls r0, r0, r2 @a*c
+	muls r1, r1, r3 @b*d
+	subs r0, r0, r1 @ac-bd
+	muls r4, r4, r7 @a*d
+	muls r5, r5, r6 @b*c
+	adds r4, r4, r5 @ad+bc
+	mov r1, r4
+	pop {r4-r7,pc}
+	.ltorg
+__osm_jiaozhun:
+	@入口R0-R1=ZS，R2-R3=ZXM，R4-R5=ZSM，R6-R7=ZO
+	@出口R0=R，R1=I
+	push {r2-r7,lr}
+	mov r4, r8
+	mov r5, r9
+	mov r6, r10
+	mov r7, r11
+	push {r4-r7}
+	@       ldr r0, = -61           @zs
+	@       ldr r1, = 70
+	@       ldr r2, = 555           @zxm
+	@       ldr r3, = 81
+	@       ldr r4, = 555           @zsm
+	@       ldr r5, = 81
+	@       ldr r6, = -6864107      @zo
+	@       ldr r7, = -9872402
+	mov r8, sp
+	ldr r0, = 0x200000e0
+	mov sp, r0
+	pop {r0-r7}
+	mov sp, r8
+	mov r8, r0
+	mov r9, r1
+	subs r0, r0, r2         @zs-zxm
+	subs r1, r1, r3
+	mov r10, r0
+	mov r11, r1
+
+	mov r0, r8
+	mov r1, r9
+	subs r0, r0, r4         @zs-zsm
+	subs r1, r1, r5
+
+	subs r2, r2, r6         @zxm-zo
+	subs r3, r3, r7
+
+	subs r4, r4, r6         @zsm-zo
+	subs r5, r5, r7
+
+	
+        asrs r0, r0, # 4
+	asrs r1, r1, # 4
+	asrs r2, r2, # 4
+	asrs r3, r3, # 4
+	
+	bl __fushu_chengfa    @(zxm-zo)*(zs-zsm)
+	mov r2, r4
+	mov r3, r5
+
+	mov r4, r0
+	mov r5, r1
+
+	mov r0, r10
+	mov r1, r11
+        asrs r0, r0, # 4
+	asrs r1, r1, # 4
+	asrs r2, r2, # 4
+	asrs r3, r3, # 4
+	
+	
+	bl __fushu_chengfa    @(zs-zxm)*(zsm-zo)
+
+	mov r2, r4
+	mov r3, r5
+	
+	bl __fushu_chufa
+	pop {r4-r7}
+	mov r8, r4
+	mov r9, r5
+	mov r10, r6
+	mov r11, r7
+	pop {r2-r7,pc}
+
+
+
+
