@@ -40,7 +40,7 @@ diangan_danwei10khz:
 	.word uH,uH,uH,uH,mH,mH,mH,mH
 	.word mH,mH,mH,mH,mH,H,H,H
 diangan_danwei100khz:
-	.word uH,uH,uH,uH,uH,uH,uH,uH
+	.word uH,uH,mH,uH,uH,uH,uH,uH
 	.word uH,uH,uH,uH,uH,uH,uH,mH
 	.word mH,mH,mH,mH,mH,mH,mH,mH
 diangan_xiaoshudian:
@@ -61,10 +61,32 @@ diangan_10khz:
 	.byte 4,0xff,0xff,0xff,2,3,3,4
 	.byte 4,4,0xff,0xff,0xff,2,3,4
 diangan_100khz:
-	.byte 1,1,1,1,2,2,2,3
+	.byte 2,3,2,1,2,2,2,3
 	.byte 3,4,4,4,0xff,0xff,0xff,3
 	.byte 3,3,4,4,4,0xff,0xff,0xff
-
+diangan_weishu:
+	.word diangan_weishu100hz
+	.word diangan_weishu1khz
+	.word diangan_weishu10khz
+	.word diangan_weishu100khz
+diangan_weishu100hz:
+	.short 1000,10,10,10,100,100,10,10
+	.short 10,100,1000,1000,1000,10,10,100
+	.short 10,10,100,10,10,100,100,100
+diangan_weishu1khz:
+	.short 1000,100,10,1,1,1,1,10
+	.short 1,1,1,1,10,10,10,10
+	.short 10,10,100,10,10,100,100,1000
+diangan_weishu10khz:
+	.short 1000,100,100,100,100,100,10,10
+	.short 10,100,10,10,100,10,10,100
+	.short 10,10,100,100,10,100,100,1000
+diangan_weishu100khz:
+	.short 1,1,10,10,10,10,10,10
+	.short 10,100,10,10,100,10,10,100
+	.short 10,10,100,100,100,100,100,1000
+	
+	
 
 MF:
 	.ascii "mF"
@@ -603,10 +625,18 @@ __diangan_xianshi:
 	ldr r1, = diangan_xiaoshudian
 	ldr r2, [r2]
 	lsls r2, r2, # 2
+	mov r4, r2
 	ldr r2, [r1, r2]
 	ldr r1, = liangcheng
 	ldr r1, [r1]
+	ldr r5, = diangan_weishu
+	ldr r4, [r5,r4]
+
+	
 	ldrb r3, [r2, r1]       @读出小数点位置
+	lsls r1, r1, # 1
+	ldrh r1, [r4, r1]
+	bl _chufa
 	movs r1, # 6
 	ldr r2, = asciimabiao
 	bl _zhuanascii
