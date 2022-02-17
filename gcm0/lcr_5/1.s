@@ -1,7 +1,7 @@
 	@@ 单片机stm32f030f4p6
-	@lcr_2
+	@lcr_5
 	@作者：yjmwxwx
-	@时间：2022-01-01
+	@时间：2022-02-16
 	@编译器：ARM-NONE-EABI
 	.thumb
 	.syntax unified
@@ -499,7 +499,7 @@ dengpllguan:
 	ldr r1, [r0]
 	lsls r1, r1, # 6
 	bmi dengpllguan
-	ldr r1, = 0x150002	@0x150002	@0x150002
+	ldr r1, = 0x154002	@0x150002	@0x150002
 	mov r0, r0
 	str r1, [r0, # 0x04]
 	mov r0, r0
@@ -687,7 +687,7 @@ yjmwxwx_yanshi:
 __pinlv_dangwei_chushihua:
 
 	ldr r0, = pinlv
-	movs r1, # 1
+	movs r1, # 4
 	str r1, [r0]
 	bl __pinlv_shezhi
 	ldr r0, = liangcheng
@@ -1888,10 +1888,18 @@ _adcchushihua:
 	cmp r3, # 1
 	beq __adc_lianxu
 	ldr r3, = 0x8c3
+	ldr r4, = 0x80008000
 	b __adc_chushi_hua
 __adc_lianxu:
 	ldr r3, = 0x2003
+	ldr r4, = 0x40008000
 __adc_chushi_hua:
+	ldr r0, = pinlv
+	ldr r0, [r0]
+	cmp r0, # 1
+	bne __adc_chushihua1
+	ldr r3, = 0x2003
+__adc_chushihua1:	
 	ldr r0, = 0x40012400  @ adc基地址
 	ldr r1, = 0x80000000
 	str r1, [r0, # 0x08]  @ ADC 控制寄存器 (ADC_CR)  @adc校准
@@ -1911,8 +1919,7 @@ _deng_adc_wen_ding:
 	lsls r1, r1, # 31
 	bpl _deng_adc_wen_ding @ 等ADC稳定
 _tongdaoxuanze:
-	ldr r1, = 0x40008000
-	str r1, [r0, # 0x10]
+	str r4, [r0, # 0x10]
 	ldr r1, = 0x01
 	str r1, [r0, # 0x28]    @ 通道选择寄存器 (ADC_CHSELR)
 	@	ldr r1, = 0x2003 @0x8c3 @ 0xc43         @TIM3 0x8c3 @0x2003 @0x8c3
@@ -2203,6 +2210,12 @@ __pinlv_shezhi:
 	mov pc, r2
 	
 __pinlv_100:
+        ldr r0, = 0x40021000
+	ldr r1, = 0x154002
+	str r1, [r0, # 0x04]
+        movs r3, # 0
+	bl _adcchushihua
+	bl __pinlv_yanshi
 	@tim1ch3DMA
 	ldr r0, = 0x40020000
 	ldr r1, = 1000
@@ -2210,16 +2223,13 @@ __pinlv_100:
 	ldr r1, = 0x40012c3c @ 外设地址
 	str r1, [r0, # 0x60]
 	ldr r1, = zheng_xian_100hz @ 储存器地址
-@	ldr r2, = 160
-@	lsls r2, r2, # 1
-@	adds r1, r1, r2
 	str r1, [r0, # 0x64]
 	ldr r1, = 1000             @点数
 	str r1, [r0, # 0x5c]
 	ldr r1, = 0x35b1         @ 储存到外设
 	str r1, [r0, # 0x58]
-	
-        @ adc dma
+
+	@ adc dma
 	ldr r1, = 0x40012440
 	str r1, [r0, # 0x10]
 	movs r1, # 0
@@ -2230,12 +2240,12 @@ __pinlv_100:
 	str r1, [r0, # 0x0c]
 	ldr r1, = 0x5a1 @  0x583        @ 5a1
 	str r1, [r0, # 0x08]
-	
+
 	@tim3chushihua:
 	ldr r3, = 0x40000400 @ tim3_cr1
 	ldr r2, = 0
 	str r2, [r3, # 0x28] @ psc
-	ldr r2, = 11199
+	ldr r2, = 559
 	str r2, [r3, # 0x2c] @ ARR
 	movs r2, # 0x20
 	str r2, [r3, # 0x04] @ TRGO
@@ -2262,37 +2272,46 @@ __pinlv_100:
 	str r1, [r0]
 	str r2, [r3]
 	ldr r0, = 0xe000e010
-	ldr r1, = 11199999
+	ldr r1, = 559999
 	str r1, [r0, # 4]
 	str r1, [r0, # 8]
 	movs r1, # 0x07
 	str r1, [r0]    @systick 开
-        ldr r0, = cossin
+	ldr r0, = cossin
 	ldr r1, = cos_sin_biao_100
 	str r1, [r0]
 	ldr r0, = lcd_beiguang
 	movs r1, # 0xc0
 	str r1, [r0]
+
 	ldr r0, = lvbo_changdu
 	ldr r1, = lvbo_youyi
-	movs r2, # 8
-	movs r3, # 9
+	movs r2, # 100
+	movs r3, # 10
 	str r2, [r0]
 	str r3, [r1]
-        ldr r0, = dft_xuanze
-	movs r1, # 0
+	ldr r0, = dft_xuanze
+	movs r1, # 1
 	str r1, [r0]
-	movs r3, # 0
-	bl _adcchushihua
+	ldr r0, = qiehuan_yichang_shijian
+	ldr r1, = dantongdao_shijian
+	ldr r2, = 100
+	movs r3, # 3
+	str r3, [r0]
+	ldr r0, = tongdao_qiehuan_yanshi
+	str r2, [r1]
+	movs r2, # 0
+	str r2, [r0]
 	pop {r0-r3,pc}
+	
 	.ltorg
 	
 __pinlv_1K:
-        movs r3, # 1
+	ldr r0, = 0x40021000
+	ldr r1, = 0x154002
+	str r1, [r0, # 0x04]
+        movs r3, # 0
 	bl _adcchushihua
-	ldr r0, = lcd_beiguang
-	movs r1, # 0xc0
-	str r1, [r0]
 	bl __pinlv_yanshi
 	@tim1ch3DMA
 	ldr r0, = 0x40020000
@@ -2334,13 +2353,16 @@ __pinlv_1K:
 	ldr r1, = 0x81
 	str r1, [r0]
 	ldr r0, = 0xe000e010
-	ldr r1, = 27999
+	ldr r1, = 55999
 	str r1, [r0, # 4]
 	str r1, [r0, # 8]
 	movs r1, # 0x07
 	str r1, [r0]    @systick 开
 	ldr r0, = cossin
 	ldr r1, = cos_sin_biao_1k
+	str r1, [r0]
+	ldr r0, = lcd_beiguang
+	movs r1, # 0xc0
 	str r1, [r0]
 	ldr r0, = lvbo_changdu
 	ldr r1, = lvbo_youyi
@@ -2353,7 +2375,7 @@ __pinlv_1K:
 	str r1, [r0]
 	ldr r0, = qiehuan_yichang_shijian
 	ldr r1, = dantongdao_shijian
-	ldr r2, = 2000
+	ldr r2, = 1000
 	movs r3, # 200
 	str r3, [r0]
 	ldr r0, = tongdao_qiehuan_yanshi
@@ -2362,13 +2384,12 @@ __pinlv_1K:
 	str r2, [r0]
 	pop {r0-r3,pc}
 	
-	
-
-
-	
 	.ltorg
 	
 __pinlv_10K:
+	ldr r0, = 0x40021000
+	ldr r1, = 0x150002
+	str r1, [r0, # 0x04]
 	movs r3, # 1
 	bl _adcchushihua
 	ldr r0, = lcd_beiguang
@@ -2447,6 +2468,9 @@ __pinlv_10K:
 	.ltorg
 	
 __pinlv_100K:
+	ldr r0, = 0x40021000
+	ldr r1, = 0x150002
+	str r1, [r0, # 0x04]
         movs r3, # 1
 	bl _adcchushihua
 	bl __pinlv_yanshi
@@ -2521,6 +2545,9 @@ __pinlv_100K:
 	str r2, [r0]
 	pop {r0-r3,pc}
 __pinlv_200k:
+	ldr r0, = 0x40021000
+	ldr r1, = 0x150002
+	str r1, [r0, # 0x04]
         movs r3, # 1
 	bl _adcchushihua
 	bl __pinlv_yanshi
