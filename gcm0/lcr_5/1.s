@@ -1461,7 +1461,8 @@ __jiaozhun_qiehuan_pinlv:
 __an_jian0:
 ting:
 @	b xssxb
-	
+@	b ting
+@	b ting1
 	bl __jisuan_zukang
 	bl __xianshi_zukang
 
@@ -1478,40 +1479,11 @@ ting:
 	ldr r1, = asciimabiao
 	movs r2, # 2
 	bl _lcdxianshi
-	
 
-
-	
 	b ting
-xssxb:	
-	bl __xianshi_shangxia_bi
-
-	ldr r0, = liangcheng
-	ldr r0, [r0]
-	movs r1, # 2
-	ldr r2, = asciimabiao
-	movs r3, # 0xff
-	bl _zhuanascii
-	movs r0, # 0xc8
-	ldr r1, = asciimabiao
-	movs r2, # 2
-	bl _lcdxianshi
-
-        ldr r0, = mansu_kaiguan
-	ldr r0, [r0]
-	movs r1, # 1
-	ldr r2, = asciimabiao
-	movs r3, # 0xff
-	bl _zhuanascii
-	movs r0, # 0x88
-	ldr r1, = asciimabiao
-	movs r2, # 1
-	bl _lcdxianshi
-	
-	
-	b xssxb
-	
-	bl __zukang_osm
+ting1:	
+	bl __jisuan_zukang
+@	bl __zukang_osm
 	bl __xianshi_zukang
 	ldr r0, = z_jiao_du
 	ldr r0, [r0]
@@ -1639,6 +1611,35 @@ __jisuan_dianrong:
 
 
 
+xssxb:
+	bl __xianshi_shangxia_bi
+
+	ldr r0, = liangcheng
+	ldr r0, [r0]
+	movs r1, # 2
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc8
+	ldr r1, = asciimabiao
+	movs r2, # 2
+	bl _lcdxianshi
+
+	ldr r0, = mansu_kaiguan
+	ldr r0, [r0]
+	movs r1, # 1
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0x88
+	ldr r1, = asciimabiao
+	movs r2, # 1
+	bl _lcdxianshi
+
+
+	b xssxb
+	
+	
 __fengzhi_jiance:
 	push {r0-r3,lr}
 	ldr r0, = dianyabiao
@@ -4482,6 +4483,8 @@ _pendsv_handler:
 	bx lr
 _systickzhongduan:
 	push {r4,lr}
+	b __mansu
+
 	
 	ldr r0, = mansu_kaiguan
 	ldr r0, [r0]
@@ -4618,6 +4621,7 @@ __xiabi_dft1:
 	movs r3, # 0
 	str r3, [r2]
 	str r3, [r0]
+	b __xiabi_dft
 
 	
         ldr r2, = shangbi_r
@@ -4661,7 +4665,7 @@ __xiabi_dft:
 
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
-	str r3, [r2, # 0x18]    @cd4053_9_10  0X28上臂开
+	str r3, [r2, # 0x18]    @cd4053_9_10  下臂开
 	ldr r0, = liangcheng
 	ldr r1, = xiabi_liangcheng
 	ldr r0, [r0]
@@ -4713,7 +4717,7 @@ __shangbi_dft:
 
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
-	str r3, [r2, # 0x28]    @cd4053_9_10 下臂开
+	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
 	ldr r0, = liangcheng
 	ldr r1, = shangbi_liangcheng
 	ldr r0, [r0]
