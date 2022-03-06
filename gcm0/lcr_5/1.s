@@ -760,7 +760,7 @@ __pinlv_dangwei_chushihua:
 	str r1, [r0]
 	bl __pinlv_shezhi
 	ldr r0, = liangcheng
-	movs r1, # 0x07
+	movs r1, # 0x17
 	str r1, [r0]
 	ldr r0, = flash_cachu_biaozhi
 	ldr r0, [r0]
@@ -1469,7 +1469,7 @@ __jiaozhun_qiehuan_pinlv:
 
 __an_jian0:
 ting:
-	b ting1
+@	b ting1
 @	b xssxb
 @	b __zukang
 
@@ -1495,7 +1495,13 @@ __xianshi_fengzhi1:
 	bne t1
 	b ting
 
-__zukang:	
+__zukang:
+        ldr r0, = jisuan_biaozhi
+	ldr r1, [r0]
+	cmp r1, # 1
+	bne __zukang
+	movs r1, # 0
+	str r1, [r0]
 	bl __jisuan_zukang
 	bl __xianshi_zukang
 
@@ -1525,7 +1531,7 @@ ting1:
 @	bl __zukang_osm
 	bl __xianshi_zukang
 @	bl __xianshi_rs_xs
-	b ting
+@	b ting
 	
 	ldr r0, = z_jiao_du
 	ldr r0, [r0]
@@ -1539,7 +1545,7 @@ ting1:
 	adds r1, r1, r2
 	movs r2, # 2
 	bl _lcdxianshi
-	b ting
+@	b ting
 
 	
         ldr r0, = z_i
@@ -1646,6 +1652,12 @@ __jisuan_dianrong:
 	lsls r0, r0, # 1
 	ldrh r2, [r2, r0]
 	ldr r0, = 1591549431
+	ldr r3, = pinlv
+	ldr r3, [r3]
+	cmp r3, # 4
+	bne __pinlv_xiaoyu_200k
+	lsrs r0, r0, # 1
+__pinlv_xiaoyu_200k:	
 	muls r1, r1, r2
 	bl _chufa
 	ldr r1, = cs
@@ -4623,6 +4635,11 @@ __xiabi_dft3:
 	movs r3, # 0
 	str r3, [r2]
 	str r3, [r0]
+	ldr r0, = jisuan_biaozhi
+	movs r1, # 1
+	str r1, [r0]
+	
+	
 	
 	ldr r0, = xiabi_rr
 	ldr r1, = xiabi_ii
@@ -4744,6 +4761,7 @@ __xiabi_dft1:
 	ldr r0, = jisuan_biaozhi
 	movs r1, # 1
 	str r1, [r0]
+
 	b __xiabi_dft
 
 	
@@ -4800,8 +4818,7 @@ __xiabi_dft:
 
 __xia_bi_dft:
 	bl __dft
-	mvns r0, r0
-	mvns r1, r1
+
 	ldr r2, = xiabi_rr
 	ldr r3, = xiabi_ii
 	str r0, [r2]
@@ -4838,17 +4855,19 @@ __shangbi_dft:
 
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
-	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
+@	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
 	ldr r0, = liangcheng
 	ldr r1, = shangbi_liangcheng
 	ldr r0, [r0]
 	lsls r0, r0, # 1
 	ldr r2, = 0x48000000
 	ldrh r3, [r1, r0]
-	str r3, [r2, # 0x14]
+@	str r3, [r2, # 0x14]
 	b __systick_fanhui
 __shang_bi_dft:
 	bl __dft
+	mvns r0, r0
+	mvns r1, r1
         ldr r2, = shangbi_rr
 	ldr r3, = shangbi_ii
 	str r0, [r2]
