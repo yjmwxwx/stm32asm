@@ -756,11 +756,11 @@ yjmwxwx_yanshi:
 __pinlv_dangwei_chushihua:
 
 	ldr r0, = pinlv
-	movs r1, # 0
+	movs r1, # 3
 	str r1, [r0]
 	bl __pinlv_shezhi
 	ldr r0, = liangcheng
-	movs r1, # 0x17
+	movs r1, # 0x7
 	str r1, [r0]
 	ldr r0, = flash_cachu_biaozhi
 	ldr r0, [r0]
@@ -1471,7 +1471,7 @@ __an_jian0:
 ting:
 @	b ting1
 @	b xssxb
-@	b __zukang
+	b __zukang
 
 	
 	ldr r6, = 100
@@ -1519,6 +1519,19 @@ __zukang:
 	movs r2, # 2
 	bl _lcdxianshi
 
+	ldr r0, = mansu_kaiguan
+	ldr r0, [r0]
+	movs r1, # 1
+	ldr r2, = asciimabiao
+	movs r3, # 0xff
+	bl _zhuanascii
+	movs r0, # 0xc8
+	ldr r1, = asciimabiao
+	movs r2, # 1
+	bl _lcdxianshi
+	
+
+	
 	b ting
 ting1:
 	ldr r0, = jisuan_biaozhi
@@ -4614,7 +4627,7 @@ _pendsv_handler:
 	bx lr
 _systickzhongduan:
 	push {r4,lr}
-	b __mansu
+@	b __mansu
 
 	
 	ldr r0, = mansu_kaiguan
@@ -4762,7 +4775,7 @@ __xiabi_dft1:
 	movs r1, # 1
 	str r1, [r0]
 
-	b __xiabi_dft
+@	b __xiabi_dft
 
 	
         ldr r2, = shangbi_r
@@ -4855,14 +4868,14 @@ __shangbi_dft:
 
 	ldr r2, = 0x48000400
 	movs r3, #  0x02
-@	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
+	str r3, [r2, # 0x28]    @cd4053_9_10 上臂开
 	ldr r0, = liangcheng
 	ldr r1, = shangbi_liangcheng
 	ldr r0, [r0]
 	lsls r0, r0, # 1
 	ldr r2, = 0x48000000
 	ldrh r3, [r1, r0]
-@	str r3, [r2, # 0x14]
+	str r3, [r2, # 0x14]
 	b __systick_fanhui
 __shang_bi_dft:
 	bl __dft
