@@ -29,17 +29,6 @@ Wire Wire Line
 Wire Wire Line
 	2050 2600 1650 2600
 $Comp
-L Device:R R1
-U 1 1 62031458
-P 1700 4350
-F 0 "R1" H 1770 4396 50  0000 L CNN
-F 1 "10K" H 1770 4305 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" V 1630 4350 50  0001 C CNN
-F 3 "~" H 1700 4350 50  0001 C CNN
-	1    1700 4350
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:C C3
 U 1 1 62068469
 P 3150 3150
@@ -66,13 +55,7 @@ $EndComp
 Wire Wire Line
 	1650 5800 1600 5800
 Wire Wire Line
-	1600 5150 1700 5150
-Wire Wire Line
-	1700 4200 1700 4100
-Wire Wire Line
 	1700 3600 2050 3600
-Wire Wire Line
-	1700 4500 1700 5150
 Wire Wire Line
 	3700 4250 3800 4250
 $Comp
@@ -2520,28 +2503,6 @@ Wire Wire Line
 Wire Wire Line
 	9050 3900 9050 4000
 Connection ~ 9050 4000
-$Comp
-L Relay:DIPxx-1Axx-11x K1
-U 1 1 620DB42C
-P 2250 4850
-F 0 "K1" H 2200 4550 50  0000 L CNN
-F 1 "DIPxx-1Axx-11x" H 1700 4400 50  0000 L CNN
-F 2 "Relay_THT:Relay_SPDT_Finder_36.11" H 2600 4800 50  0001 L CNN
-F 3 "https://standexelectronics.com/wp-content/uploads/datasheet_reed_relay_DIP.pdf" H 2250 4850 50  0001 C CNN
-	1    2250 4850
-	1    0    0    -1  
-$EndComp
-$Comp
-L Relay:DIPxx-1Axx-11x K2
-U 1 1 620DE9A0
-P 3450 4850
-F 0 "K2" H 3400 5150 50  0000 L CNN
-F 1 "DIPxx-1Axx-11x" H 2950 4500 50  0000 L CNN
-F 2 "Relay_THT:Relay_SPDT_Finder_36.11" H 3800 4800 50  0001 L CNN
-F 3 "https://standexelectronics.com/wp-content/uploads/datasheet_reed_relay_DIP.pdf" H 3450 4850 50  0001 C CNN
-	1    3450 4850
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	1650 5800 1650 6400
 Wire Wire Line
@@ -2550,176 +2511,11 @@ Wire Wire Line
 	3450 6350 9050 6350
 Wire Wire Line
 	9050 4000 9050 6350
-$Comp
-L Device:R R39
-U 1 1 621A97B2
-P 2050 4350
-F 0 "R39" H 2120 4396 50  0000 L CNN
-F 1 "100" H 2120 4305 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" V 1980 4350 50  0001 C CNN
-F 3 "~" H 2050 4350 50  0001 C CNN
-	1    2050 4350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R40
-U 1 1 621CA5FA
-P 3000 4350
-F 0 "R40" H 3070 4396 50  0000 L CNN
-F 1 "1" H 3070 4305 50  0000 L CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" V 2930 4350 50  0001 C CNN
-F 3 "~" H 3000 4350 50  0001 C CNN
-	1    3000 4350
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	3000 4200 3000 4100
-Wire Wire Line
-	2050 4200 2050 4100
-Connection ~ 2050 4100
-Wire Wire Line
-	2050 4100 1700 4100
 Connection ~ 3000 4100
 Wire Wire Line
-	2050 4100 3000 4100
-Wire Wire Line
-	3000 4500 3000 4550
-Wire Wire Line
-	3000 4550 3250 4550
-Wire Wire Line
-	2050 4500 2050 4550
-Wire Wire Line
-	2050 5150 1700 5150
-Connection ~ 1700 5150
-Wire Wire Line
-	3250 5150 3250 5950
-Wire Wire Line
-	3250 5950 2050 5950
-Wire Wire Line
-	2050 5950 2050 5150
-Connection ~ 2050 5150
-$Comp
-L Transistor_BJT:BC547 Q1
-U 1 1 6238DF6C
-P 2700 5350
-F 0 "Q1" H 2891 5396 50  0000 L CNN
-F 1 "BC547" H 2891 5305 50  0000 L CNN
-F 2 "Package_TO_SOT_THT:TO-92_Inline" H 2900 5275 50  0001 L CIN
-F 3 "https://www.onsemi.com/pub/Collateral/BC550-D.pdf" H 2700 5350 50  0001 L CNN
-	1    2700 5350
-	-1   0    0    -1  
-$EndComp
-$Comp
-L Diode:1N4007 D15
-U 1 1 62391AE0
-P 2650 4850
-F 0 "D15" V 2604 4930 50  0000 L CNN
-F 1 "1N4007" V 2695 4930 50  0000 L CNN
-F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 2650 4675 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 2650 4850 50  0001 C CNN
-	1    2650 4850
-	0    1    1    0   
-$EndComp
-$Comp
-L Diode:1N4007 D16
-U 1 1 62394934
-P 3850 4850
-F 0 "D16" V 3804 4930 50  0000 L CNN
-F 1 "1N4007" V 3895 4930 50  0000 L CNN
-F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 3850 4675 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 3850 4850 50  0001 C CNN
-	1    3850 4850
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	3650 4550 3850 4550
-Wire Wire Line
 	3850 4550 3850 4600
-Wire Wire Line
-	2450 4550 2550 4550
-Wire Wire Line
-	2650 4550 2650 4700
-Wire Wire Line
-	2650 5000 2650 5150
-Wire Wire Line
-	2650 5150 2600 5150
-Wire Wire Line
-	3850 5000 3850 5150
-Wire Wire Line
-	3850 5150 3650 5150
-Connection ~ 2600 5150
-Wire Wire Line
-	2600 5150 2450 5150
-$Comp
-L power:GND #PWR025
-U 1 1 6247383D
-P 2600 5550
-F 0 "#PWR025" H 2600 5300 50  0001 C CNN
-F 1 "GND" H 2605 5377 50  0000 C CNN
-F 2 "" H 2600 5550 50  0001 C CNN
-F 3 "" H 2600 5550 50  0001 C CNN
-	1    2600 5550
-	1    0    0    -1  
-$EndComp
-$Comp
-L Transistor_BJT:BC547 Q2
-U 1 1 62474772
-P 3950 5350
-F 0 "Q2" H 4141 5396 50  0000 L CNN
-F 1 "BC547" H 4141 5305 50  0000 L CNN
-F 2 "Package_TO_SOT_THT:TO-92_Inline" H 4150 5275 50  0001 L CIN
-F 3 "https://www.onsemi.com/pub/Collateral/BC550-D.pdf" H 3950 5350 50  0001 L CNN
-	1    3950 5350
-	-1   0    0    -1  
-$EndComp
-Connection ~ 3850 5150
-$Comp
-L Device:R R41
-U 1 1 6249C881
-P 4400 5350
-F 0 "R41" V 4193 5350 50  0000 C CNN
-F 1 "1K" V 4284 5350 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" V 4330 5350 50  0001 C CNN
-F 3 "~" H 4400 5350 50  0001 C CNN
-	1    4400 5350
-	0    1    1    0   
-$EndComp
-$Comp
-L Device:R R42
-U 1 1 6249E143
-P 4400 5650
-F 0 "R42" V 4193 5650 50  0000 C CNN
-F 1 "1k" V 4284 5650 50  0000 C CNN
-F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P2.54mm_Vertical" V 4330 5650 50  0001 C CNN
-F 3 "~" H 4400 5650 50  0001 C CNN
-	1    4400 5650
-	0    1    1    0   
-$EndComp
-$Comp
-L power:GND #PWR026
-U 1 1 624A01EE
-P 3850 5550
-F 0 "#PWR026" H 3850 5300 50  0001 C CNN
-F 1 "GND" H 3855 5377 50  0000 C CNN
-F 2 "" H 3850 5550 50  0001 C CNN
-F 3 "" H 3850 5550 50  0001 C CNN
-	1    3850 5550
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR024
-U 1 1 624A2D0C
-P 2550 4550
-F 0 "#PWR024" H 2550 4400 50  0001 C CNN
-F 1 "+5V" H 2565 4723 50  0000 C CNN
-F 2 "" H 2550 4550 50  0001 C CNN
-F 3 "" H 2550 4550 50  0001 C CNN
-	1    2550 4550
-	1    0    0    -1  
-$EndComp
-Connection ~ 2550 4550
-Wire Wire Line
-	2550 4550 2650 4550
 $Comp
 L power:+5V #PWR027
 U 1 1 624A4F40
@@ -2736,16 +2532,6 @@ Wire Wire Line
 Connection ~ 3850 4600
 Wire Wire Line
 	3850 4600 3850 4700
-Wire Wire Line
-	4250 5350 4150 5350
-Wire Wire Line
-	4250 5650 4200 5650
-Wire Wire Line
-	4200 5650 4200 5800
-Wire Wire Line
-	4200 5800 2900 5800
-Wire Wire Line
-	2900 5800 2900 5350
 Text Label 14450 8650 0    50   ~ 0
 PA6_1_R
 Text Label 14450 8850 0    50   ~ 0
@@ -2754,14 +2540,6 @@ Wire Wire Line
 	14450 8650 14300 8650
 Wire Wire Line
 	14450 8850 14300 8850
-Text Label 4700 5350 0    50   ~ 0
-PA6_1_R
-Text Label 4700 5650 0    50   ~ 0
-PA9_100_R
-Wire Wire Line
-	4550 5350 4700 5350
-Wire Wire Line
-	4550 5650 4700 5650
 $Comp
 L Connector:Conn_01x01_Male J3
 U 1 1 62695B08
@@ -2814,4 +2592,23 @@ Wire Notes Line
 	1500 2600 800  2600
 Wire Notes Line
 	1500 1950 800  1950
+$Comp
+L Device:R R?
+U 1 1 627C1613
+P 1700 4550
+F 0 "R?" H 1770 4596 50  0000 L CNN
+F 1 "100" H 1770 4505 50  0000 L CNN
+F 2 "" V 1630 4550 50  0001 C CNN
+F 3 "~" H 1700 4550 50  0001 C CNN
+	1    1700 4550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 4100 1700 4400
+Wire Wire Line
+	1700 4700 1700 5150
+Wire Wire Line
+	1700 5150 1600 5150
+Wire Wire Line
+	1700 4100 3000 4100
 $EndSCHEMATC
