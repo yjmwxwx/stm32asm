@@ -1670,8 +1670,23 @@ __du_dian_zu_biao:
 	muls r0, r0, r1
 	asrs r0, r0, # 15
 
+	ldr r3, = z_leijia
+	ldr r4, [r3]
+	adds r4, r4, r0
+	str r4, [r3]
+	ldr r1, = z_leijia_jishu
+	ldr r2, [r1]
+	adds r2, r2, # 1
+	ldr r0, = 256
+	str r2, [r1]
+	cmp r2, r0
+	bne __systick_fanhui
+	movs r2, # 0
+	str r2, [r3]
+	str r2, [r1]
+	asrs r4, r4, # 8
 	ldr r1, = z
-	str r0, [r1]
+	str r4, [r1]
 	
 __systick_fanhui:	
 	ldr r0, = 0xe0000d04
@@ -1710,6 +1725,8 @@ aaa:
 	.equ pinlv, 		0x20000020
 	.equ shezhi_pinlv,	0x20000024
 	.equ liangcheng,	0x20000038
+	.equ z_leijia_jishu,	0x200000a4
+	.equ z_leijia,		0x200000a8
 	.equ jiaozhun_kaiguan,	0x200000ac
 	.equ mr10_0,		0x200000b0
 	.equ mr100_0,		0x200000b4
