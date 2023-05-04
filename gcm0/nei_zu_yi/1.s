@@ -790,7 +790,7 @@ __dft:
 	mov r5, r10
 	mov r6, r11
 	mov r7, r12
-	push {r3-r5}
+	push {r5-r7}
 	ldr r0, = cossin
 	ldr r1, = dianyabiao
 	ldr r0, [r0]
