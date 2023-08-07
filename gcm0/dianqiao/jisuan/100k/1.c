@@ -5,8 +5,8 @@ void main() {
   float m,pi,sr,si;
 
   int rr,ii, n,i;
-  n=256;
-  m=26;
+  n=1000;
+  m=100;
   pi=3.141592;    
 	for(i=0;i<n;i++){
 	   sr=cos(2*pi*i*m/n);
